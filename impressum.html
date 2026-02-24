@@ -4,18 +4,7 @@
 
     </script>
 <head>
-    <!----eyJraWQiOiIxY2UxZTEzNjE3ZGNmNzY2YjNjZWJjY2Y4ZGM1YmFmYThhNjVlNjg0MDIzZjdjMzJiZTgzNDliMjM4MDEzNWI0IiwidHlwIjoiUEFUIiwiYWxnIjoiRVMyNTYifQ.eyJpc3MiOiJodHRwczovL2F1dGguY2FsZW5kbHkuY29tIiwiaWF0IjoxNzM0MzY1Mjg0LCJqdGkiOiI0MTkwMmFkMy1mOTlkLTRmZmUtOTgzZi05M2ZkYjkwZDg1NmYiLCJ1c2VyX3V1aWQiOiI2MzJmYTkwOS1iNzQ3LTRiZGItOWFhMy1mNDY0NWMyNjZlMTgifQ.S4hk-E3Bjl4-qtnfejYw_PlTPrdHP7PnJZQmapHSb9sboA_3VSkatXzBIaKMzCiam9iXuFTgO1DW4Aa9NB5Sig -->
-    <!-- Calendly link widget begin -->
     <link rel="stylesheet" href="style.css">
-    <link 
-        href="https://calendly.com/assets/external/widget.css" 
-        rel="stylesheet"
-        id="buchen">
-    <script 
-    src="https://calendly.com/assets/external/widget.js" 
-    type="text/javascript"></script>
-    <!-- Calendly link widget end -->
-
     <script src="script.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -32,7 +21,7 @@
                 <!-- Navigationslinks -->
                 <a href="/index.html">Startseite</a>
                 <a href="/impressum.html">Impressum</a>
-                <a onclick="Calendly.initPopupWidget({url:'https://calendly.com/termin-faszienbehandlung/jetzt'}); return false;"><b>BUCHEN!</b></a>
+                <a class="appointment-trigger"><b>BUCHEN!</b></a>
             </nav>
             <!-- Kurze Beschreibung -->
             <p class="description"><b>JETZT!</b> ein Termin vereinbaren </p>
@@ -57,6 +46,19 @@
         </div>
         <div class="footer">
             <p><a href="">© 2024 Thilo Seifried</a></p>
+        </div>
+
+        <div id="appointment-modal" class="appointment-modal" aria-hidden="true">
+            <div class="appointment-modal-content">
+                <button id="appointment-close" class="appointment-close" aria-label="Terminfenster schließen">×</button>
+                <iframe
+                    id="appointment-iframe"
+                    title="Nextcloud Terminbuchung"
+                    src="https://NEXTCLOUD-DOMAIN.TLD/index.php/apps/appointments/pub/YOUR-LINK"
+                    loading="lazy"
+                    allow="fullscreen"
+                ></iframe>
+            </div>
         </div>
     </body>
 </html>
