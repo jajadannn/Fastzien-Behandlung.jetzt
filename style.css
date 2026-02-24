@@ -20,16 +20,16 @@ body.modal-open {
     display: flex;
     justify-content: center;
     align-items: center;
+    gap: 16px;
 }
 
 .header img {
     height: 80px;
     width: auto;
-    margin-right: 15px;
 }
 
 .nav {
-    margin-top: 10px;
+    margin-top: 14px;
 }
 
 .nav a {
@@ -44,13 +44,15 @@ body.modal-open {
 }
 
 .description {
-    font-size: 1.2em;
-    margin-top: 10px;
+    font-size: 1.1em;
+    margin: 8px 0 0;
     color: #F5E9F1;
 }
 
 .main {
     padding: 20px;
+    max-width: 980px;
+    margin: 0 auto 90px;
 }
 
 .content {
@@ -78,8 +80,9 @@ body.modal-open {
 }
 
 .content a {
+    display: inline-block;
     color: #F5E9F1;
-    padding: 8px;
+    padding: 8px 12px;
     background-color: #886C9A;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -125,6 +128,34 @@ body.modal-open {
     font-size: 1.1rem;
 }
 
+.appointment-help {
+    display: none;
+    margin: 0;
+    padding: 12px 20px;
+    background: #f7f4f8;
+    color: #593c59;
+    font-size: 0.95rem;
+}
+
+.appointment-help.is-visible {
+    display: block;
+}
+
+.appointment-direct-link {
+    display: none;
+    margin: 10px 20px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background-color: #886C9A;
+    color: #ffffff;
+    text-decoration: none;
+    width: fit-content;
+}
+
+.appointment-direct-link.is-visible {
+    display: inline-block;
+}
+
 #appointment-iframe {
     border: 0;
     width: 100%;
@@ -157,11 +188,6 @@ body.modal-open {
     .header-container {
         flex-direction: column;
         text-align: center;
-    }
-
-    .header img {
-        margin-right: 0;
-        margin-bottom: 10px;
     }
 
     .nav {
