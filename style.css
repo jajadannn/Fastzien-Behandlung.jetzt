@@ -133,20 +133,6 @@ body.modal-open {
     flex: 1;
 }
 
-.appointment-hint {
-    margin: 0;
-    padding: 18px 20px;
-    color: #532241;
-    background-color: #f6eef3;
-    line-height: 1.6;
-}
-
-.appointment-hint a {
-    display: inline-block;
-    margin-left: 8px;
-    font-weight: bold;
-    color: #964279;
-}
 
 .appointment-close {
     position: absolute;
