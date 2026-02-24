@@ -7,7 +7,7 @@ setInterval(function () {
 }, 10000);
 
 // TODO: Diesen Link mit deinem öffentlichen Nextcloud-Appointments-Link ersetzen.
-const NEXTCLOUD_APPOINTMENT_URL = "https://nextcloud.example.com/apps/appointments/pub/DEIN-LINK";
+const NEXTCLOUD_APPOINTMENT_URL = "https://cloud.sdlv.de/apps/calendar/appointment/aRm9fmasaa5x";
 
 document.addEventListener("DOMContentLoaded", function () {
     const modal = document.getElementById("appointment-modal");
