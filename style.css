@@ -78,11 +78,13 @@ body.modal-open {
 }
 
 .content a {
+    display: inline-block;
     color: #F5E9F1;
-    padding: 8px;
+    padding: 8px 12px;
     background-color: #886C9A;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-decoration: none;
 }
 
 .content a:hover {
@@ -125,6 +127,24 @@ body.modal-open {
     font-size: 1.1rem;
 }
 
+.appointment-status {
+    margin: 0;
+    padding: 10px 20px;
+    background: #fff4d8;
+    color: #6c4c00;
+    font-size: 0.95rem;
+}
+
+.appointment-fallback-link {
+    margin: 8px 20px;
+    color: #ffffff;
+    background: #886C9A;
+    padding: 10px 12px;
+    border-radius: 8px;
+    text-decoration: none;
+    width: fit-content;
+}
+
 #appointment-iframe {
     border: 0;
     width: 100%;
@@ -148,9 +168,6 @@ body.modal-open {
     color: #F5E9F1;
     text-align: center;
     padding: 10px;
-    position: fixed;
-    width: 100%;
-    bottom: 0;
 }
 
 @media (max-width: 768px) {
