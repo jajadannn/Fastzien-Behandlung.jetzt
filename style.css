@@ -51,6 +51,8 @@ body.modal-open {
 
 .main {
     padding: 20px;
+    max-width: 1000px;
+    margin: 0 auto 90px;
 }
 
 .content {
@@ -130,6 +132,7 @@ body.modal-open {
     width: 100%;
     flex: 1;
 }
+
 
 .appointment-close {
     position: absolute;

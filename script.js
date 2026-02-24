@@ -1,12 +1,3 @@
-const titelname = ["Faszienbehandlung - Thilo Seifried", "Faszienbehandlung Buchen"];
-let i = 0;
-
-setInterval(function () {
-    document.getElementById("titel").textContent = titelname[i];
-    i = (i + 1) % titelname.length;
-}, 10000);
-
-// TODO: Diesen Link mit deinem öffentlichen Nextcloud-Appointments-Link ersetzen.
 const NEXTCLOUD_APPOINTMENT_URL = "https://cloud.sdlv.de/apps/calendar/appointment/aRm9fmasaa5x";
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -14,7 +5,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const iframe = document.getElementById("appointment-iframe");
     const closeButton = document.getElementById("appointment-close");
     const triggers = document.querySelectorAll(".book-trigger");
-
     function openAppointmentModal() {
         iframe.src = NEXTCLOUD_APPOINTMENT_URL;
         modal.classList.add("is-open");
@@ -28,6 +18,7 @@ document.addEventListener("DOMContentLoaded", function () {
         iframe.removeAttribute("src");
         document.body.classList.remove("modal-open");
     }
+
 
     triggers.forEach((trigger) => {
         trigger.addEventListener("click", openAppointmentModal);
