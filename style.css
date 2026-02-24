@@ -4,42 +4,55 @@ body {
     padding: 0;
     background-color: #70AECD;
 }
+
+body.modal-open {
+    overflow: hidden;
+}
+
 .header {
     background-color: #964279;
     color: #F5E9F1;
     padding: 15px;
     text-align: center;
 }
+
 .header-container {
     display: flex;
     justify-content: center;
     align-items: center;
 }
+
 .header img {
-    height: 80px; /* Neue Höhe des Logos */
-    width: auto;  /* Automatische Anpassung der Breite, um das Seitenverhältnis beizubehalten */
+    height: 80px;
+    width: auto;
     margin-right: 15px;
 }
+
 .nav {
     margin-top: 10px;
 }
+
 .nav a {
     color: #F5E9F1;
     text-decoration: none;
     margin: 0 15px;
 }
+
 .nav a:hover {
     color: #70AECD;
     cursor: pointer;
 }
+
 .description {
     font-size: 1.2em;
     margin-top: 10px;
     color: #F5E9F1;
 }
+
 .main {
     padding: 20px;
 }
+
 .content {
     margin-bottom: 20px;
     padding: 20px;
@@ -47,28 +60,35 @@ body {
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
+
 .content h2 {
     color: #8E588B;
     font-size: 1.5em;
 }
-.content p, .content ul {
+
+.content p,
+.content ul {
     color: #964279;
     line-height: 1.6;
 }
+
 .content ul {
     padding-left: 20px;
     list-style-type: disc;
 }
+
 .content a {
-    color:#F5E9F1;
+    color: #F5E9F1;
     padding: 8px;
-    background-color:#886C9A;
+    background-color: #886C9A;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
-.content a:hover{
+
+.content a:hover {
     cursor: pointer;
 }
+
 .footer {
     background-color: #964279;
     color: #F5E9F1;
@@ -78,6 +98,53 @@ body {
     width: 100%;
     bottom: 0;
 }
+
+.modal {
+    position: fixed;
+    inset: 0;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    padding: 24px;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 1000;
+}
+
+.modal.is-visible {
+    display: flex;
+}
+
+.modal-content {
+    position: relative;
+    width: min(900px, 100%);
+    height: min(80vh, 760px);
+    background: #ffffff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+}
+
+.modal-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 36px;
+    height: 36px;
+    border: 0;
+    border-radius: 50%;
+    background: #964279;
+    color: #ffffff;
+    font-size: 24px;
+    cursor: pointer;
+    z-index: 1;
+}
+
+#appointment-iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+
 @media (max-width: 768px) {
     .header-container {
         flex-direction: column;
@@ -105,5 +172,13 @@ body {
 
     .footer {
         padding: 20px;
+    }
+
+    .modal {
+        padding: 12px;
+    }
+
+    .modal-content {
+        height: 85vh;
     }
 }
