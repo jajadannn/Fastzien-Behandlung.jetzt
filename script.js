@@ -1,4 +1,4 @@
-const NEXTCLOUD_APPOINTMENT_URL = "https://cloud.sdlv.de/apps/calendar/appointment/aRm9fmasaa5x";
+const NEXTCLOUD_APPOINTMENT_URL = "https://cloud.sdlv.de/apps/appointments/embed/E0AqabqA4GvBQNQw/form/";
 
 document.addEventListener("DOMContentLoaded", function () {
     const modal = document.getElementById("appointment-modal");
