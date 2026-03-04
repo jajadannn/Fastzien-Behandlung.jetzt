@@ -193,3 +193,78 @@ body.modal-open {
         padding: 20px;
     }
 }
+.footer-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.9em;
+}
+
+.footer-content a {
+    color: #F5E9F1;
+    text-decoration: none;
+}
+
+.footer-content a:hover {
+    text-decoration: underline;
+}
+
+/* Details/Summary für FAQ */
+details {
+    margin-bottom: 1em;
+    border: 1px solid #886C9A;
+    border-radius: 8px;
+    padding: 0.5em 1em;
+    background-color: #ffffff;
+}
+
+summary {
+    font-weight: bold;
+    color: #964279;
+    cursor: pointer;
+}
+
+summary:focus {
+    outline: 2px solid #70AECD;
+}
+
+details p {
+    margin: 0.5em 0 0;
+    padding-top: 0.5em;
+    border-top: 1px dashed #886C9A;
+    color: #333;
+}
+
+/* Listen in den Preisen */
+.content ul, .content ol {
+    margin: 10px 0 10px 20px;
+    color: #964279;
+}
+
+/* Buchungs-Button im CTA */
+#buchen-cta a.book-trigger {
+    display: inline-block;
+    background-color: #964279;
+    color: #F5E9F1;
+    padding: 12px 24px;
+    border-radius: 40px;
+    text-decoration: none;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+#buchen-cta a.book-trigger:hover {
+    background-color: #7a3661;
+}
+
+/* Kleine Anpassung für Mobil */
+@media (max-width: 768px) {
+    .footer-content {
+        font-size: 0.8em;
+    }
+
+    details {
+        padding: 0.3em 0.8em;
+    }
+}
