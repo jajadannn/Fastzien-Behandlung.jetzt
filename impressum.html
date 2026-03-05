@@ -178,3 +178,20 @@
     <p>
       © 2025 Thilo Seifried · Gantke® Faszienbehandler · Sulgen
       &nbsp;·
+      <a href="index.html">Startseite</a>
+      &nbsp;&middot;&nbsp;
+      <a href="impressum.html" aria-current="page">Impressum</a>
+    </p>
+  </footer>
+
+  <script>
+    const EMAIL = ["termin", "faszienbehandlung.jetzt"];
+    const mail = `${EMAIL[0]}@${EMAIL[1]}`;
+    document.querySelectorAll(".js-email").forEach((el) => {
+      el.textContent = mail;
+      el.setAttribute("href", `mailto:${mail}`);
+      el.setAttribute("aria-label", `E-Mail an ${mail}`);
+    });
+  </script>
+</body>
+</html>
