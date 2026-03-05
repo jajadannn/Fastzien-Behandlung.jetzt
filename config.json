@@ -1,0 +1,12 @@
+{
+  "phone": "+49 152 34 00 72 25",
+  "phone_raw": "+4915234007225",
+  "email": "termin@faszienbehandlung.jetzt",
+  "hours_weekday": "Mo–Fr: 16:00–22:00 Uhr",
+  "hours_saturday": "Sa: 9:00–19:00 Uhr",
+  "hours_stripe": "Mo–Fr 16:00–22:00 Uhr · Sa 9:00–19:00 Uhr",
+  "price_single": "195",
+  "price_card": "169,90",
+  "address_street": "Sulgauer Straße 24",
+  "address_city": "78655 Sulgen"
+}
