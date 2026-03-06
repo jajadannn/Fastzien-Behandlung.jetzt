@@ -292,7 +292,7 @@
     .modal-header h2{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:600;color:var(--white)}
     .modal-close{position:absolute;right:14px;top:10px;background:rgba(255,255,255,0.15);border:none;color:var(--white);width:34px;height:34px;border-radius:50%;font-size:1.4rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s}
     .modal-close:hover{background:rgba(255,255,255,0.3)}
-    #appointment-iframe{border:0;width:100%;flex:1}
+    #appointment-iframe{border:0;width:100%;flex:1;overflow:hidden;touch-action:none}
     .modal-fallback{padding:10px 20px;background:var(--sky-pale);border-top:1px solid var(--border);display:none;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;flex-shrink:0}
     .modal-fallback.is-visible{display:flex}
     .modal-fallback p{font-size:.8rem;color:var(--text-mid)}
@@ -636,7 +636,7 @@
       <div class="modal-header">
         <h2 id="modal-title">Termin buchen – Faszienbehandlung Thilo Seifried</h2>
       </div>
-      <iframe id="appointment-iframe" title="Online-Terminbuchung Faszienbehandlung Thilo Seifried" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+      <iframe id="appointment-iframe" title="Online-Terminbuchung Faszienbehandlung Thilo Seifried" loading="lazy" scrolling="no" referrerpolicy="strict-origin-when-cross-origin"></iframe>
       <div class="modal-fallback">
         <p>Fenster lädt nicht?</p>
         <div class="modal-fallback-links">
