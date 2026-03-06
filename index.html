@@ -113,9 +113,15 @@
     .btn-book:hover{background:var(--plum-dark)!important;transform:translateY(-1px)}
 
     /* HERO */
-    .hero{background:linear-gradient(160deg,var(--sky) 0%,var(--sky-dark) 100%);min-height:88vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:80px 24px 60px;position:relative;overflow:hidden}
-    .hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 20% 60%,rgba(255,255,255,0.1) 0%,transparent 60%),radial-gradient(ellipse 40% 60% at 80% 20%,rgba(122,54,97,0.15) 0%,transparent 50%);pointer-events:none}
-    .hero-inner{position:relative;z-index:1;max-width:760px}
+    .hero{
+      background:linear-gradient(160deg,var(--sky) 0%,var(--sky-dark) 100%);
+      min-height:calc(100svh - 63px);display:flex;align-items:center;justify-content:center;text-align:center;padding:80px 24px 60px;position:relative;overflow:hidden
+    }
+    .hero-media{position:absolute;inset:0;z-index:0;pointer-events:none}
+    .hero-media img{width:100%;height:100%;object-fit:cover;object-position:center 18%;display:block}
+    .hero::after{content:'';position:absolute;inset:0;background:linear-gradient(160deg,rgba(26,42,51,0.58) 0%,rgba(26,42,51,0.42) 55%,rgba(77,147,184,0.35) 100%);pointer-events:none;z-index:1}
+    .hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 20% 60%,rgba(255,255,255,0.1) 0%,transparent 60%),radial-gradient(ellipse 40% 60% at 80% 20%,rgba(122,54,97,0.15) 0%,transparent 50%);pointer-events:none;z-index:2}
+    .hero-inner{position:relative;z-index:3;max-width:760px}
     .hero-badge{display:inline-block;background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.35);color:var(--white);font-size:.78rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;padding:6px 18px;border-radius:50px;margin-bottom:28px}
     .hero h1{font-family:'Cormorant Garamond',serif;font-size:clamp(2.8rem,7vw,5.5rem);font-weight:600;color:var(--white);line-height:1.1;margin-bottom:20px;letter-spacing:-.02em}
     .hero h1 em{font-style:italic;font-weight:300}
@@ -168,8 +174,8 @@
     /* ABOUT */
     .about-split{display:grid;grid-template-columns:280px 1fr;gap:48px;align-items:flex-start;margin-top:40px}
     .about-photo-wrap{display:flex;flex-direction:column;align-items:center;gap:16px}
-    .about-photo{width:240px;height:280px;border-radius:20px;box-shadow:0 12px 40px rgba(112,174,205,0.25);border:3px solid var(--white);background:linear-gradient(145deg,var(--sky-pale),#c5e4f0);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;font-size:.82rem;color:var(--text-light);text-align:center;padding:20px;line-height:1.5}
-    .about-photo span{font-size:2rem}
+    .about-photo{width:240px;height:280px;border-radius:20px;box-shadow:0 12px 40px rgba(112,174,205,0.25);border:3px solid var(--white);background:var(--sky-pale);overflow:hidden}
+    .about-photo img{width:100%;height:100%;object-fit:cover;object-position:center 14%;display:block}
     .about-creds{width:100%;display:flex;flex-direction:column;gap:8px}
     .cred-badge{display:flex;align-items:center;gap:8px;background:var(--white);border:1px solid var(--border);border-radius:10px;padding:8px 14px;font-size:.83rem;font-weight:500;color:var(--text-mid)}
     .cred-badge .ci{color:var(--sky-dark)}
@@ -281,21 +287,18 @@
     .modal-overlay.is-open{display:flex}
     .modal-box{position:relative;background:var(--white);width:min(920px,100%);height:min(88vh,740px);border-radius:24px;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,0.45);display:flex;flex-direction:column;animation:modalPop .35s cubic-bezier(0.34,1.56,0.64,1)}
     @keyframes modalPop{from{opacity:0;transform:scale(.9) translateY(24px)}to{opacity:1;transform:scale(1) translateY(0)}}
+    .modal-drag-handle{display:none}
     .modal-header{padding:16px 52px 16px 24px;background:linear-gradient(135deg,var(--sky-dark),var(--plum-dark));flex-shrink:0}
     .modal-header h2{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:600;color:var(--white)}
     .modal-close{position:absolute;right:14px;top:10px;background:rgba(255,255,255,0.15);border:none;color:var(--white);width:34px;height:34px;border-radius:50%;font-size:1.4rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s}
     .modal-close:hover{background:rgba(255,255,255,0.3)}
     #appointment-iframe{border:0;width:100%;flex:1}
-    .modal-fallback{padding:10px 20px;background:var(--sky-pale);border-top:1px solid var(--border);display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;flex-shrink:0}
+    .modal-fallback{padding:10px 20px;background:var(--sky-pale);border-top:1px solid var(--border);display:none;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;flex-shrink:0}
+    .modal-fallback.is-visible{display:flex}
     .modal-fallback p{font-size:.8rem;color:var(--text-mid)}
     .modal-fallback-links{display:flex;flex-wrap:wrap;gap:10px}
     .modal-fallback a{font-size:.8rem;color:var(--plum);text-decoration:none;font-weight:500;white-space:nowrap}
     .modal-fallback a:hover{text-decoration:underline}
-
-    /* MOBILE CTA */
-    .mobile-cta-bar{display:none;position:fixed;bottom:0;left:0;right:0;z-index:300;background:var(--white);border-top:1px solid var(--border);padding:12px 16px;padding-bottom:max(12px,env(safe-area-inset-bottom));box-shadow:0 -4px 24px rgba(0,0,0,0.1)}
-    .mobile-cta-bar button{width:100%;background:linear-gradient(135deg,var(--plum) 0%,var(--plum-dark) 100%);color:var(--white);border:none;border-radius:14px;padding:16px;font-size:1rem;font-weight:700;letter-spacing:.04em;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;font-family:'DM Sans',sans-serif;min-height:54px}
-    .mobile-cta-bar button:active{transform:scale(.98)}
 
     /* RESPONSIVE */
     @media(max-width:768px){
@@ -303,16 +306,15 @@
       .topbar-brand{display:none}
       .topbar-links a:not(.btn-book){display:none}
       .btn-book{padding:10px 18px!important;font-size:.85rem!important}
-      .mobile-cta-bar{display:block}
-      body{padding-bottom:76px}
-      .hero{min-height:100svh;padding:52px 20px 40px;align-items:flex-start}
-      .hero-inner{text-align:left}
+      .hero{min-height:calc(100svh - 59px);padding:52px 20px 40px;align-items:flex-start}
+      .hero-media img{object-position:center 16%}
+      .hero-inner{text-align:center}
       .hero h1{font-size:clamp(2.4rem,10vw,3.5rem)}
-      .hero-sub{font-size:1rem;margin-left:0;margin-right:0;text-align:left}
+      .hero-sub{font-size:1rem;margin-left:auto;margin-right:auto;text-align:center}
       .hero-cta-group{flex-direction:column;align-items:stretch;gap:12px}
       .btn-primary{width:100%;justify-content:center;min-height:52px}
       .btn-secondary{width:100%;justify-content:center;min-height:48px}
-      .hero-note{text-align:left;font-size:.8rem;line-height:1.6}
+      .hero-note{text-align:center;font-size:.8rem;line-height:1.6}
       .trust-bar{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
       .trust-bar::-webkit-scrollbar{display:none}
       .trust-bar-inner{flex-wrap:nowrap;justify-content:flex-start;min-width:max-content;padding:0 16px}
@@ -327,8 +329,8 @@
       .pain-card p{font-size:.82rem}
       .about-split{grid-template-columns:1fr;gap:24px}
       .about-photo-wrap{flex-direction:row;align-items:flex-start;gap:16px}
-      .about-photo{width:110px;height:130px;border-radius:14px;font-size:.7rem;padding:10px}
-      .about-photo span{font-size:1.5rem}
+      .about-photo{width:110px;height:130px;border-radius:14px}
+      .about-photo img{object-position:center 22%}
       .fact-row{grid-template-columns:1fr 1fr}
       .steps-row{grid-template-columns:1fr;gap:24px}
       .step{flex-direction:row;align-items:flex-start;gap:16px}
@@ -348,6 +350,10 @@
       .footer-bottom{flex-direction:column;text-align:center}
       .modal-overlay{padding:0;align-items:flex-end}
       .modal-box{width:100%;height:95svh;border-radius:20px 20px 0 0;animation:modalSlideUp .35s cubic-bezier(0.34,1.2,0.64,1)}
+      .modal-close{display:none}
+      .modal-box.is-dragging{animation:none;transition:none}
+      .modal-drag-handle{display:flex;justify-content:center;align-items:center;padding:10px 0 4px;background:var(--white);flex-shrink:0;touch-action:none}
+      .modal-drag-handle::before{content:'';width:44px;height:4px;border-radius:999px;background:rgba(61,90,107,0.35)}
       @keyframes modalSlideUp{from{opacity:0;transform:translateY(100%)}to{opacity:1;transform:translateY(0)}}
       .modal-fallback{flex-direction:column;align-items:flex-start}
     }
@@ -378,6 +384,9 @@
 
   <main id="main-content">
   <section class="hero" id="home">
+    <div class="hero-media" aria-hidden="true">
+      <img src="Start.avif" alt="" fetchpriority="high" decoding="async" onerror="this.onerror=null;this.src='Portrait.jpg';">
+    </div>
     <div class="hero-inner">
       <div class="hero-badge">✦ Gantke® zertifizierter Faszienbehandler · Sulgen / Schramberg</div>
       <h1>Endlich wieder<br><em>schmerzfrei</em> bewegen.</h1>
@@ -428,12 +437,9 @@
       <h2 class="section-title">Dein Behandler –<br><em>Mensch & Fachmann</em></h2>
       <div class="about-split">
         <div class="about-photo-wrap">
-          <!-- Foto einbinden sobald vorhanden:
-          <img src="thilo-seifried-faszienbehandler-sulgen.avif"
-               alt="Thilo Seifried – Gantke® Faszienbehandler in Sulgen"
-               width="240" height="280">
-          -->
-          <div class="about-photo"><span>📸</span>Hier kommt ein Foto von Thilo<br><small>(Portrait oder Behandlungsraum)</small></div>
+          <div class="about-photo">
+            <img src="Portrait.jpg" alt="Thilo Seifried – Gantke® Faszienbehandler in Sulgen" width="240" height="280" loading="lazy" decoding="async">
+          </div>
           <div class="about-creds">
             <div class="cred-badge"><span class="ci">🎓</span> Gantke® zertifizierter Faszienbehandler</div>
             <div class="cred-badge"><span class="ci">📍</span> Sulgen (Schramberg), BW</div>
@@ -623,12 +629,9 @@
     </div>
   </footer>
 
-  <div class="mobile-cta-bar" role="complementary" aria-label="Termin buchen">
-    <button class="book-trigger">📅 Jetzt Termin buchen</button>
-  </div>
-
   <div id="appointment-modal" class="modal-overlay" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="modal-title">
     <div class="modal-box">
+      <div class="modal-drag-handle" aria-hidden="true"></div>
       <button type="button" id="appointment-close" class="modal-close" aria-label="Terminfenster schließen">&#215;</button>
       <div class="modal-header">
         <h2 id="modal-title">Termin buchen – Faszienbehandlung Thilo Seifried</h2>
@@ -648,21 +651,134 @@
   <script>
     const BOOKING_URL = "https://cloud.sdlv.de/apps/appointments/embed/7GAGc8Ctarv8Y7Gt/form";
     const modal    = document.getElementById("appointment-modal");
+    const modalBox = modal.querySelector(".modal-box");
+    const modalHeader = modal.querySelector(".modal-header");
+    const modalDragHandle = modal.querySelector(".modal-drag-handle");
     const iframe   = document.getElementById("appointment-iframe");
+    const modalFallback = modal.querySelector(".modal-fallback");
     const closeBtn = document.getElementById("appointment-close");
+    const SWIPE_CLOSE_THRESHOLD = 120;
+    const IFRAME_LOAD_TIMEOUT_MS = 2500;
+    let swipeStartY = 0;
+    let swipeDeltaY = 0;
+    let isSwiping = false;
+    let iframeLoadTimer = null;
+    let iframeInteractionDetected = false;
+
+    function isMobileView() {
+      return window.matchMedia("(max-width: 768px)").matches;
+    }
+    function showModalFallback() {
+      modalFallback.classList.add("is-visible");
+    }
+    function hideModalFallback() {
+      modalFallback.classList.remove("is-visible");
+    }
+    function getIframeHrefSafe() {
+      try {
+        return iframe.contentWindow?.location?.href || "";
+      } catch (_err) {
+        // Cross-origin frames are not readable from parent JS.
+        return null;
+      }
+    }
+    function isKnownIframeErrorUrl(href) {
+      return (
+        href === "" ||
+        href === "about:blank" ||
+        href.startsWith("about:blank#") ||
+        href.startsWith("about:srcdoc") ||
+        href.startsWith("chrome-error://") ||
+        href.startsWith("edge-error://") ||
+        href.startsWith("about:neterror")
+      );
+    }
+    function isKnownIframeSuccessUrl(href) {
+      return href.startsWith("https://") || href.startsWith("http://");
+    }
+    function evaluateIframeLoadState(forceForUnknown = false) {
+      if (!modal.classList.contains("is-open")) return;
+      const href = getIframeHrefSafe();
+      if (typeof href === "string") {
+        if (isKnownIframeErrorUrl(href)) {
+          showModalFallback();
+          return;
+        }
+        if (isKnownIframeSuccessUrl(href)) {
+          hideModalFallback();
+          clearIframeLoadTimer();
+          return;
+        }
+      }
+      if (forceForUnknown && !iframeInteractionDetected) {
+        showModalFallback();
+        return;
+      }
+    }
+    function clearIframeLoadTimer() {
+      if (!iframeLoadTimer) return;
+      clearTimeout(iframeLoadTimer);
+      iframeLoadTimer = null;
+    }
+    function startIframeLoadTimer() {
+      clearIframeLoadTimer();
+      iframeLoadTimer = setTimeout(() => {
+        if (!modal.classList.contains("is-open")) return;
+        evaluateIframeLoadState(true);
+      }, IFRAME_LOAD_TIMEOUT_MS);
+    }
+    function resetModalSwipeState() {
+      isSwiping = false;
+      swipeDeltaY = 0;
+      modalBox.classList.remove("is-dragging");
+      modalBox.style.transform = "";
+      modalBox.style.opacity = "";
+    }
+    function startSwipe(clientY) {
+      if (!isMobileView() || !modal.classList.contains("is-open")) return;
+      swipeStartY = clientY;
+      swipeDeltaY = 0;
+      isSwiping = true;
+      modalBox.classList.add("is-dragging");
+    }
+    function moveSwipe(clientY) {
+      if (!isSwiping) return;
+      swipeDeltaY = Math.max(0, clientY - swipeStartY);
+      modalBox.style.transform = `translateY(${swipeDeltaY}px)`;
+      modalBox.style.opacity = `${1 - Math.min(swipeDeltaY / 420, 0.25)}`;
+    }
+    function endSwipe() {
+      if (!isSwiping) return;
+      const shouldClose = swipeDeltaY > SWIPE_CLOSE_THRESHOLD;
+      resetModalSwipeState();
+      if (shouldClose) closeModal();
+    }
 
     function openModal() {
+      resetModalSwipeState();
+      iframeInteractionDetected = false;
+      hideModalFallback();
       iframe.src = BOOKING_URL;
+      startIframeLoadTimer();
       modal.classList.add("is-open");
       modal.setAttribute("aria-hidden", "false");
       document.body.classList.add("no-scroll");
       closeBtn.focus();
     }
     function closeModal() {
+      resetModalSwipeState();
+      iframeInteractionDetected = false;
+      clearIframeLoadTimer();
+      hideModalFallback();
       modal.classList.remove("is-open");
       modal.setAttribute("aria-hidden", "true");
       iframe.removeAttribute("src");
       document.body.classList.remove("no-scroll");
+    }
+    function markIframeInteraction() {
+      iframeInteractionDetected = true;
+      hideModalFallback();
+      clearIframeLoadTimer();
     }
 
     document.querySelectorAll(".book-trigger").forEach((el) => el.addEventListener("click", openModal));
@@ -672,6 +788,35 @@
     });
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape" && modal.classList.contains("is-open")) closeModal();
+    });
+    iframe.addEventListener("load", () => {
+      if (!modal.classList.contains("is-open")) return;
+      setTimeout(evaluateIframeLoadState, 120);
+    });
+    iframe.addEventListener("error", () => {
+      if (!modal.classList.contains("is-open")) return;
+      clearIframeLoadTimer();
+      showModalFallback();
+    });
+    iframe.addEventListener("focus", markIframeInteraction);
+    iframe.addEventListener("pointerdown", markIframeInteraction);
+    iframe.addEventListener("touchstart", markIframeInteraction, { passive: true });
+    window.addEventListener("offline", () => {
+      if (modal.classList.contains("is-open")) showModalFallback();
+    });
+    [modalDragHandle, modalHeader].forEach((target) => {
+      if (!target) return;
+      target.addEventListener("touchstart", (e) => {
+        if (e.touches.length !== 1) return;
+        startSwipe(e.touches[0].clientY);
+      }, { passive: true });
+      target.addEventListener("touchmove", (e) => {
+        if (!isSwiping || e.touches.length !== 1) return;
+        moveSwipe(e.touches[0].clientY);
+        if (swipeDeltaY > 0) e.preventDefault();
+      }, { passive: false });
+      target.addEventListener("touchend", endSwipe);
+      target.addEventListener("touchcancel", endSwipe);
     });
 
     // Reveal elements on scroll.
