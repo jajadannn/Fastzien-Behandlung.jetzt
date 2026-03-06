@@ -658,12 +658,12 @@
     const modalFallback = modal.querySelector(".modal-fallback");
     const closeBtn = document.getElementById("appointment-close");
     const SWIPE_CLOSE_THRESHOLD = 120;
-    const IFRAME_LOAD_TIMEOUT_MS = 2500;
+    const IFRAME_LOAD_TIMEOUT_MS = 5000;
     let swipeStartY = 0;
     let swipeDeltaY = 0;
     let isSwiping = false;
     let iframeLoadTimer = null;
-    let iframeInteractionDetected = false;
+    let iframeHasLoaded = false;
 
     function isMobileView() {
       return window.matchMedia("(max-width: 768px)").matches;
@@ -710,7 +710,7 @@
           return;
         }
       }
-      if (forceForUnknown && !iframeInteractionDetected) {
+      if (forceForUnknown && !iframeHasLoaded) {
         showModalFallback();
         return;
       }
@@ -756,7 +756,7 @@
 
     function openModal() {
       resetModalSwipeState();
-      iframeInteractionDetected = false;
+      iframeHasLoaded = false;
       hideModalFallback();
       iframe.src = BOOKING_URL;
       startIframeLoadTimer();
@@ -767,18 +767,13 @@
     }
     function closeModal() {
       resetModalSwipeState();
-      iframeInteractionDetected = false;
+      iframeHasLoaded = false;
       clearIframeLoadTimer();
       hideModalFallback();
       modal.classList.remove("is-open");
       modal.setAttribute("aria-hidden", "true");
       iframe.removeAttribute("src");
       document.body.classList.remove("no-scroll");
-    }
-    function markIframeInteraction() {
-      iframeInteractionDetected = true;
-      hideModalFallback();
-      clearIframeLoadTimer();
     }
 
     document.querySelectorAll(".book-trigger").forEach((el) => el.addEventListener("click", openModal));
@@ -791,16 +786,17 @@
     });
     iframe.addEventListener("load", () => {
       if (!modal.classList.contains("is-open")) return;
-      setTimeout(evaluateIframeLoadState, 120);
+      iframeHasLoaded = true;
+      clearIframeLoadTimer();
+      const href = getIframeHrefSafe();
+      if (typeof href === "string" && isKnownIframeErrorUrl(href)) showModalFallback();
+      else hideModalFallback();
     });
     iframe.addEventListener("error", () => {
       if (!modal.classList.contains("is-open")) return;
       clearIframeLoadTimer();
       showModalFallback();
     });
-    iframe.addEventListener("focus", markIframeInteraction);
-    iframe.addEventListener("pointerdown", markIframeInteraction);
-    iframe.addEventListener("touchstart", markIframeInteraction, { passive: true });
     window.addEventListener("offline", () => {
       if (modal.classList.contains("is-open")) showModalFallback();
     });
