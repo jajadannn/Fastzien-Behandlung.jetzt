@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Gantke® Faszienbehandlung Sulgen & Dunningen | Thilo Seifried</title>
+  <title>Jetzt Verspannungen lösen und Beweglichkeit zurückgewinnen bei Thilo Seifried</title>
   <meta name="description" content="Faszienbehandlung nach Gantke® in Sulgen & Dunningen. Rückenschmerzen, Verspannungen, Migräne – 90 Min. ab 195 €. Jetzt online Termin buchen.">
   <meta name="author" content="Thilo Seifried">
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
@@ -755,6 +755,11 @@
     }
 
     function openModal() {
+      if (isMobileView()) {
+        const popup = window.open(BOOKING_URL, "_blank", "noopener,noreferrer");
+        if (!popup) window.location.href = BOOKING_URL;
+        return;
+      }
       resetModalSwipeState();
       iframeHasLoaded = false;
       hideModalFallback();
