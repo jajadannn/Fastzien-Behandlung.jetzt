@@ -59,7 +59,7 @@
     "telephone": "+4915234007225",
     "email": "termin[at]faszienbehandlung.jetzt",
     "openingHours": ["Mo-Fr 16:00-22:00", "Sa 09:00-19:00"],
-    "priceRange": "EE",
+    "priceRange": "€€",
     "hasMap": "https://maps.google.com/?q=Sulgauer+Strasse+24,+78655+Sulgen",
     "areaServed": [
       {"@type": "City", "name": "Sulgen"},
@@ -76,11 +76,14 @@
     "@context": "https://schema.org",
     "@type": "FAQPage",
     "mainEntity": [
-      {"@type": "Question","name": "Was ist die Gantke Faszienbehandlung?","acceptedAnswer": {"@type": "Answer","text": "Die Gantke Methode ist eine sanfte, manuelle Faszientherapie. Durch gezielte Grifftechniken werden Verklebungen im Bindegewebe geloest. Schmerzfrei, ca. 90 Min., ganzheitlich vom Fuss bis zum Kopf."}},
-      {"@type": "Question","name": "Fuer wen ist die Gantke Faszienbehandlung geeignet?","acceptedAnswer": {"@type": "Answer","text": "Fuer alle Altersgruppen. Besonders bei chronischen Rueckenschmerzen, Verspannungen, Migraene, Gelenkbeschwerden und nach Verletzungen. Nicht geeignet bei akuten Entzuendungen oder Fieber."}},
-      {"@type": "Question","name": "Was kostet eine Faszienbehandlung bei Thilo Seifried?","acceptedAnswer": {"@type": "Answer","text": "195 Euro pro Einzelbehandlung (ca. 90 Min.). Mit 10er-Karte 169,90 Euro pro Sitzung. Hausbesuche +10 Euro Fahrtpauschale."}},
-      {"@type": "Question","name": "Wo findet die Behandlung statt?","acceptedAnswer": {"@type": "Answer","text": "Sulgauer Strasse 24, 78655 Sulgen. Kostenlose Parkplaetze direkt vor dem Haus. Hausbesuche in Dunningen, Schramberg und Villingendorf nach Absprache moeglich."}},
-      {"@type": "Question","name": "Uebernimmt die Krankenkasse die Kosten?","acceptedAnswer": {"@type": "Answer","text": "Gesetzliche Krankenkassen uebernehmen die Kosten in der Regel nicht. Private Zusatzversicherungen erstatten haeufig einen Teil. Rechnung wird gerne ausgestellt."}}
+      {"@type":"Question","name":"Was ist die Gantke Faszienbehandlung genau?","acceptedAnswer":{"@type":"Answer","text":"Die Gantke Methode ist eine sanfte, manuelle Faszientherapie, entwickelt von Frank Gantke. Durch praezise Grifftechniken werden Verklebungen und Fehlspannungen im Bindegewebe geloest. Vollstaendig schmerzfrei, ca. 90 Minuten, ohne Geraete, ganzheitlich vom Fuss bis zum Kopf."}},
+      {"@type":"Question","name":"Fuer wen ist die Faszienbehandlung geeignet?","acceptedAnswer":{"@type":"Answer","text":"Fuer alle Altersgruppen. Besonders wirksam bei chronischen Rueckenschmerzen, Nackenverspannungen, Migraene, Gelenkbeschwerden und nach Verletzungen. Nicht geeignet bei akuten Entzuendungen, Fieber, frischen Operationswunden oder Thrombosen."}},
+      {"@type":"Question","name":"Ist die Behandlung schmerzhaft?","acceptedAnswer":{"@type":"Answer","text":"In der Regel vollstaendig schmerzfrei. Du kannst ein angenehmes Ziehen oder Druckgefuehl spueren. Viele empfinden die Sitzung als tief entspannend. Sollte etwas unangenehm sein, passe ich den Druck sofort an."}},
+      {"@type":"Question","name":"Was sollte ich vor der Behandlung beachten?","acceptedAnswer":{"@type":"Answer","text":"Bitte trinke ausreichend Wasser, mindestens 1,5 Liter am Behandlungstag, und komme in bequemer Kleidung. Schwere Mahlzeiten direkt vorher vermeiden."}},
+      {"@type":"Question","name":"Wie viele Termine sind noetig?","acceptedAnswer":{"@type":"Answer","text":"Sehr individuell. Viele spueren nach der ersten Sitzung bereits Verbesserung. Bei chronischen Beschwerden werden meist 3 bis 6 Behandlungen im Abstand von 1 bis 3 Wochen empfohlen."}},
+      {"@type":"Question","name":"Uebernimmt die Krankenkasse die Kosten?","acceptedAnswer":{"@type":"Answer","text":"Gesetzliche Krankenkassen uebernehmen die Kosten in der Regel nicht. Private Zusatzversicherungen erstatten haeufig einen Teil. Eine Rechnung wird gerne ausgestellt."}},
+      {"@type":"Question","name":"Wo findet die Behandlung statt und wie komme ich hin?","acceptedAnswer":{"@type":"Answer","text":"Praxisadresse: Sulgauer Strasse 24, 78655 Sulgen. Kostenlose Parkplaetze direkt vor dem Haus. Auto: Dunningen ca. 3 Minuten, Schramberg ca. 8 Minuten, Rottweil ca. 15 Minuten. Hausbesuche in Sulgen, Dunningen, Schramberg und Villingendorf nach Absprache, Fahrtpauschale plus 10 Euro."}},
+      {"@type":"Question","name":"Was ist der Unterschied zur klassischen Massage?","acceptedAnswer":{"@type":"Answer","text":"Klassische Massage behandelt primaer die Muskulatur. Die Gantke Methode zielt auf das fasziale Bindegewebsnetz und korrigiert strukturelle Fehlspannungen im gesamten Koerper, nicht nur lokal. Die Wirkung ist oft nachhaltiger und langfristiger."}}
     ]
   }
   </script>
@@ -755,11 +758,6 @@
     }
 
     function openModal() {
-      if (isMobileView()) {
-        const popup = window.open(BOOKING_URL, "_blank", "noopener,noreferrer");
-        if (!popup) window.location.href = BOOKING_URL;
-        return;
-      }
       resetModalSwipeState();
       iframeHasLoaded = false;
       hideModalFallback();
