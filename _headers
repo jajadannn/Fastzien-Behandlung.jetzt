@@ -2,22 +2,28 @@
   X-Content-Type-Options: nosniff
 
 /
-  Cache-Control: public, max-age=0, must-revalidate
+  Cache-Control: no-cache
 
 /*.html
-  Cache-Control: public, max-age=0, must-revalidate
+  Cache-Control: no-cache
 
 /fonts/*
   Cache-Control: public, max-age=31536000, immutable
 
-/*.jpg
+/*.v1.jpg
   Cache-Control: public, max-age=31536000, immutable
 
-/*.png
+/*.v1.png
   Cache-Control: public, max-age=31536000, immutable
 
-/*.avif
+/*.v1.avif
   Cache-Control: public, max-age=31536000, immutable
 
-/*.ico
+/*.v1.ico
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.v1.css
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.v1.js
   Cache-Control: public, max-age=31536000, immutable
