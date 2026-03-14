@@ -38,7 +38,71 @@
   <link rel="preload" href="fonts/cormorant-garamond-normal-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="fonts/cormorant-garamond-italic-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="fonts/dm-sans-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="fonts.css">
+  <style>
+    @font-face {
+      font-family: 'Cormorant Garamond';
+      font-style: normal;
+      font-weight: 300;
+      font-display: swap;
+      src: url('fonts/cormorant-garamond-normal-latin.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Cormorant Garamond';
+      font-style: normal;
+      font-weight: 600;
+      font-display: swap;
+      src: url('fonts/cormorant-garamond-normal-latin.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Cormorant Garamond';
+      font-style: normal;
+      font-weight: 700;
+      font-display: swap;
+      src: url('fonts/cormorant-garamond-normal-latin.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Cormorant Garamond';
+      font-style: italic;
+      font-weight: 300;
+      font-display: swap;
+      src: url('fonts/cormorant-garamond-italic-latin.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Cormorant Garamond';
+      font-style: italic;
+      font-weight: 600;
+      font-display: swap;
+      src: url('fonts/cormorant-garamond-italic-latin.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'DM Sans';
+      font-style: normal;
+      font-weight: 300;
+      font-display: swap;
+      src: url('fonts/dm-sans-latin.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'DM Sans';
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+      src: url('fonts/dm-sans-latin.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'DM Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url('fonts/dm-sans-latin.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'DM Sans';
+      font-style: normal;
+      font-weight: 600;
+      font-display: swap;
+      src: url('fonts/dm-sans-latin.woff2') format('woff2');
+    }
+  </style>
 
   <script type="application/ld+json">
   {
@@ -373,7 +437,12 @@
 
   <nav class="topbar" aria-label="Hauptnavigation">
     <a class="topbar-logo" href="#home">
-      <img src="Logo.avif" alt="Faszienbehandlung Thilo Seifried" width="152" height="38" onerror="this.src='Logo.png'">
+      <img
+        src="Logo-152.png"
+        srcset="Logo-152.png 1x, Logo-304.png 2x"
+        alt="Faszienbehandlung Thilo Seifried"
+        width="152"
+        height="38">
       <span class="topbar-brand">Thilo Seifried · Gantke® Methode</span>
     </a>
     <div class="topbar-links">
@@ -389,7 +458,7 @@
   <main id="main-content">
   <section class="hero" id="home">
     <div class="hero-media" aria-hidden="true">
-      <img src="Start.avif" alt="" fetchpriority="high" decoding="async" onerror="this.onerror=null;this.src='Portrait.jpg';">
+      <img src="Start.avif" alt="" fetchpriority="high" decoding="async" onerror="this.onerror=null;this.src='Portrait-480.jpg';">
     </div>
     <div class="hero-inner">
       <div class="hero-badge">✦ Gantke® zertifizierter Faszienbehandler · Sulgen / Schramberg</div>
@@ -431,7 +500,15 @@
       <div class="about-split">
         <div class="about-photo-wrap">
           <div class="about-photo">
-            <img src="Portrait.jpg" alt="Thilo Seifried – Gantke® Faszienbehandler in Sulgen" width="240" height="280" loading="lazy" decoding="async">
+            <img
+              src="Portrait-240.jpg"
+              srcset="Portrait-240.jpg 240w, Portrait-480.jpg 480w"
+              sizes="(max-width: 768px) 145px, 240px"
+              alt="Thilo Seifried – Gantke® Faszienbehandler in Sulgen"
+              width="240"
+              height="280"
+              loading="lazy"
+              decoding="async">
           </div>
           <div class="about-creds">
             <div class="cred-badge"><span class="ci">🎓</span> Gantke® zertifizierter Faszienbehandler</div>

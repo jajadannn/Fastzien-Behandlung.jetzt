@@ -10,7 +10,71 @@
 
   <link rel="shortcut icon" href="favicon.ico">
 
-  <link rel="stylesheet" href="fonts.css">
+  <style>
+    @font-face {
+      font-family: 'Cormorant Garamond';
+      font-style: normal;
+      font-weight: 300;
+      font-display: swap;
+      src: url('fonts/cormorant-garamond-normal-latin.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Cormorant Garamond';
+      font-style: normal;
+      font-weight: 600;
+      font-display: swap;
+      src: url('fonts/cormorant-garamond-normal-latin.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Cormorant Garamond';
+      font-style: normal;
+      font-weight: 700;
+      font-display: swap;
+      src: url('fonts/cormorant-garamond-normal-latin.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Cormorant Garamond';
+      font-style: italic;
+      font-weight: 300;
+      font-display: swap;
+      src: url('fonts/cormorant-garamond-italic-latin.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Cormorant Garamond';
+      font-style: italic;
+      font-weight: 600;
+      font-display: swap;
+      src: url('fonts/cormorant-garamond-italic-latin.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'DM Sans';
+      font-style: normal;
+      font-weight: 300;
+      font-display: swap;
+      src: url('fonts/dm-sans-latin.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'DM Sans';
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+      src: url('fonts/dm-sans-latin.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'DM Sans';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url('fonts/dm-sans-latin.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'DM Sans';
+      font-style: normal;
+      font-weight: 600;
+      font-display: swap;
+      src: url('fonts/dm-sans-latin.woff2') format('woff2');
+    }
+  </style>
 
   <style>
     :root {
@@ -74,7 +138,12 @@
 
   <nav class="topbar" aria-label="Hauptnavigation">
     <a class="topbar-logo" href="index.html">
-      <img src="Logo.avif" alt="Faszienbehandlung Thilo Seifried" width="152" height="38" onerror="this.src='Logo.png'">
+      <img
+        src="Logo-152.png"
+        srcset="Logo-152.png 1x, Logo-304.png 2x"
+        alt="Faszienbehandlung Thilo Seifried"
+        width="152"
+        height="38">
       <span class="topbar-brand">Thilo Seifried &middot; Gantke&reg; Methode</span>
     </a>
     <a class="back-link" href="index.html">&#8592; Zur&uuml;ck zur Startseite</a>
