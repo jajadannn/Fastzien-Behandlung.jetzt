@@ -13,7 +13,13 @@
 /*.v1.jpg
   Cache-Control: public, max-age=31536000, immutable
 
+/*.v2.jpg
+  Cache-Control: public, max-age=31536000, immutable
+
 /*.v1.png
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.v2.png
   Cache-Control: public, max-age=31536000, immutable
 
 /*.v1.avif
