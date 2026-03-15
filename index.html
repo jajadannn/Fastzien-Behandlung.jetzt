@@ -164,12 +164,20 @@
     html{scroll-behavior:smooth}
     body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--off-white);color:var(--text);line-height:1.7;overflow-x:hidden}
     body.no-scroll{overflow:hidden}
-    .js-animate{transition:opacity .55s ease,transform .55s ease}
-    .js-animate.hidden{opacity:0;transform:translateY(22px)}
-    @media(prefers-reduced-motion:reduce){.js-animate,.js-animate.hidden{opacity:1!important;transform:none!important;transition:none!important}*{animation-duration:.001ms!important}}
+    .js-animate{transition:opacity .72s cubic-bezier(.22,1,.36,1),transform .72s cubic-bezier(.22,1,.36,1),filter .72s cubic-bezier(.22,1,.36,1);transition-delay:var(--reveal-delay,0ms);will-change:transform,opacity}
+    .js-animate.hidden{opacity:0;transform:translateY(28px) scale(.97);filter:blur(6px)}
+    .pain-grid .js-animate.hidden:nth-child(3n+1){transform:translateY(30px) rotate(-1.2deg) scale(.96)}
+    .pain-grid .js-animate.hidden:nth-child(3n+2){transform:translateY(34px) scale(.95)}
+    .pain-grid .js-animate.hidden:nth-child(3n){transform:translateY(30px) rotate(1.2deg) scale(.96)}
+    .steps-row .js-animate.hidden:nth-child(odd),.anfahrt-details .js-animate.hidden:nth-child(odd){transform:translateX(-18px) translateY(24px) scale(.97)}
+    .steps-row .js-animate.hidden:nth-child(even),.anfahrt-details .js-animate.hidden:nth-child(even){transform:translateX(18px) translateY(24px) scale(.97)}
+    .testi-grid .js-animate.hidden,.benefit-list .js-animate.hidden{transform:translateY(30px) scale(.96)}
+    .price-grid .js-animate.hidden:nth-child(1){transform:translateY(30px) rotate(-1deg) scale(.96)}
+    .price-grid .js-animate.hidden:nth-child(2){transform:translateY(34px) rotate(1deg) scale(.96)}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.js-animate,.js-animate.hidden{opacity:1!important;transform:none!important;filter:none!important;transition:none!important}*{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}}
 
     /* NAV */
-    .topbar{position:sticky;top:0;z-index:200;background:rgba(112,174,205,0.97);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:space-between;padding:12px 32px;gap:16px}
+    .topbar{position:sticky;top:0;z-index:200;background:rgba(112,174,205,0.97);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:space-between;padding:12px 32px;gap:16px;transition:transform .75s cubic-bezier(.22,1,.36,1),opacity .75s cubic-bezier(.22,1,.36,1),box-shadow .25s ease}
     .topbar-logo{display:flex;align-items:center;gap:12px;text-decoration:none}
     .topbar-logo img{height:38px;width:auto}
     .topbar-brand{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:600;color:var(--white);letter-spacing:.02em}
@@ -185,11 +193,11 @@
       min-height:calc(100svh - 63px);display:flex;align-items:center;justify-content:center;text-align:center;padding:80px 24px 60px;position:relative;overflow:hidden
     }
     .hero-media{position:absolute;inset:0;z-index:0;pointer-events:none}
-    .hero-media img{width:100%;height:100%;object-fit:cover;object-position:center 18%;display:block}
-    .hero::after{content:'';position:absolute;inset:0;background:linear-gradient(160deg,rgba(26,42,51,0.58) 0%,rgba(26,42,51,0.42) 55%,rgba(77,147,184,0.35) 100%);pointer-events:none;z-index:1}
-    .hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 20% 60%,rgba(255,255,255,0.1) 0%,transparent 60%),radial-gradient(ellipse 40% 60% at 80% 20%,rgba(122,54,97,0.15) 0%,transparent 50%);pointer-events:none;z-index:2}
+    .hero-media img{width:100%;height:100%;object-fit:cover;object-position:center 18%;display:block;transform:scale(1.045);animation:heroImageDrift 18s ease-in-out infinite alternate}
+    .hero::after{content:'';position:absolute;inset:0;background:linear-gradient(160deg,rgba(26,42,51,0.58) 0%,rgba(26,42,51,0.42) 55%,rgba(77,147,184,0.35) 100%);pointer-events:none;z-index:1;animation:heroShadeShift 18s ease-in-out infinite alternate}
+    .hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 20% 60%,rgba(255,255,255,0.1) 0%,transparent 60%),radial-gradient(ellipse 40% 60% at 80% 20%,rgba(122,54,97,0.15) 0%,transparent 50%);pointer-events:none;z-index:2;animation:heroGlowShift 14s ease-in-out infinite alternate}
     .hero-inner{position:relative;z-index:3;max-width:760px}
-    .hero-badge{display:inline-block;background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.35);color:var(--white);font-size:.78rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;padding:6px 18px;border-radius:50px;margin-bottom:28px}
+    .hero-badge{display:inline-block;background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.35);color:var(--white);font-size:.78rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;padding:6px 18px;border-radius:50px;margin-bottom:28px;box-shadow:0 0 0 0 rgba(255,255,255,0.18);animation:heroBadgePulse 4.6s ease-in-out infinite}
     .hero h1{font-family:'Cormorant Garamond',serif;font-size:clamp(2.8rem,7vw,5.5rem);font-weight:600;color:var(--white);line-height:1.1;margin-bottom:20px;letter-spacing:-.02em}
     .hero h1 em{font-style:italic;font-weight:300}
     .hero-sub{font-size:clamp(1.05rem,2vw,1.25rem);color:rgba(255,255,255,0.9);max-width:560px;margin:0 auto 36px;font-weight:300;line-height:1.65}
@@ -199,15 +207,35 @@
     .btn-secondary{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.15);border:1.5px solid rgba(255,255,255,0.45);color:var(--white);padding:14px 28px;border-radius:50px;font-size:.95rem;text-decoration:none;cursor:pointer;transition:all .2s}
     .btn-secondary:hover{background:rgba(255,255,255,0.25)}
     .hero-note{margin-top:22px;font-size:.83rem;color:rgba(255,255,255,0.65);letter-spacing:.03em}
+    .hero .btn-primary{animation:heroCtaBreath 5.5s ease-in-out 1.2s infinite}
+    body.motion-enhanced:not(.page-ready) .topbar{transform:translateY(-18px);opacity:0}
+    body.motion-enhanced:not(.page-ready) .hero-badge,body.motion-enhanced:not(.page-ready) .hero h1,body.motion-enhanced:not(.page-ready) .hero-sub,body.motion-enhanced:not(.page-ready) .hero-cta-group,body.motion-enhanced:not(.page-ready) .hero-note{opacity:0;filter:blur(10px)}
+    body.motion-enhanced:not(.page-ready) .hero-badge{transform:translateY(24px) scale(.95)}
+    body.motion-enhanced:not(.page-ready) .hero h1{transform:translateY(34px) scale(.96)}
+    body.motion-enhanced:not(.page-ready) .hero-sub{transform:translateY(28px)}
+    body.motion-enhanced:not(.page-ready) .hero-cta-group{transform:translateY(24px)}
+    body.motion-enhanced:not(.page-ready) .hero-note{transform:translateY(20px)}
+    .hero-badge,.hero h1,.hero-sub,.hero-cta-group,.hero-note{transition:opacity .9s cubic-bezier(.22,1,.36,1),transform .9s cubic-bezier(.22,1,.36,1),filter .9s cubic-bezier(.22,1,.36,1)}
+    body.motion-enhanced.page-ready .hero-badge{transition-delay:.18s}
+    body.motion-enhanced.page-ready .hero h1{transition-delay:.28s}
+    body.motion-enhanced.page-ready .hero-sub{transition-delay:.42s}
+    body.motion-enhanced.page-ready .hero-cta-group{transition-delay:.56s}
+    body.motion-enhanced.page-ready .hero-note{transition-delay:.7s}
+    body.motion-enhanced.page-ready .topbar{transition-delay:.05s}
 
     /* TRUST BAR */
     .trust-bar{background:var(--white);border-bottom:1px solid var(--border)}
     .trust-bar-inner{max-width:1060px;margin:0 auto;display:flex;flex-wrap:wrap;justify-content:center}
-    .trust-item{display:flex;align-items:center;gap:10px;padding:18px 22px;border-right:1px solid var(--border)}
+    .trust-item{display:flex;align-items:center;gap:10px;padding:18px 22px;border-right:1px solid var(--border);transition:transform .75s cubic-bezier(.22,1,.36,1),opacity .75s cubic-bezier(.22,1,.36,1)}
     .trust-item:last-child{border-right:none}
     .trust-icon{width:36px;height:36px;background:var(--sky-pale);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
     .trust-label{font-size:.87rem;font-weight:500;color:var(--text);line-height:1.3}
     .trust-sub{font-size:.76rem;color:var(--text-light);font-weight:300}
+    body.motion-enhanced:not(.page-ready) .trust-item{opacity:0;transform:translateY(18px)}
+    body.motion-enhanced.page-ready .trust-item:nth-child(1){transition-delay:.24s}
+    body.motion-enhanced.page-ready .trust-item:nth-child(2){transition-delay:.34s}
+    body.motion-enhanced.page-ready .trust-item:nth-child(3){transition-delay:.44s}
+    body.motion-enhanced.page-ready .trust-item:nth-child(4){transition-delay:.54s}
 
     /* LAYOUT */
     section{scroll-margin-top:70px}
@@ -230,9 +258,10 @@
 
     /* PAIN CARDS */
     .pain-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-top:36px}
-    .pain-card{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:24px 20px;text-align:center;transition:all .25s}
+    .pain-card{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:24px 20px;text-align:center;transition:all .28s ease,box-shadow .35s ease}
     .pain-card:hover{border-color:var(--sky);box-shadow:0 8px 28px rgba(112,174,205,0.15);transform:translateY(-3px)}
-    .pain-emoji{font-size:2rem;margin-bottom:12px}
+    .pain-emoji{font-size:2rem;margin-bottom:12px;transition:transform .35s cubic-bezier(.22,1,.36,1)}
+    .pain-card:hover .pain-emoji{transform:translateY(-4px) scale(1.08) rotate(-4deg)}
     .pain-card h3{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:600;color:var(--plum);margin-bottom:8px}
     .pain-card p{font-size:.9rem;color:var(--text-mid);line-height:1.6}
     .contra-note{margin-top:24px;padding:14px 20px;background:#fff8f0;border:1px solid #f5d9b8;border-radius:10px;font-size:.9rem;color:#7a5a30;line-height:1.6}
@@ -241,7 +270,7 @@
     /* ABOUT */
     .about-split{display:grid;grid-template-columns:280px 1fr;gap:48px;align-items:flex-start;margin-top:40px}
     .about-photo-wrap{display:flex;flex-direction:column;align-items:center;gap:16px}
-    .about-photo{width:240px;height:280px;border-radius:20px;box-shadow:0 12px 40px rgba(112,174,205,0.25);border:3px solid var(--white);background:var(--sky-pale);overflow:hidden}
+    .about-photo{width:240px;height:280px;border-radius:20px;box-shadow:0 12px 40px rgba(112,174,205,0.25);border:3px solid var(--white);background:var(--sky-pale);overflow:hidden;animation:portraitFloat 7.5s ease-in-out infinite}
     .about-photo img{width:100%;height:100%;object-fit:cover;object-position:center 14%;display:block}
     .about-creds{width:100%;display:flex;flex-direction:column;gap:8px}
     .cred-badge{display:flex;align-items:center;gap:8px;background:var(--white);border:1px solid var(--border);border-radius:10px;padding:8px 14px;font-size:.83rem;font-weight:500;color:var(--text-mid)}
@@ -269,19 +298,25 @@
 
     /* TESTIMONIALS */
     .testi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px;margin-top:40px}
-    .testi-card{background:var(--white);border-radius:18px;padding:28px 24px;border:1px solid var(--border);position:relative;transition:all .25s}
+    .testi-card{background:var(--white);border-radius:18px;padding:28px 24px;border:1px solid var(--border);position:relative;transition:all .25s;overflow:hidden}
     .testi-card:hover{box-shadow:0 10px 36px rgba(112,174,205,0.15);transform:translateY(-3px)}
     .testi-card::before{content:'\201C';font-family:'Cormorant Garamond',serif;font-size:5rem;color:var(--sky-light);opacity:.5;position:absolute;top:-10px;left:16px;line-height:1}
+    .testi-card::after{content:'';position:absolute;inset:-20% auto -20% -35%;width:42%;background:linear-gradient(115deg,transparent,rgba(255,255,255,0.42),transparent);transform:translateX(-180%) rotate(12deg);transition:transform .8s ease;pointer-events:none}
+    .testi-card:hover::after{transform:translateX(430%) rotate(12deg)}
     .stars-row{color:#e8b44a;font-size:.9rem;margin-bottom:12px}
     .testi-card p{font-style:italic;color:var(--text-mid);font-size:.95rem;line-height:1.65;margin-bottom:14px}
     .testi-author{font-weight:600;font-size:.85rem;color:var(--plum)}
 
     /* PRICES */
     .price-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px;margin-top:40px}
-    .price-card{background:var(--white);border:2px solid var(--border);border-radius:20px;padding:32px 28px;text-align:center;transition:all .25s;position:relative}
+    .price-card{background:var(--white);border:2px solid var(--border);border-radius:20px;padding:32px 28px;text-align:center;transition:all .25s;position:relative;overflow:visible;isolation:isolate}
     .price-card:hover{border-color:var(--sky);transform:translateY(-4px);box-shadow:0 12px 36px rgba(112,174,205,0.18)}
     .price-card.featured{background:linear-gradient(145deg,var(--plum) 0%,var(--plum-dark) 100%);border-color:var(--plum)}
-    .price-badge{position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:var(--sky);color:var(--white);font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:5px 16px;border-radius:50px;white-space:nowrap}
+    .price-card::after{content:'';position:absolute;inset:0;border-radius:inherit;background:radial-gradient(circle at 118% 122%,rgba(168,207,224,0.24) 0%,rgba(168,207,224,0) 34%);pointer-events:none;transition:transform .45s ease,opacity .45s ease;z-index:0}
+    .price-card:hover::after{transform:translate(-18px,-14px) scale(1.08);opacity:.95}
+    .price-card.featured{animation:featuredCardGlow 6.5s ease-in-out infinite}
+    .price-card > *{position:relative;z-index:1}
+    .price-badge{position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:var(--sky);color:var(--white);font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:5px 16px;border-radius:50px;white-space:nowrap;z-index:2}
     .price-label{font-size:.9rem;color:var(--text-light);margin-bottom:10px}
     .price-card.featured .price-label{color:rgba(255,255,255,0.7)}
     .price-amount{font-family:'Cormorant Garamond',serif;font-size:3rem;font-weight:700;color:var(--sky-dark);line-height:1}
@@ -299,7 +334,7 @@
     .anfahrt-grid{display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-top:40px;align-items:start}
     .anfahrt-map-link{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:linear-gradient(145deg,var(--sky-pale),#c2e3f0);border-radius:18px;border:1px solid rgba(112,174,205,0.3);text-decoration:none;transition:all .25s;aspect-ratio:4/3;color:var(--sky-dark);font-weight:500}
     .anfahrt-map-link:hover{box-shadow:0 8px 28px rgba(112,174,205,0.2);transform:translateY(-2px)}
-    .anfahrt-map-link .map-icon{font-size:3rem}
+    .anfahrt-map-link .map-icon{font-size:3rem;display:inline-block;animation:mapIconBob 4.6s ease-in-out infinite}
     .anfahrt-map-link span{font-size:.92rem}
     .anfahrt-details{display:flex;flex-direction:column;gap:14px}
     .anfahrt-item{display:flex;gap:14px;align-items:flex-start;padding:16px;background:var(--white);border-radius:12px;border:1px solid var(--border)}
@@ -320,7 +355,7 @@
 
     /* CTA */
     .cta-section{background:linear-gradient(145deg,var(--sky) 0%,var(--sky-dark) 60%,var(--plum-dark) 100%);padding:100px 24px;text-align:center;position:relative;overflow:hidden}
-    .cta-section::before{content:'';position:absolute;width:600px;height:600px;border-radius:50%;border:1px solid rgba(255,255,255,0.08);left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:none}
+    .cta-section::before{content:'';position:absolute;width:600px;height:600px;border-radius:50%;border:1px solid rgba(255,255,255,0.08);left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:none;animation:ctaHaloPulse 8s ease-in-out infinite}
     .cta-inner{position:relative;z-index:1}
     .cta-section h2{font-family:'Cormorant Garamond',serif;font-size:clamp(2.2rem,5vw,3.8rem);font-weight:600;color:var(--white);margin-bottom:16px;line-height:1.15}
     .cta-section>.cta-inner>p{font-size:1.1rem;color:rgba(255,255,255,0.85);margin-bottom:38px;max-width:520px;margin-left:auto;margin-right:auto}
@@ -353,6 +388,15 @@
     .modal-overlay{position:fixed;inset:0;background:rgba(10,25,35,0.75);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;z-index:1000;padding:20px}
     .modal-overlay.is-open{display:flex}
     .modal-box{position:relative;background:var(--white);width:min(920px,100%);height:min(88vh,740px);border-radius:24px;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,0.45);display:flex;flex-direction:column;animation:modalPop .35s cubic-bezier(0.34,1.56,0.64,1)}
+    @keyframes heroImageDrift{from{transform:scale(1.045) translate3d(-1.2%,0,0)}to{transform:scale(1.09) translate3d(1.4%,-1.2%,0)}}
+    @keyframes heroGlowShift{from{transform:scale(1) rotate(0deg)}to{transform:scale(1.05) rotate(4deg)}}
+    @keyframes heroShadeShift{from{opacity:.92}to{opacity:1}}
+    @keyframes heroBadgePulse{0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,0.12)}50%{box-shadow:0 0 0 12px rgba(255,255,255,0)}}
+    @keyframes heroCtaBreath{0%,100%{box-shadow:0 8px 32px rgba(122,54,97,0.4)}50%{box-shadow:0 12px 38px rgba(122,54,97,0.52)}}
+    @keyframes portraitFloat{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-8px) rotate(-.6deg)}}
+    @keyframes featuredCardGlow{0%,100%{box-shadow:0 12px 36px rgba(122,54,97,0.16)}50%{box-shadow:0 20px 44px rgba(122,54,97,0.3)}}
+    @keyframes mapIconBob{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-6px) scale(1.04)}}
+    @keyframes ctaHaloPulse{0%,100%{transform:translate(-50%,-50%) scale(.96);opacity:.65}50%{transform:translate(-50%,-50%) scale(1.04);opacity:1}}
     @keyframes modalPop{from{opacity:0;transform:scale(.9) translateY(24px)}to{opacity:1;transform:scale(1) translateY(0)}}
     .modal-drag-handle{display:none}
     .modal-header{padding:16px 52px 16px 24px;background:linear-gradient(135deg,var(--sky-dark),var(--plum-dark));flex-shrink:0}
@@ -505,7 +549,7 @@
       <div class="section-tag">Über Thilo Seifried</div>
       <h2 class="section-title">Dein Behandler –<br><em>Mensch & Fachmann</em></h2>
       <div class="about-split">
-        <div class="about-photo-wrap">
+        <div class="about-photo-wrap js-animate">
           <div class="about-photo">
             <img
               src="Portrait-240.v2.jpg"
@@ -523,7 +567,7 @@
             <div class="cred-badge"><span class="ci">🏠</span> Hausbesuche in der Region</div>
           </div>
         </div>
-        <div class="about-text">
+        <div class="about-text js-animate">
           <h3>Hallo, ich bin Thilo.</h3>
           <p>Als zertifizierter Gantke® Faszienbehandler helfe ich Menschen in und um Sulgen und Schramberg dabei, ihre Beweglichkeit zurückzugewinnen und chronische Schmerzen nachhaltig zu lindern.</p>
           <p>Die Gantke® Methode hat mich überzeugt, weil sie an der Ursache ansetzt: verklebte und fehlgespannte Faszien. Mit gezielten, sanften Grifftechniken löse ich diese Strukturen – spürbar und ganzheitlich.</p>
@@ -550,10 +594,10 @@
       </div>
       <p class="section-lead">Faszien sind das Bindegewebsnetz, das deinen gesamten Körper durchzieht. Wenn sie verkleben oder verhärten, entstehen Schmerzen und Bewegungseinschränkungen – oft weit entfernt vom eigentlichen Problem.</p>
       <div class="benefit-list">
-        <div class="benefit-item"><div class="benefit-dot"></div><div><h3>Sanft & tief wirkend</h3><p>Präzise manuelle Grifftechniken lösen Verklebungen vollständig schmerzfrei und ohne Hilfsmittel.</p></div></div>
-        <div class="benefit-item"><div class="benefit-dot"></div><div><h3>Ganzheitlicher Ansatz</h3><p>Faszien bilden ein körperweites Netzwerk. Die Behandlung wirkt systemisch – strukturelle Fehlspannungen werden an der Ursache korrigiert, nicht nur lokal.</p></div></div>
-        <div class="benefit-item"><div class="benefit-dot"></div><div><h3>Nachhaltiger als klassische Massage</h3><p>Klassische Massage behandelt primär die Muskulatur. Gantke® zielt auf das fasziale Bindegewebsnetz – die Wirkung ist langfristiger und ganzheitlicher.</p></div></div>
-        <div class="benefit-item"><div class="benefit-dot"></div><div><h3>Für alle Altersgruppen</h3><p>Die sanfte Technik passt sich deinem individuellen Gewebe an – egal ob jung, alt, sportlich oder wenig bewegt.</p></div></div>
+        <div class="benefit-item js-animate"><div class="benefit-dot"></div><div><h3>Sanft & tief wirkend</h3><p>Präzise manuelle Grifftechniken lösen Verklebungen vollständig schmerzfrei und ohne Hilfsmittel.</p></div></div>
+        <div class="benefit-item js-animate"><div class="benefit-dot"></div><div><h3>Ganzheitlicher Ansatz</h3><p>Faszien bilden ein körperweites Netzwerk. Die Behandlung wirkt systemisch – strukturelle Fehlspannungen werden an der Ursache korrigiert, nicht nur lokal.</p></div></div>
+        <div class="benefit-item js-animate"><div class="benefit-dot"></div><div><h3>Nachhaltiger als klassische Massage</h3><p>Klassische Massage behandelt primär die Muskulatur. Gantke® zielt auf das fasziale Bindegewebsnetz – die Wirkung ist langfristiger und ganzheitlicher.</p></div></div>
+        <div class="benefit-item js-animate"><div class="benefit-dot"></div><div><h3>Für alle Altersgruppen</h3><p>Die sanfte Technik passt sich deinem individuellen Gewebe an – egal ob jung, alt, sportlich oder wenig bewegt.</p></div></div>
       </div>
     </div>
   </section>
@@ -618,16 +662,16 @@
       <h2 class="section-title">Praxis in<br><em>Sulgen</em></h2>
       <p class="section-lead"><strong>Adresse:</strong> Sulgauer Straße 24, 78655 Sulgen (Ortsteil von Schramberg) – zentral zwischen Schramberg und Rottweil. Kostenlose Parkplätze direkt vor dem Haus.</p>
       <div class="anfahrt-grid">
-        <a class="anfahrt-map-link" href="https://maps.google.com/?q=Sulgauer+Strasse+24,+78655+Sulgen" target="_blank" rel="noopener noreferrer" aria-label="Route zur Praxis in Google Maps öffnen">
+        <a class="anfahrt-map-link js-animate" href="https://maps.google.com/?q=Sulgauer+Strasse+24,+78655+Sulgen" target="_blank" rel="noopener noreferrer" aria-label="Route zur Praxis in Google Maps öffnen">
           <div class="map-icon">🗺️</div>
           <span>Route in Google Maps öffnen</span>
           <small style="color:var(--text-light);font-size:.78rem">Sulgauer Straße 24, 78655 Sulgen</small>
         </a>
         <div class="anfahrt-details">
-          <div class="anfahrt-item"><div class="ai-icon">🅿️</div><div><h3>Parken</h3><p>Kostenlose Parkplätze direkt vor dem Haus – keine Parkplatzsuche.</p></div></div>
-          <div class="anfahrt-item"><div class="ai-icon">🚗</div><div><h3>Mit dem Auto</h3><p>Dunningen ca. 3 Min. · Schramberg ca. 8 Min. · Rottweil ca. 15 Min.</p></div></div>
-          <div class="anfahrt-item"><div class="ai-icon">🏠</div><div><h3>Hausbesuche</h3><p>In Sulgen, Dunningen, Schramberg, Villingendorf – +10 € Fahrtpauschale.</p></div></div>
-          <div class="anfahrt-item"><div class="ai-icon">🕐</div><div><h3>Öffnungszeiten</h3><p><span data-cfg="hours_weekday">Mo–Fr: 16:00–22:00 Uhr</span><br><span data-cfg="hours_saturday">Sa: 9:00–19:00 Uhr</span></p></div></div>
+          <div class="anfahrt-item js-animate"><div class="ai-icon">🅿️</div><div><h3>Parken</h3><p>Kostenlose Parkplätze direkt vor dem Haus – keine Parkplatzsuche.</p></div></div>
+          <div class="anfahrt-item js-animate"><div class="ai-icon">🚗</div><div><h3>Mit dem Auto</h3><p>Dunningen ca. 3 Min. · Schramberg ca. 8 Min. · Rottweil ca. 15 Min.</p></div></div>
+          <div class="anfahrt-item js-animate"><div class="ai-icon">🏠</div><div><h3>Hausbesuche</h3><p>In Sulgen, Dunningen, Schramberg, Villingendorf – +10 € Fahrtpauschale.</p></div></div>
+          <div class="anfahrt-item js-animate"><div class="ai-icon">🕐</div><div><h3>Öffnungszeiten</h3><p><span data-cfg="hours_weekday">Mo–Fr: 16:00–22:00 Uhr</span><br><span data-cfg="hours_saturday">Sa: 9:00–19:00 Uhr</span></p></div></div>
         </div>
       </div>
     </div>
@@ -891,6 +935,28 @@
       target.addEventListener("touchend", endSwipe);
       target.addEventListener("touchcancel", endSwipe);
     });
+
+    document.body.classList.add("motion-enhanced");
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        document.body.classList.add("page-ready");
+      });
+    });
+
+    function applyRevealDelay(selector, stepMs = 80) {
+      document.querySelectorAll(selector).forEach((el, index) => {
+        el.style.setProperty("--reveal-delay", `${index * stepMs}ms`);
+      });
+    }
+
+    applyRevealDelay(".pain-grid .js-animate", 70);
+    applyRevealDelay(".benefit-list .js-animate", 90);
+    applyRevealDelay(".steps-row .js-animate", 110);
+    applyRevealDelay(".testi-grid .js-animate", 95);
+    applyRevealDelay(".price-grid .js-animate", 120);
+    applyRevealDelay(".anfahrt-grid .js-animate", 90);
+    applyRevealDelay("#ueber .js-animate", 120);
 
     // Reveal elements on scroll.
     const animatedEls = document.querySelectorAll(".js-animate");
