@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Guthaben – Faszienbehandlung</title>
+  <link rel="icon" href="/favicon.v1.ico">
+  <link rel="preload" href="/fonts/cormorant-garamond-normal-latin.v1.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/dm-sans-latin.v1.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/static/css/main.css">
+  <link rel="stylesheet" href="/static/css/customer.css">
+</head>
+<body>
+  <nav class="portal-nav">
+    <a href="/" class="portal-logo">
+      <img src="/Logo-128.v2.png" alt="Faszienbehandlung" height="32">
+      <span>Kundenportal</span>
+    </a>
+    <div class="portal-nav-links">
+      <a href="/portal">Dashboard</a>
+      <a href="/portal/book">Buchen</a>
+      <a href="/portal/appointments">Termine</a>
+      <a href="/portal/credits" class="active">Guthaben</a>
+      <a href="/portal/profile">Profil</a>
+      {% if is_admin %}<a href="/admin" class="nav-admin">⚙️ Admin</a>{% endif %}
+      <button class="nav-logout" onclick="logout()">Abmelden</button>
+    </div>
+  </nav>
+
+  <main class="portal-main">
+    <div class="portal-container">
+      <div class="portal-welcome">
+        <h1>Guthaben & Zahlungen</h1>
+        <p>Übersicht deiner Zahlungen und Guthaben</p>
+      </div>
+
+      <div class="dashboard-grid credits-overview">
+        <div class="dash-card">
+          <div class="dash-card-icon">💰</div>
+          <div class="dash-card-content">
+            <h3>{{ "%.2f" | format(value=pending_amount) }} €</h3>
+            <p>Offener Betrag</p>
+          </div>
+        </div>
+        <div class="dash-card">
+          <div class="dash-card-icon">✅</div>
+          <div class="dash-card-content">
+            <h3>{{ "%.2f" | format(value=paid_amount) }} €</h3>
+            <p>Bereits bezahlt</p>
+          </div>
+        </div>
+        <div class="dash-card">
+          <div class="dash-card-icon">🎟️</div>
+          <div class="dash-card-content">
+            <h3>{{ remaining_credits }}</h3>
+            <p>Verbleibende Sitzungen (10er-Karte)</p>
+          </div>
+        </div>
+      </div>
+
+      {% if credit_packages | length > 0 %}
+      <div class="portal-section">
+        <h2>10er-Karten</h2>
+        <div class="table-wrap">
+          <table class="portal-table">
+            <thead><tr><th>Gekauft</th><th>Sitzungen</th><th>Verwendet</th><th>Gültig bis</th><th>Preis/Sitzung</th></tr></thead>
+            <tbody>
+              {% for cp in credit_packages %}
+              <tr>
+                <td>{{ cp.created_at }}</td>
+                <td>{{ cp.total_sessions }}</td>
+                <td>{{ cp.used_sessions }}</td>
+                <td>{{ cp.valid_until }}</td>
+                <td>{{ cp.price_per_session }} €</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if payments | length > 0 %}
+      <div class="portal-section">
+        <h2>Zahlungshistorie</h2>
+        <div class="table-wrap">
+          <table class="portal-table">
+            <thead><tr><th>Datum</th><th>Betrag</th><th>Typ</th><th>Status</th></tr></thead>
+            <tbody>
+              {% for p in payments %}
+              <tr>
+                <td>{{ p.created_at }}</td>
+                <td>{{ p.amount }} €</td>
+                <td>{% if p.payment_type == "pack" %}10er-Karte{% else %}Einzelsitzung{% endif %}</td>
+                <td><span class="status-badge status-{{ p.status }}">{% if p.status == "pending" %}Offen{% else %}Bezahlt{% endif %}</span></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </main>
+
+  <script src="/static/js/customer.js"></script>
+</body>
+</html>

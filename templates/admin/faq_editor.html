@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FAQ verwalten – Admin</title>
+  <link rel="icon" href="/favicon.v1.ico">
+  <link rel="stylesheet" href="/static/css/main.css">
+  <link rel="stylesheet" href="/static/css/admin.css">
+  <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
+</head>
+<body>
+  <nav class="admin-nav">
+    <a href="/" class="admin-logo"><img src="/Logo-128.v2.png" alt="" height="30"><span>Admin</span></a>
+    <div class="admin-nav-links">
+      <a href="/admin">Übersicht</a>
+      <a href="/admin/customers">Kunden</a>
+      <a href="/admin/appointments">Termine</a>
+      <a href="/admin/payments">Zahlungen</a>
+      <a href="/admin/faq" class="active">FAQ</a>
+      <a href="/admin/reviews">Bewertungen</a>
+      <a href="/admin/settings">Einstellungen</a>
+      <a href="/" class="nav-site">🌐</a>
+      <button class="nav-logout" onclick="logout()">Abmelden</button>
+    </div>
+  </nav>
+  <main class="admin-main">
+    <div class="admin-container">
+      <div class="admin-header-row">
+        <h1>FAQ verwalten</h1>
+        <button class="auth-btn" onclick="showFaqForm()">+ Neue Frage</button>
+      </div>
+
+      <div id="faq-form-container" class="editor-form" style="display:none">
+        <input type="hidden" id="faq-id">
+        <div class="form-group">
+          <label>Frage</label>
+          <input type="text" id="faq-question" placeholder="Die Frage...">
+        </div>
+        <div class="form-group">
+          <label>Antwort (mit Formatierung)</label>
+          <div id="faq-editor" class="rich-editor"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Reihenfolge</label><input type="number" id="faq-order" value="0"></div>
+          <div class="form-group"><label class="checkbox-label"><input type="checkbox" id="faq-active" checked> Aktiv</label></div>
+        </div>
+        <div class="form-actions">
+          <button class="auth-btn" onclick="saveFaq()">Speichern</button>
+          <button class="btn-secondary-flat" onclick="hideFaqForm()">Abbrechen</button>
+        </div>
+      </div>
+
+      <div class="faq-admin-list">
+        {% for faq in faqs %}
+        <div class="faq-admin-item" id="faq-item-{{ faq.id }}">
+          <div class="faq-admin-header">
+            <span class="faq-order">#{{ faq.sort_order }}</span>
+            <strong>{{ faq.question }}</strong>
+            <span class="faq-status {% if faq.is_active %}active{% else %}inactive{% endif %}">{% if faq.is_active %}Aktiv{% else %}Inaktiv{% endif %}</span>
+          </div>
+          <div class="faq-admin-preview">{{ faq.answer_html | safe }}</div>
+          <div class="faq-admin-actions">
+            <button onclick='editFaq({{ faq.id }}, `{{ faq.question }}`, `{{ faq.answer_html | escape }}`, {{ faq.sort_order }}, {{ faq.is_active }})' class="btn-small">Bearbeiten</button>
+            <button onclick="deleteFaq({{ faq.id }})" class="btn-small btn-danger">Löschen</button>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </main>
+  <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
+  <script>
+    let quill;
+    function initEditor() {
+      if (quill) return;
+      quill = new Quill('#faq-editor', {
+        theme: 'snow',
+        modules: { toolbar: [['bold', 'italic', 'underline', 'strike'], ['link'], [{ list: 'ordered' }, { list: 'bullet' }], ['clean']] }
+      });
+    }
+    function showFaqForm() {
+      document.getElementById('faq-form-container').style.display = 'block';
+      document.getElementById('faq-id').value = '';
+      document.getElementById('faq-question').value = '';
+      document.getElementById('faq-order').value = '0';
+      document.getElementById('faq-active').checked = true;
+      initEditor();
+      quill.root.innerHTML = '';
+    }
+    function hideFaqForm() { document.getElementById('faq-form-container').style.display = 'none'; }
+    function editFaq(id, question, answerHtml, order, active) {
+      showFaqForm();
+      document.getElementById('faq-id').value = id;
+      document.getElementById('faq-question').value = question;
+      document.getElementById('faq-order').value = order;
+      document.getElementById('faq-active').checked = active;
+      // Decode HTML entities
+      const txt = document.createElement('textarea');
+      txt.innerHTML = answerHtml;
+      quill.root.innerHTML = txt.value;
+    }
+    async function saveFaq() {
+      const id = document.getElementById('faq-id').value;
+      const body = {
+        question: document.getElementById('faq-question').value,
+        answer_html: quill.root.innerHTML,
+        sort_order: parseInt(document.getElementById('faq-order').value) || 0,
+        is_active: document.getElementById('faq-active').checked,
+      };
+      if (id) body.id = parseInt(id);
+      const res = await fetch('/api/admin/faq', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+      if ((await res.json()).success) location.reload();
+    }
+    async function deleteFaq(id) {
+      if (!confirm('FAQ wirklich löschen?')) return;
+      await fetch(`/api/admin/faq/${id}`, { method: 'DELETE' });
+      location.reload();
+    }
+  </script>
+  <script src="/static/js/admin.js"></script>
+</body>
+</html>

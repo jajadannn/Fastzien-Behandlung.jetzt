@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kundendetails – Admin</title>
+  <link rel="icon" href="/favicon.v1.ico">
+  <link rel="stylesheet" href="/static/css/main.css">
+  <link rel="stylesheet" href="/static/css/admin.css">
+</head>
+<body>
+  <nav class="admin-nav">
+    <a href="/" class="admin-logo"><img src="/Logo-128.v2.png" alt="" height="30"><span>Admin</span></a>
+    <div class="admin-nav-links">
+      <a href="/admin">Übersicht</a>
+      <a href="/admin/customers" class="active">Kunden</a>
+      <a href="/admin/appointments">Termine</a>
+      <a href="/admin/payments">Zahlungen</a>
+      <a href="/admin/faq">FAQ</a>
+      <a href="/admin/reviews">Bewertungen</a>
+      <a href="/admin/settings">Einstellungen</a>
+      <a href="/" class="nav-site">🌐</a>
+      <button class="nav-logout" onclick="logout()">Abmelden</button>
+    </div>
+  </nav>
+  <main class="admin-main">
+    <div class="admin-container">
+      <a href="/admin/customers" class="back-link">← Zurück zur Kundenliste</a>
+      <h1>{{ customer.first_name }} {{ customer.last_name }}</h1>
+
+      <div class="detail-grid">
+        <div class="detail-card">
+          <h3>Kontaktdaten</h3>
+          <div class="detail-row"><span>📧</span><span>{{ customer.email }}</span></div>
+          <div class="detail-row"><span>📞</span><span>{{ customer.phone | default(value="–") }}</span></div>
+          <div class="detail-row"><span>📍</span><span>{{ customer.street | default(value="–") }}, {{ customer.zip_code }} {{ customer.city }}</span></div>
+          <div class="detail-row"><span>📅</span><span>Kunde seit {{ customer.created_at }}</span></div>
+        </div>
+        <div class="detail-card">
+          <h3>Finanzen</h3>
+          <div class="detail-row"><span>💰 Offen</span><span class="{% if pending_amount > 0 %}text-warning{% endif %}">{{ "%.2f" | format(value=pending_amount) }} €</span></div>
+          <div class="detail-row"><span>✅ Bezahlt</span><span>{{ "%.2f" | format(value=paid_amount) }} €</span></div>
+          <div class="detail-row"><span>🎟️ Guthaben</span><span>{{ remaining_credits }} Sitzungen</span></div>
+        </div>
+      </div>
+
+      <div class="admin-section">
+        <h2>Terminvorschlag senden</h2>
+        <div class="suggest-form">
+          <div id="suggest-slots">
+            <div class="suggest-slot-row">
+              <input type="datetime-local" class="suggest-input" placeholder="Terminvorschlag">
+              <button onclick="addSuggestSlot()" class="btn-small btn-add">+ Weiterer Termin</button>
+            </div>
+          </div>
+          <button onclick="sendSuggestion({{ customer.id }})" class="auth-btn" style="margin-top:12px">📧 Vorschläge per E-Mail senden</button>
+        </div>
+      </div>
+
+      {% if appointments | length > 0 %}
+      <div class="admin-section">
+        <h2>Termine ({{ appointments | length }})</h2>
+        <div class="table-wrap">
+          <table class="admin-table">
+            <thead><tr><th>Datum</th><th>Typ</th><th>Status</th><th>Aktion</th></tr></thead>
+            <tbody>
+              {% for apt in appointments %}
+              <tr>
+                <td>{{ apt.start_time }}</td>
+                <td>{% if apt.is_home_visit %}🏠{% else %}🏥{% endif %} {{ apt.appointment_type }}</td>
+                <td><span class="status-badge status-{{ apt.status }}">{{ apt.status }}</span></td>
+                <td>{% if apt.status == "confirmed" %}<button onclick="adminCancelAppointment({{ apt.id }})" class="btn-small btn-danger">Stornieren</button>{% endif %}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if payments | length > 0 %}
+      <div class="admin-section">
+        <h2>Zahlungen</h2>
+        <div class="table-wrap">
+          <table class="admin-table">
+            <thead><tr><th>Datum</th><th>Betrag</th><th>Typ</th><th>Status</th><th>Aktion</th></tr></thead>
+            <tbody>
+              {% for p in payments %}
+              <tr>
+                <td>{{ p.created_at }}</td>
+                <td>{{ p.amount }} €</td>
+                <td>{{ p.payment_type }}</td>
+                <td><span class="status-badge status-{{ p.status }}">{% if p.status == "pending" %}Offen{% else %}Bezahlt{% endif %}</span></td>
+                <td>{% if p.status == "pending" %}<button onclick="markPaid({{ p.id }})" class="btn-small btn-success">✓ Bezahlt</button>{% endif %}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </main>
+  <script src="/static/js/admin.js"></script>
+</body>
+</html>

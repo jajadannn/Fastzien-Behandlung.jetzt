@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Anmelden – Faszienbehandlung Thilo Seifried</title>
+  <link rel="icon" href="/favicon.v1.ico">
+  <link rel="preload" href="/fonts/cormorant-garamond-normal-latin.v1.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/dm-sans-latin.v1.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/static/css/main.css">
+  <link rel="stylesheet" href="/static/css/auth.css">
+</head>
+<body class="auth-body">
+  <div class="auth-container">
+    <div class="auth-card">
+      <a href="/" class="auth-logo">
+        <img src="/Logo-256.v2.png" alt="Faszienbehandlung" width="120" height="49">
+      </a>
+      <h1>Willkommen zurück</h1>
+      <p class="auth-subtitle">Melde dich an, um Termine zu verwalten</p>
+
+      <div id="error-msg" class="auth-error" style="display:none"></div>
+
+      <form id="login-form" class="auth-form">
+        <div class="form-group">
+          <label for="email">E-Mail-Adresse</label>
+          <input type="email" id="email" name="email" required placeholder="deine@email.de" autocomplete="email">
+        </div>
+        <div class="form-group">
+          <label for="password">Passwort</label>
+          <input type="password" id="password" name="password" required placeholder="••••••••" autocomplete="current-password">
+        </div>
+        <button type="submit" class="auth-btn" id="submit-btn">
+          <span class="btn-text">Anmelden</span>
+          <span class="btn-loader" style="display:none"></span>
+        </button>
+      </form>
+
+      <div class="auth-links">
+        <a href="/reset-password">Passwort vergessen?</a>
+        <span class="auth-divider">·</span>
+        <a href="/register">Neues Konto erstellen</a>
+      </div>
+
+      <a href="/" class="auth-back">← Zurück zur Startseite</a>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submit-btn');
+      const errorMsg = document.getElementById('error-msg');
+      btn.querySelector('.btn-text').style.display = 'none';
+      btn.querySelector('.btn-loader').style.display = 'inline-block';
+      btn.disabled = true;
+      errorMsg.style.display = 'none';
+
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: document.getElementById('email').value,
+            password: document.getElementById('password').value,
+          }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          window.location.href = data.redirect || '/portal';
+        } else {
+          errorMsg.textContent = data.error || 'Anmeldung fehlgeschlagen';
+          errorMsg.style.display = 'block';
+        }
+      } catch (err) {
+        errorMsg.textContent = 'Verbindungsfehler. Bitte versuche es erneut.';
+        errorMsg.style.display = 'block';
+      } finally {
+        btn.querySelector('.btn-text').style.display = 'inline';
+        btn.querySelector('.btn-loader').style.display = 'none';
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

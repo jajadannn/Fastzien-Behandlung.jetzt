@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin – Faszienbehandlung</title>
+  <link rel="icon" href="/favicon.v1.ico">
+  <link rel="preload" href="/fonts/cormorant-garamond-normal-latin.v1.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/dm-sans-latin.v1.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/static/css/main.css">
+  <link rel="stylesheet" href="/static/css/admin.css">
+</head>
+<body>
+  <nav class="admin-nav">
+    <a href="/" class="admin-logo">
+      <img src="/Logo-128.v2.png" alt="Faszienbehandlung" height="30">
+      <span>Admin</span>
+    </a>
+    <div class="admin-nav-links">
+      <a href="/admin" class="active">Übersicht</a>
+      <a href="/admin/customers">Kunden</a>
+      <a href="/admin/appointments">Termine</a>
+      <a href="/admin/payments">Zahlungen</a>
+      <a href="/admin/faq">FAQ</a>
+      <a href="/admin/reviews">Bewertungen</a>
+      <a href="/admin/settings">Einstellungen</a>
+      <a href="/" class="nav-site">🌐 Website</a>
+      <button class="nav-logout" onclick="logout()">Abmelden</button>
+    </div>
+  </nav>
+
+  <main class="admin-main">
+    <div class="admin-container">
+      <h1>Dashboard</h1>
+
+      <div class="admin-stats">
+        <div class="stat-card stat-sky">
+          <div class="stat-icon">👥</div>
+          <div class="stat-value">{{ total_customers }}</div>
+          <div class="stat-label">Kunden</div>
+        </div>
+        <div class="stat-card stat-plum">
+          <div class="stat-icon">📅</div>
+          <div class="stat-value">{{ total_upcoming }}</div>
+          <div class="stat-label">Kommende Termine</div>
+        </div>
+        <div class="stat-card stat-warning">
+          <div class="stat-icon">💰</div>
+          <div class="stat-value">{{ "%.2f" | format(value=total_pending) }} €</div>
+          <div class="stat-label">Offene Beträge</div>
+        </div>
+        <div class="stat-card stat-success">
+          <div class="stat-icon">✅</div>
+          <div class="stat-value">{{ "%.2f" | format(value=total_paid) }} €</div>
+          <div class="stat-label">Bezahlt (gesamt)</div>
+        </div>
+      </div>
+
+      {% if upcoming_appointments | length > 0 %}
+      <div class="admin-section">
+        <h2>Nächste Termine</h2>
+        <div class="table-wrap">
+          <table class="admin-table">
+            <thead><tr><th>Datum</th><th>Kunde</th><th>Typ</th><th>Status</th></tr></thead>
+            <tbody>
+              {% for apt in upcoming_appointments %}
+              <tr>
+                <td>{{ apt.start_time }}</td>
+                <td><a href="/admin/customers/{{ apt.customer_id }}">{{ apt.customer_name | default(value="–") }}</a></td>
+                <td>{% if apt.is_home_visit %}🏠 Hausbesuch{% else %}🏥 Praxis{% endif %}</td>
+                <td><span class="status-badge status-{{ apt.status }}">{{ apt.status }}</span></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if customers | length > 0 %}
+      <div class="admin-section">
+        <h2>Kunden mit offenen Beträgen</h2>
+        <div class="table-wrap">
+          <table class="admin-table">
+            <thead><tr><th>Name</th><th>E-Mail</th><th>Telefon</th><th>Offen</th></tr></thead>
+            <tbody>
+              {% for c in customers %}
+              <tr>
+                <td><a href="/admin/customers/{{ c.id }}">{{ c.first_name }} {{ c.last_name }}</a></td>
+                <td>{{ c.email }}</td>
+                <td>{{ c.phone }}</td>
+                <td>{{ "%.2f" | format(value=0.0) }} €</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </main>
+
+  <script src="/static/js/admin.js"></script>
+</body>
+</html>

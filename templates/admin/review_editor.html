@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bewertungen – Admin</title>
+  <link rel="icon" href="/favicon.v1.ico">
+  <link rel="stylesheet" href="/static/css/main.css">
+  <link rel="stylesheet" href="/static/css/admin.css">
+</head>
+<body>
+  <nav class="admin-nav">
+    <a href="/" class="admin-logo"><img src="/Logo-128.v2.png" alt="" height="30"><span>Admin</span></a>
+    <div class="admin-nav-links">
+      <a href="/admin">Übersicht</a>
+      <a href="/admin/customers">Kunden</a>
+      <a href="/admin/appointments">Termine</a>
+      <a href="/admin/payments">Zahlungen</a>
+      <a href="/admin/faq">FAQ</a>
+      <a href="/admin/reviews" class="active">Bewertungen</a>
+      <a href="/admin/settings">Einstellungen</a>
+      <a href="/" class="nav-site">🌐</a>
+      <button class="nav-logout" onclick="logout()">Abmelden</button>
+    </div>
+  </nav>
+  <main class="admin-main">
+    <div class="admin-container">
+      <div class="admin-header-row">
+        <h1>Bewertungen</h1>
+        <button class="auth-btn" onclick="showReviewForm()">+ Neue Bewertung</button>
+      </div>
+
+      <div id="review-form-container" class="editor-form" style="display:none">
+        <input type="hidden" id="review-id">
+        <div class="form-row">
+          <div class="form-group"><label>Name</label><input type="text" id="review-name" placeholder="Sandra M."></div>
+          <div class="form-group"><label>Ort</label><input type="text" id="review-location" placeholder="Schramberg"></div>
+        </div>
+        <div class="form-group">
+          <label>Bewertungstext</label>
+          <textarea id="review-content" rows="4" placeholder="Die Bewertung..."></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Sterne (1–5)</label><input type="number" id="review-stars" min="1" max="5" value="5"></div>
+          <div class="form-group"><label>Reihenfolge</label><input type="number" id="review-order" value="0"></div>
+          <div class="form-group"><label class="checkbox-label"><input type="checkbox" id="review-active" checked> Aktiv</label></div>
+        </div>
+        <div class="form-actions">
+          <button class="auth-btn" onclick="saveReview()">Speichern</button>
+          <button class="btn-secondary-flat" onclick="hideReviewForm()">Abbrechen</button>
+        </div>
+      </div>
+
+      <div class="review-admin-list">
+        {% for r in reviews %}
+        <div class="review-admin-item">
+          <div class="review-admin-header">
+            <span class="faq-order">#{{ r.sort_order }}</span>
+            <strong>{{ r.author_name }}</strong> – {{ r.author_location }}
+            <span class="stars-small">{% for i in range(end=r.stars) %}★{% endfor %}</span>
+            <span class="faq-status {% if r.is_active %}active{% else %}inactive{% endif %}">{% if r.is_active %}Aktiv{% else %}Inaktiv{% endif %}</span>
+          </div>
+          <p class="review-admin-text">{{ r.content }}</p>
+          <div class="faq-admin-actions">
+            <button onclick='editReview({{ r.id }}, "{{ r.author_name }}", "{{ r.author_location }}", `{{ r.content }}`, {{ r.stars }}, {{ r.sort_order }}, {{ r.is_active }})' class="btn-small">Bearbeiten</button>
+            <button onclick="deleteReview({{ r.id }})" class="btn-small btn-danger">Löschen</button>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </main>
+  <script>
+    function showReviewForm() { document.getElementById('review-form-container').style.display = 'block'; document.getElementById('review-id').value = ''; document.getElementById('review-name').value = ''; document.getElementById('review-location').value = ''; document.getElementById('review-content').value = ''; document.getElementById('review-stars').value = 5; document.getElementById('review-order').value = 0; document.getElementById('review-active').checked = true; }
+    function hideReviewForm() { document.getElementById('review-form-container').style.display = 'none'; }
+    function editReview(id, name, loc, content, stars, order, active) { showReviewForm(); document.getElementById('review-id').value = id; document.getElementById('review-name').value = name; document.getElementById('review-location').value = loc; document.getElementById('review-content').value = content; document.getElementById('review-stars').value = stars; document.getElementById('review-order').value = order; document.getElementById('review-active').checked = active; }
+    async function saveReview() {
+      const id = document.getElementById('review-id').value;
+      const body = { author_name: document.getElementById('review-name').value, author_location: document.getElementById('review-location').value, content: document.getElementById('review-content').value, stars: parseInt(document.getElementById('review-stars').value), sort_order: parseInt(document.getElementById('review-order').value), is_active: document.getElementById('review-active').checked };
+      if (id) body.id = parseInt(id);
+      const res = await fetch('/api/admin/reviews', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+      if ((await res.json()).success) location.reload();
+    }
+    async function deleteReview(id) { if (!confirm('Bewertung löschen?')) return; await fetch(`/api/admin/reviews/${id}`, { method: 'DELETE' }); location.reload(); }
+  </script>
+  <script src="/static/js/admin.js"></script>
+</body>
+</html>

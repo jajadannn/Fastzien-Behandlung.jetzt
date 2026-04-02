@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registrieren – Faszienbehandlung Thilo Seifried</title>
+  <link rel="icon" href="/favicon.v1.ico">
+  <link rel="preload" href="/fonts/cormorant-garamond-normal-latin.v1.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/dm-sans-latin.v1.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/static/css/main.css">
+  <link rel="stylesheet" href="/static/css/auth.css">
+</head>
+<body class="auth-body">
+  <div class="auth-container">
+    <div class="auth-card">
+      <a href="/" class="auth-logo">
+        <img src="/Logo-256.v2.png" alt="Faszienbehandlung" width="120" height="49">
+      </a>
+      <h1>Konto erstellen</h1>
+      <p class="auth-subtitle">Registriere dich, um online Termine zu buchen</p>
+
+      <div id="error-msg" class="auth-error" style="display:none"></div>
+
+      <form id="register-form" class="auth-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="first_name">Vorname *</label>
+            <input type="text" id="first_name" name="first_name" required placeholder="Max">
+          </div>
+          <div class="form-group">
+            <label for="last_name">Nachname *</label>
+            <input type="text" id="last_name" name="last_name" required placeholder="Mustermann">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="email">E-Mail-Adresse *</label>
+          <input type="email" id="email" name="email" required placeholder="deine@email.de" autocomplete="email">
+        </div>
+        <div class="form-group">
+          <label for="phone">Telefon</label>
+          <input type="tel" id="phone" name="phone" placeholder="+49 123 456 7890">
+        </div>
+        <div class="form-group">
+          <label for="password">Passwort * <small>(min. 6 Zeichen)</small></label>
+          <input type="password" id="password" name="password" required minlength="6" placeholder="••••••••" autocomplete="new-password">
+        </div>
+        <button type="submit" class="auth-btn" id="submit-btn">
+          <span class="btn-text">Konto erstellen</span>
+          <span class="btn-loader" style="display:none"></span>
+        </button>
+      </form>
+
+      <div class="auth-links">
+        <span>Bereits registriert?</span>
+        <a href="/login">Jetzt anmelden</a>
+      </div>
+
+      <a href="/" class="auth-back">← Zurück zur Startseite</a>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('register-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submit-btn');
+      const errorMsg = document.getElementById('error-msg');
+      btn.querySelector('.btn-text').style.display = 'none';
+      btn.querySelector('.btn-loader').style.display = 'inline-block';
+      btn.disabled = true;
+      errorMsg.style.display = 'none';
+
+      try {
+        const res = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: document.getElementById('email').value,
+            password: document.getElementById('password').value,
+            first_name: document.getElementById('first_name').value,
+            last_name: document.getElementById('last_name').value,
+            phone: document.getElementById('phone').value || null,
+          }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          window.location.href = data.redirect || '/portal';
+        } else {
+          errorMsg.textContent = data.error || 'Registrierung fehlgeschlagen';
+          errorMsg.style.display = 'block';
+        }
+      } catch (err) {
+        errorMsg.textContent = 'Verbindungsfehler. Bitte versuche es erneut.';
+        errorMsg.style.display = 'block';
+      } finally {
+        btn.querySelector('.btn-text').style.display = 'inline';
+        btn.querySelector('.btn-loader').style.display = 'none';
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

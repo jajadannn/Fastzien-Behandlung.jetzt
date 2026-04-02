@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profil – Faszienbehandlung</title>
+  <link rel="icon" href="/favicon.v1.ico">
+  <link rel="preload" href="/fonts/cormorant-garamond-normal-latin.v1.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/dm-sans-latin.v1.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/static/css/main.css">
+  <link rel="stylesheet" href="/static/css/customer.css">
+</head>
+<body>
+  <nav class="portal-nav">
+    <a href="/" class="portal-logo">
+      <img src="/Logo-128.v2.png" alt="Faszienbehandlung" height="32">
+      <span>Kundenportal</span>
+    </a>
+    <div class="portal-nav-links">
+      <a href="/portal">Dashboard</a>
+      <a href="/portal/book">Buchen</a>
+      <a href="/portal/appointments">Termine</a>
+      <a href="/portal/credits">Guthaben</a>
+      <a href="/portal/profile" class="active">Profil</a>
+      {% if is_admin %}<a href="/admin" class="nav-admin">⚙️ Admin</a>{% endif %}
+      <button class="nav-logout" onclick="logout()">Abmelden</button>
+    </div>
+  </nav>
+
+  <main class="portal-main">
+    <div class="portal-container portal-narrow">
+      <div class="portal-welcome">
+        <h1>Mein Profil</h1>
+        <p>Persönliche Daten und Einstellungen</p>
+      </div>
+
+      <div id="msg" class="portal-success" style="display:none"></div>
+      <div id="err" class="portal-error" style="display:none"></div>
+
+      <div class="profile-section">
+        <h2>Persönliche Daten</h2>
+        <form id="profile-form" class="portal-form">
+          <div class="form-row">
+            <div class="form-group"><label>Vorname</label><input type="text" id="first_name" value="{{ customer.first_name }}"></div>
+            <div class="form-group"><label>Nachname</label><input type="text" id="last_name" value="{{ customer.last_name }}"></div>
+          </div>
+          <div class="form-group"><label>Telefon</label><input type="tel" id="phone" value="{{ customer.phone }}"></div>
+          <div class="form-group"><label>Straße</label><input type="text" id="street" value="{{ customer.street }}"></div>
+          <div class="form-row">
+            <div class="form-group"><label>PLZ</label><input type="text" id="zip_code" value="{{ customer.zip_code }}"></div>
+            <div class="form-group"><label>Ort</label><input type="text" id="city" value="{{ customer.city }}"></div>
+          </div>
+          <button type="submit" class="auth-btn">Speichern</button>
+        </form>
+      </div>
+
+      <div class="profile-section">
+        <h2>E-Mail ändern</h2>
+        <p class="profile-current">Aktuelle E-Mail: <strong>{{ customer.email }}</strong></p>
+        <form id="email-form" class="portal-form">
+          <div class="form-group"><label>Neue E-Mail</label><input type="email" id="new_email" required></div>
+          <div class="form-group"><label>Passwort bestätigen</label><input type="password" id="email_password" required></div>
+          <button type="submit" class="auth-btn">E-Mail ändern</button>
+        </form>
+      </div>
+
+      <div class="profile-section">
+        <h2>Passwort ändern</h2>
+        <form id="password-form" class="portal-form">
+          <div class="form-group"><label>Aktuelles Passwort</label><input type="password" id="current_password" required></div>
+          <div class="form-group"><label>Neues Passwort <small>(min. 6 Zeichen)</small></label><input type="password" id="new_password" required minlength="6"></div>
+          <button type="submit" class="auth-btn">Passwort ändern</button>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    function showMsg(text) { const el = document.getElementById('msg'); el.textContent = text; el.style.display = 'block'; document.getElementById('err').style.display = 'none'; setTimeout(() => el.style.display = 'none', 4000); }
+    function showErr(text) { const el = document.getElementById('err'); el.textContent = text; el.style.display = 'block'; document.getElementById('msg').style.display = 'none'; }
+
+    document.getElementById('profile-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const res = await fetch('/api/customer/profile', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({
+        first_name: document.getElementById('first_name').value,
+        last_name: document.getElementById('last_name').value,
+        phone: document.getElementById('phone').value,
+        street: document.getElementById('street').value,
+        zip_code: document.getElementById('zip_code').value,
+        city: document.getElementById('city').value,
+      })});
+      const d = await res.json();
+      d.success ? showMsg('Profil gespeichert!') : showErr(d.error);
+    });
+
+    document.getElementById('email-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const res = await fetch('/api/customer/change-email', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({
+        new_email: document.getElementById('new_email').value,
+        password: document.getElementById('email_password').value,
+      })});
+      const d = await res.json();
+      if (d.success) { showMsg('E-Mail geändert!'); setTimeout(() => location.reload(), 1500); } else showErr(d.error);
+    });
+
+    document.getElementById('password-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const res = await fetch('/api/customer/change-password', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({
+        current_password: document.getElementById('current_password').value,
+        new_password: document.getElementById('new_password').value,
+      })});
+      const d = await res.json();
+      if (d.success) { showMsg('Passwort geändert!'); document.getElementById('password-form').reset(); } else showErr(d.error);
+    });
+  </script>
+  <script src="/static/js/customer.js"></script>
+</body>
+</html>

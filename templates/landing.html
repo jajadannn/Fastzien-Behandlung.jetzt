@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Faszienbehandlung in Sulgen &amp; Dunningen | Thilo Seifried</title>
+  <meta name="description" content="Faszienbehandlung nach Gantke® in Sulgen &amp; Dunningen. Hilfe bei Rückenschmerzen, Verspannungen und Migräne. Auch für Menschen interessant, die nach Massage suchen. Jetzt Termin buchen.">
+  <meta name="author" content="Thilo Seifried">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+  <link rel="canonical" href="https://faszien-behandlung.jetzt/">
+  <meta name="theme-color" content="#70AECD">
+
+  <meta name="geo.region" content="DE-BW">
+  <meta name="geo.placename" content="Sulgen, Dunningen, Baden-Württemberg">
+  <meta name="geo.position" content="48.2157;8.5033">
+  <meta name="ICBM" content="48.2157, 8.5033">
+
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="de_DE">
+  <meta property="og:site_name" content="Faszienbehandlung Thilo Seifried">
+  <meta property="og:title" content="Gantke® Faszienbehandlung Sulgen &amp; Dunningen | Thilo Seifried">
+  <meta property="og:description" content="Chronische Schmerzen? Verspannungen? Gantke® Faszienbehandlung wirkt – spürbar ab der 1. Sitzung. Jetzt Termin buchen.">
+  <meta property="og:url" content="https://faszien-behandlung.jetzt/">
+  <meta property="og:image" content="https://faszien-behandlung.jetzt/og-hero.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Gantke® Faszienbehandlung Sulgen &amp; Dunningen | Thilo Seifried">
+  <meta name="twitter:description" content="Weniger Schmerzen, mehr Beweglichkeit. Jetzt online Termin buchen.">
+  <meta name="twitter:image" content="https://faszien-behandlung.jetzt/og-hero.jpg">
+
+  <link rel="icon" href="/favicon.v1.ico" sizes="any">
+  <link rel="shortcut icon" href="/favicon.v1.ico">
+
+  <link rel="preload" href="/fonts/cormorant-garamond-normal-latin.v1.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/cormorant-garamond-italic-latin.v1.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/dm-sans-latin.v1.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/static/css/main.css">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "HealthAndBeautyBusiness",
+    "name": "Faszienbehandlung Thilo Seifried – Gantke® Methode",
+    "url": "https://faszien-behandlung.jetzt/",
+    "image": "https://faszien-behandlung.jetzt/Logo-256.v2.png",
+    "description": "Gantke® Faszienbehandlung in Sulgen & Dunningen. Thilo Seifried behandelt chronische Rückenschmerzen, Verspannungen, Migräne und Gelenkbeschwerden. 90 Minuten ab {{ settings.price_single | default(value='195') }} €.",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "{{ settings.address_street | default(value='Sulgauer Straße 24') }}",
+      "postalCode": "{{ settings.address_zip | default(value='78713') }}",
+      "addressLocality": "{{ settings.address_city | default(value='Sulgen') }}",
+      "addressRegion": "Baden-Württemberg",
+      "addressCountry": "DE"
+    },
+    "geo": { "@type": "GeoCoordinates", "latitude": 48.2157, "longitude": 8.5033 },
+    "telephone": "{{ settings.phone_raw | default(value='+4915234007225') }}",
+    "email": "{{ settings.email_contact | default(value='termin@faszienbehandlung.jetzt') }}",
+    "openingHours": ["Mo-Fr 16:00-22:00", "Sa 09:00-19:00"],
+    "priceRange": "€€"
+  }
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {% for faq in faqs %}
+      {"@type":"Question","name":"{{ faq.question }}","acceptedAnswer":{"@type":"Answer","text":"{{ faq.answer_html | striptags }}"}}{% if not loop.last %},{% endif %}
+      {% endfor %}
+    ]
+  }
+  </script>
+</head>
+<body>
+
+  <nav class="topbar" aria-label="Hauptnavigation">
+    <a class="topbar-logo" href="#home">
+      <img
+        src="/Logo-128.v2.png"
+        srcset="/Logo-128.v2.png 1x, /Logo-256.v2.png 2x"
+        alt="Faszienbehandlung Thilo Seifried"
+        width="92"
+        height="38">
+      <span class="topbar-brand">Thilo Seifried · Gantke® Methode</span>
+    </a>
+    <div class="topbar-links">
+      <a href="#ueber">Über mich</a>
+      <a href="#ablauf">Ablauf</a>
+      <a href="#preise">Preise</a>
+      <a href="#anfahrt">Anfahrt</a>
+      <a href="#faq">FAQ</a>
+      {% if is_logged_in %}
+        {% if is_admin %}
+        <a href="/admin" class="btn-book">⚙️ Admin</a>
+        {% else %}
+        <a href="/portal" class="btn-book">👤 Mein Konto</a>
+        {% endif %}
+      {% else %}
+      <a href="/portal/book" class="btn-book">📅 Termin buchen</a>
+      {% endif %}
+    </div>
+  </nav>
+
+  <main id="main-content">
+  <section class="hero" id="home">
+    <div class="hero-media" aria-hidden="true">
+      <img
+        src="/Start-960.v2.jpg"
+        srcset="/Start-960.v2.jpg 960w, /Start-1400.v2.jpg 1400w"
+        sizes="100vw"
+        alt=""
+        fetchpriority="high"
+        decoding="async"
+        width="1400"
+        height="1050">
+    </div>
+    <div class="hero-inner">
+      <div class="hero-badge">✦ Gantke® zertifizierter Faszienbehandler · Sulgen / Schramberg</div>
+      <h1>Endlich wieder<br><em>schmerzfrei</em> bewegen.</h1>
+      <p class="hero-sub">Chronische Rückenschmerzen, Verspannungen, Migräne – die Gantke® Faszienbehandlung löst die Ursache, nicht nur die Symptome. Spürbar ab der ersten Sitzung.</p>
+      <div class="hero-cta-group">
+        <a class="btn-primary" href="/portal/book">📅 Jetzt Termin buchen</a>
+        <a class="btn-secondary" href="#ueber">Mehr erfahren ↓</a>
+      </div>
+      <p class="hero-note">✓ Online buchbar &nbsp;·&nbsp; ✓ 90 Min. ab {{ settings.price_single | default(value="195") }} € &nbsp;·&nbsp; ✓ Kostenlose Parkplätze</p>
+    </div>
+  </section>
+
+  <div class="trust-bar">
+    <div class="trust-bar-inner">
+      <div class="trust-item"><div class="trust-icon">🎓</div><div><div class="trust-label">Gantke® zertifiziert</div><div class="trust-sub">Anerkannte Methode</div></div></div>
+      <div class="trust-item"><div class="trust-icon">⏱</div><div><div class="trust-label">90 Min. Behandlung</div><div class="trust-sub">Ganzheitlich & gründlich</div></div></div>
+      <div class="trust-item"><div class="trust-icon">💆</div><div><div class="trust-label">100% schmerzfrei</div><div class="trust-sub">Sanfte Technik</div></div></div>
+      <div class="trust-item"><div class="trust-icon">🅿️</div><div><div class="trust-label">Kostenlos parken</div><div class="trust-sub">Direkt vor der Tür</div></div></div>
+    </div>
+  </div>
+
+  <section class="section-white" id="beschwerden">
+    <div class="container">
+      <div class="section-tag">Beschwerdebilder</div>
+      <h2 class="section-title">Leidest du unter<br><em>diesen Beschwerden?</em></h2>
+      <div class="quick-answer">
+        <strong>Kurzantwort</strong>
+        <p>Die Gantke® Faszienbehandlung ist unterstützend bei chronischen Schmerzen, Verspannungen und eingeschränkter Beweglichkeit – für alle Altersgruppen, vollständig schmerzfrei. 90 Minuten, {{ settings.price_single | default(value="195") }} €, Praxis in Sulgen.</p>
+      </div>
+      <p class="section-lead">Die Faszienbehandlung wirkt ganzheitlich – vom Fuß bis zum Kopf. Diese Beschwerden sprechen besonders gut auf die Gantke® Methode an:</p>
+      <div class="pain-grid">
+        <div class="pain-card js-animate"><div class="pain-emoji">🔙</div><h3>Rückenschmerzen</h3><p>Chronische Schmerzen im Lenden- oder Brustwirbelsäulenbereich</p></div>
+        <div class="pain-card js-animate"><div class="pain-emoji">🤕</div><h3>Migräne &amp; Kopfschmerzen</h3><p>Wiederkehrende Kopfschmerzen und Spannungskopfschmerzen</p></div>
+        <div class="pain-card js-animate"><div class="pain-emoji">💪</div><h3>Nacken &amp; Schulter</h3><p>Verspannungen, Blockaden und eingeschränkte Beweglichkeit</p></div>
+        <div class="pain-card js-animate"><div class="pain-emoji">🦵</div><h3>Knie &amp; Hüfte</h3><p>Gelenkschmerzen, Arthrose-Beschwerden und Bewegungseinschränkung</p></div>
+        <div class="pain-card js-animate"><div class="pain-emoji">😰</div><h3>Stress &amp; Erschöpfung</h3><p>Innere Anspannung, Burnout-Symptome und chronische Müdigkeit</p></div>
+        <div class="pain-card js-animate"><div class="pain-emoji">🩹</div><h3>Nach Verletzungen</h3><p>Rehabilitation nach Operationen, Unfällen und Sportverletzungen</p></div>
+      </div>
+      <div class="contra-note"><strong>Kontraindikationen:</strong> Die Behandlung ist nicht geeignet bei akuten Entzündungen, Fieber, Metastasen, frischen Operationswunden oder Thrombosen. Bitte teile mir Vorerkrankungen vorab mit.</div>
+    </div>
+  </section>
+
+  <section class="section-pale" id="ueber">
+    <div class="container">
+      <div class="section-tag">Über Thilo Seifried</div>
+      <h2 class="section-title">Dein Behandler –<br><em>Mensch &amp; Fachmann</em></h2>
+      <div class="about-split">
+        <div class="about-photo-wrap js-animate">
+          <div class="about-photo">
+            <img
+              src="/Portrait-240.v2.jpg"
+              srcset="/Portrait-240.v2.jpg 240w, /Portrait-320.v2.jpg 320w, /Portrait-480.v2.jpg 480w"
+              sizes="(max-width: 768px) 145px, 240px"
+              alt="Thilo Seifried – Gantke® Faszienbehandler in Sulgen"
+              width="240"
+              height="280"
+              loading="lazy"
+              decoding="async">
+          </div>
+          <div class="about-creds">
+            <div class="cred-badge"><span class="ci">🎓</span> Gantke® zertifizierter Faszienbehandler</div>
+            <div class="cred-badge"><span class="ci">📍</span> Sulgen (Schramberg), BW</div>
+            <div class="cred-badge"><span class="ci">🏠</span> Hausbesuche in der Region</div>
+          </div>
+        </div>
+        <div class="about-text js-animate">
+          <h3>Hallo, ich bin Thilo.</h3>
+          <p>Als zertifizierter Gantke® Faszienbehandler helfe ich Menschen in und um Sulgen und Schramberg dabei, ihre Beweglichkeit zurückzugewinnen und chronische Schmerzen nachhaltig zu lindern.</p>
+          <p>Die Gantke® Methode hat mich überzeugt, weil sie an der Ursache ansetzt: verklebte und fehlgespannte Faszien. Mit gezielten, sanften Grifftechniken löse ich diese Strukturen – spürbar und ganzheitlich.</p>
+          <p>Jede Behandlung beginnt mit einem persönlichen Gespräch. Ich nehme mir Zeit für dich und passe die Sitzung individuell an deine Beschwerden und deinen Körper an.</p>
+          <div class="fact-row">
+            <div class="fact-item"><div class="fact-val">90 Min.</div><div class="fact-desc">Behandlungsdauer je Sitzung</div></div>
+            <div class="fact-item"><div class="fact-val">{{ settings.price_single | default(value="195") }} €</div><div class="fact-desc">Einzelbehandlung inkl. Beratung</div></div>
+            <div class="fact-item"><div class="fact-val">Mo–Sa</div><div class="fact-desc">{{ settings.hours_stripe_short | default(value="Mo–Fr 16–22 Uhr · Sa 9–19 Uhr") }}</div></div>
+            <div class="fact-item"><div class="fact-val">+{{ settings.home_visit_surcharge | default(value="15") }} €</div><div class="fact-desc">Fahrtpauschale für Hausbesuche</div></div>
+          </div>
+          <div style="margin-top:24px"><a class="btn-primary" href="/portal/book">Termin vereinbaren →</a></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-white" id="methode">
+    <div class="container">
+      <div class="section-tag">Die Methode</div>
+      <h2 class="section-title">Was ist die<br><em>Gantke® Faszienbehandlung?</em></h2>
+      <div class="quick-answer">
+        <strong>Kurzantwort</strong>
+        <p>Die Gantke® Methode ist eine manuelle Faszientherapie, entwickelt von Robert Gantke. Gezielte Grifftechniken lösen Verklebungen im Bindegewebe – schmerzfrei, ohne Geräte, ca. 90 Minuten, ganzheitlich vom Fuß bis zum Kopf.</p>
+      </div>
+      <p class="section-lead">Faszien sind das Bindegewebsnetz, das deinen gesamten Körper durchzieht. Wenn sie verkleben oder verhärten, entstehen Schmerzen und Bewegungseinschränkungen – oft weit entfernt vom eigentlichen Problem.</p>
+      <div class="benefit-list">
+        <div class="benefit-item js-animate"><div class="benefit-dot"></div><div><h3>Sanft &amp; tief wirkend</h3><p>Präzise manuelle Grifftechniken lösen Verklebungen vollständig schmerzfrei und ohne Hilfsmittel.</p></div></div>
+        <div class="benefit-item js-animate"><div class="benefit-dot"></div><div><h3>Ganzheitlicher Ansatz</h3><p>Faszien bilden ein körperweites Netzwerk. Die Behandlung wirkt systemisch – strukturelle Fehlspannungen werden an der Ursache korrigiert, nicht nur lokal.</p></div></div>
+        <div class="benefit-item js-animate"><div class="benefit-dot"></div><div><h3>Nachhaltiger als klassische Massage</h3><p>Klassische Massage behandelt primär die Muskulatur. Gantke® zielt auf das fasziale Bindegewebsnetz – die Wirkung ist langfristiger und ganzheitlicher.</p></div></div>
+        <div class="benefit-item js-animate"><div class="benefit-dot"></div><div><h3>Für alle Altersgruppen</h3><p>Die sanfte Technik passt sich deinem individuellen Gewebe an – egal ob jung, alt, sportlich oder wenig bewegt.</p></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-sky" id="ablauf">
+    <div class="container">
+      <div class="section-tag">So läuft es ab</div>
+      <h2 class="section-title">Deine Behandlung in<br><em>3 einfachen Schritten</em></h2>
+      <p class="section-lead">Unkompliziert, persönlich und auf dich abgestimmt.</p>
+      <div class="steps-row">
+        <div class="step js-animate"><div class="step-num">1</div><div><h3>Erstgespräch &amp; Analyse</h3><p>Wir besprechen deine Beschwerden und Ziele. Ich analysiere Körperhaltung und Bewegungsmuster, um die Behandlung optimal abzustimmen.</p></div></div>
+        <div class="step js-animate"><div class="step-num">2</div><div><h3>Gantke® Faszienbehandlung</h3><p>Du liegst bekleidet auf einer komfortablen Liege. Sanfte, gezielte Griffe lösen Faszienverklebungen. Viele empfinden die Sitzung als tief entspannend.</p></div></div>
+        <div class="step js-animate"><div class="step-num">3</div><div><h3>Nachgespräch &amp; Übungen</h3><p>Du erhältst individuelle Tipps und Übungen für zu Hause, damit der Behandlungserfolg sich nachhaltig festigt.</p></div></div>
+      </div>
+      <div style="text-align:center;margin-top:48px">
+        <p style="color:rgba(255,255,255,0.8);margin-bottom:20px;font-size:.95rem">Eine Sitzung dauert ca. 90 Minuten · Hausbesuche im Raum Sulgen/Schramberg möglich</p>
+        <a class="btn-cta-large" href="/portal/book">📅 Termin jetzt buchen</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-white" id="bewertungen">
+    <div class="container">
+      <div class="section-tag">Kundenstimmen</div>
+      <h2 class="section-title">Das sagen<br><em>meine Klienten</em></h2>
+      <div class="testi-grid">
+        {% for review in reviews %}
+        <div class="testi-card js-animate">
+          <div class="stars-row">{% for i in range(end=review.stars) %}★{% endfor %}</div>
+          <p>{{ review.content }}</p>
+          <div class="testi-author">– {{ review.author_name }}{% if review.author_location %}, {{ review.author_location }}{% endif %}</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <section class="section-pale" id="preise">
+    <div class="container">
+      <div class="section-tag">Investition in deine Gesundheit</div>
+      <h2 class="section-title">Transparente<br><em>Preise</em></h2>
+      <p class="section-lead">Keine versteckten Kosten. Zahlung bar oder per Überweisung.</p>
+      <div class="price-grid">
+        <div class="price-card js-animate">
+          <div class="price-label">Einzelbehandlung</div>
+          <div class="price-amount">{{ settings.price_single | default(value="195") }} €</div>
+          <div class="price-duration">ca. 90 Minuten</div>
+          <ul class="price-perks"><li>Ausführliches Erstgespräch</li><li>Gantke® Faszienbehandlung</li><li>Individuelle Übungen</li><li>Rechnung für Versicherung</li></ul>
+        </div>
+        <div class="price-card featured js-animate">
+          <div class="price-badge">Bestes Preis-Leistung</div>
+          <div class="price-label">{{ settings.price_pack_count | default(value="10") }}er-Karte · pro Sitzung</div>
+          <div class="price-amount">{{ settings.price_pack | default(value="169,90") }} €</div>
+          <div class="price-duration">Übertragbar · 12 Monate gültig</div>
+          <ul class="price-perks"><li>Spare über 250 € gesamt</li><li>Flexibel übertragbar</li><li>1 Jahr Gültigkeit</li><li>Rechnung für Versicherung</li></ul>
+        </div>
+      </div>
+      <p class="price-note-text">Private Zusatzversicherungen erstatten häufig einen Teil – bitte vorab bei deiner Versicherung anfragen.</p>
+      <div style="text-align:center;margin-top:28px"><a class="btn-primary" href="/portal/book">Jetzt Termin buchen</a></div>
+    </div>
+  </section>
+
+  <section class="section-white" id="anfahrt">
+    <div class="container">
+      <div class="section-tag">Standort &amp; Anfahrt</div>
+      <h2 class="section-title">Praxis in<br><em>Sulgen</em></h2>
+      <p class="section-lead"><strong>Adresse:</strong> {{ settings.address_street | default(value="Sulgauer Straße 24") }}, {{ settings.address_zip | default(value="78713") }} {{ settings.address_city | default(value="Sulgen") }} (Ortsteil von Schramberg) – zentral zwischen Schramberg und Rottweil. Kostenlose Parkplätze direkt vor dem Haus.</p>
+      <div class="anfahrt-grid">
+        <a class="anfahrt-map-link js-animate" href="https://maps.google.com/?q=Sulgauer+Strasse+24,+78713+Sulgen" target="_blank" rel="noopener noreferrer" aria-label="Route zur Praxis in Google Maps öffnen">
+          <div class="map-icon">🗺️</div>
+          <span>Route in Google Maps öffnen</span>
+          <small style="color:var(--text-light);font-size:.78rem">{{ settings.address_street | default(value="Sulgauer Straße 24") }}, {{ settings.address_zip | default(value="78713") }} {{ settings.address_city | default(value="Sulgen") }}</small>
+        </a>
+        <div class="anfahrt-details">
+          <div class="anfahrt-item js-animate"><div class="ai-icon">🅿️</div><div><h3>Parken</h3><p>Kostenlose Parkplätze direkt vor dem Haus – keine Parkplatzsuche.</p></div></div>
+          <div class="anfahrt-item js-animate"><div class="ai-icon">🚗</div><div><h3>Mit dem Auto</h3><p>Dunningen ca. 3 Min. · Schramberg ca. 8 Min. · Rottweil ca. 15 Min.</p></div></div>
+          <div class="anfahrt-item js-animate"><div class="ai-icon">🏠</div><div><h3>Hausbesuche</h3><p>In Sulgen, Dunningen, Schramberg, Villingendorf – +{{ settings.home_visit_surcharge | default(value="15") }} € Fahrtpauschale.</p></div></div>
+          <div class="anfahrt-item js-animate"><div class="ai-icon">🕐</div><div><h3>Öffnungszeiten</h3><p>{{ settings.hours_weekday | default(value="Mo–Fr: 16:00–22:00 Uhr") }}<br>{{ settings.hours_saturday | default(value="Sa: 9:00–19:00 Uhr") }}</p></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-pale" id="faq">
+    <div class="container">
+      <div class="section-tag">Häufige Fragen</div>
+      <h2 class="section-title">Deine Fragen –<br><em>meine Antworten</em></h2>
+      <div class="faq-list">
+        {% for faq in faqs %}
+        <details>
+          <summary>{{ faq.question }}</summary>
+          <div>{{ faq.answer_html | safe }}</div>
+        </details>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <section class="cta-section" id="buchen">
+    <div class="cta-inner container">
+      <h2>Bereit, endlich<br><em style="font-style:italic;font-weight:300">schmerzfrei</em> zu leben?</h2>
+      <p>Buche jetzt deinen Termin – schnell, einfach und unverbindlich online. Die ersten freien Termine werden oft schnell belegt.</p>
+      <a class="btn-cta-large" href="/portal/book">📅 Jetzt Termin buchen</a>
+      <p class="cta-micro">Kostenlose Erstberatung inklusive · Keine Vorauszahlung</p>
+      <div class="cta-contact">
+        <span>📞 <a href="tel:{{ settings.phone_raw | default(value='+4915234007225') }}">{{ settings.phone | default(value="+49 152 34 00 72 25") }}</a></span>
+        <span>✉️ <a class="js-email" href="#"></a></span>
+        <span>📍 {{ settings.address_street | default(value="Sulgauer Straße 24") }}, {{ settings.address_zip | default(value="78713") }} {{ settings.address_city | default(value="Sulgen") }}</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="hours-stripe">
+    <p><strong>Öffnungszeiten:</strong> {{ settings.hours_stripe | default(value="Mo–Fr 16:00–22:00 Uhr · Sa 9:00–19:00 Uhr") }} &nbsp;|&nbsp; <a href="tel:{{ settings.phone_raw | default(value='+4915234007225') }}">{{ settings.phone | default(value="+49 152 34 00 72 25") }}</a></p>
+  </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-grid">
+      <div class="footer-col">
+        <h3>Kontakt</h3>
+        <address>
+          Thilo Seifried<br>
+          {{ settings.address_street | default(value="Sulgauer Straße 24") }}<br>
+          {{ settings.address_zip | default(value="78713") }} {{ settings.address_city | default(value="Sulgen") }}<br><br>
+          <a href="tel:{{ settings.phone_raw | default(value='+4915234007225') }}">{{ settings.phone | default(value="+49 152 34 00 72 25") }}</a><br>
+          <a class="js-email" href="#"></a>
+        </address>
+      </div>
+      <div class="footer-col">
+        <h3>Öffnungszeiten</h3>
+        <p>{{ settings.hours_weekday | default(value="Mo–Fr: 16:00–22:00 Uhr") }}<br>{{ settings.hours_saturday | default(value="Sa: 9:00–19:00 Uhr") }}<br>So: geschlossen</p>
+      </div>
+      <div class="footer-col">
+        <h3>Einzugsgebiet</h3>
+        <p>Praxis: Sulgen<br>Hausbesuche: Dunningen, Schramberg,<br>Villingendorf &amp; Umgebung</p>
+      </div>
+      <div class="footer-col">
+        <h3>Navigation</h3>
+        <p>
+          <a href="#beschwerden">Beschwerden</a><br>
+          <a href="#ueber">Über mich</a><br>
+          <a href="#preise">Preise</a><br>
+          <a href="#anfahrt">Anfahrt</a><br>
+          <a href="#faq">FAQ</a>
+        </p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2025 Thilo Seifried · Gantke® Faszienbehandler · Sulgen</span>
+      <span><a href="/datenschutz">Datenschutz</a> &nbsp;·&nbsp; <a href="/impressum">Impressum</a></span>
+    </div>
+  </footer>
+
+  <script src="/static/js/main.js"></script>
+</body>
+</html>

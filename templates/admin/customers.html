@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kunden – Admin</title>
+  <link rel="icon" href="/favicon.v1.ico">
+  <link rel="stylesheet" href="/static/css/main.css">
+  <link rel="stylesheet" href="/static/css/admin.css">
+</head>
+<body>
+  <nav class="admin-nav">
+    <a href="/" class="admin-logo"><img src="/Logo-128.v2.png" alt="" height="30"><span>Admin</span></a>
+    <div class="admin-nav-links">
+      <a href="/admin">Übersicht</a>
+      <a href="/admin/customers" class="active">Kunden</a>
+      <a href="/admin/appointments">Termine</a>
+      <a href="/admin/payments">Zahlungen</a>
+      <a href="/admin/faq">FAQ</a>
+      <a href="/admin/reviews">Bewertungen</a>
+      <a href="/admin/settings">Einstellungen</a>
+      <a href="/" class="nav-site">🌐</a>
+      <button class="nav-logout" onclick="logout()">Abmelden</button>
+    </div>
+  </nav>
+  <main class="admin-main">
+    <div class="admin-container">
+      <h1>Kunden ({{ customers | length }})</h1>
+      <input type="text" id="customer-search" class="admin-search" placeholder="🔍 Kunden suchen..." oninput="filterCustomers()">
+      <div class="table-wrap">
+        <table class="admin-table" id="customers-table">
+          <thead><tr><th>Name</th><th>E-Mail</th><th>Telefon</th><th>Ort</th><th>Termine</th><th>Offen</th><th>Bezahlt</th></tr></thead>
+          <tbody>
+            {% for c in customers %}
+            <tr class="customer-row" data-search="{{ c.first_name }} {{ c.last_name }} {{ c.email }} {{ c.phone }}">
+              <td><a href="/admin/customers/{{ c.id }}"><strong>{{ c.first_name }} {{ c.last_name }}</strong></a></td>
+              <td>{{ c.email }}</td>
+              <td>{{ c.phone }}</td>
+              <td>{{ c.zip_code }} {{ c.city }}</td>
+              <td>{{ c.appointment_count }}</td>
+              <td class="{% if c.pending_amount > 0 %}text-warning{% endif %}">{{ c.pending_amount }} €</td>
+              <td>{{ c.paid_amount }} €</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+  <script>
+    function filterCustomers() {
+      const q = document.getElementById('customer-search').value.toLowerCase();
+      document.querySelectorAll('.customer-row').forEach(row => {
+        row.style.display = row.dataset.search.toLowerCase().includes(q) ? '' : 'none';
+      });
+    }
+  </script>
+  <script src="/static/js/admin.js"></script>
+</body>
+</html>

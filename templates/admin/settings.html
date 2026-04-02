@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Einstellungen – Admin</title>
+  <link rel="icon" href="/favicon.v1.ico">
+  <link rel="stylesheet" href="/static/css/main.css">
+  <link rel="stylesheet" href="/static/css/admin.css">
+</head>
+<body>
+  <nav class="admin-nav">
+    <a href="/" class="admin-logo"><img src="/Logo-128.v2.png" alt="" height="30"><span>Admin</span></a>
+    <div class="admin-nav-links">
+      <a href="/admin">Übersicht</a>
+      <a href="/admin/customers">Kunden</a>
+      <a href="/admin/appointments">Termine</a>
+      <a href="/admin/payments">Zahlungen</a>
+      <a href="/admin/faq">FAQ</a>
+      <a href="/admin/reviews">Bewertungen</a>
+      <a href="/admin/settings" class="active">Einstellungen</a>
+      <a href="/" class="nav-site">🌐</a>
+      <button class="nav-logout" onclick="logout()">Abmelden</button>
+    </div>
+  </nav>
+  <main class="admin-main">
+    <div class="admin-container portal-narrow">
+      <h1>Website-Einstellungen</h1>
+      <p class="admin-subtitle">Diese Werte werden dynamisch auf der Website angezeigt.</p>
+
+      <div id="msg" class="portal-success" style="display:none"></div>
+
+      <form id="settings-form" class="portal-form">
+        <h2>Preise</h2>
+        <div class="form-row">
+          <div class="form-group"><label>Einzelbehandlung (€)</label><input type="text" name="price_single" value="{{ settings.price_single | default(value='195') }}"></div>
+          <div class="form-group"><label>10er-Karte pro Sitzung (€)</label><input type="text" name="price_pack" value="{{ settings.price_pack | default(value='169,90') }}"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Anzahl Sitzungen im Paket</label><input type="text" name="price_pack_count" value="{{ settings.price_pack_count | default(value='10') }}"></div>
+          <div class="form-group"><label>Fahrtpauschale Hausbesuch (€)</label><input type="text" name="home_visit_surcharge" value="{{ settings.home_visit_surcharge | default(value='15') }}"></div>
+        </div>
+
+        <h2>Öffnungszeiten</h2>
+        <div class="form-group"><label>Wochentags</label><input type="text" name="hours_weekday" value="{{ settings.hours_weekday | default(value='Mo–Fr: 16:00–22:00 Uhr') }}"></div>
+        <div class="form-group"><label>Samstag</label><input type="text" name="hours_saturday" value="{{ settings.hours_saturday | default(value='Sa: 9:00–19:00 Uhr') }}"></div>
+        <div class="form-group"><label>Zeile (Fusszeile)</label><input type="text" name="hours_stripe" value="{{ settings.hours_stripe | default(value='Mo–Fr 16:00–22:00 Uhr · Sa 9:00–19:00 Uhr') }}"></div>
+        <div class="form-group"><label>Kurzform</label><input type="text" name="hours_stripe_short" value="{{ settings.hours_stripe_short | default(value='Mo–Fr 16–22 Uhr · Sa 9–19 Uhr') }}"></div>
+        <div class="form-group"><label>Terminlänge (Minuten)</label><input type="text" name="appointment_duration_min" value="{{ settings.appointment_duration_min | default(value='90') }}"></div>
+
+        <h2>Kontakt</h2>
+        <div class="form-group"><label>Telefon (Anzeige)</label><input type="text" name="phone" value="{{ settings.phone | default(value='+49 152 34 00 72 25') }}"></div>
+        <div class="form-group"><label>Telefon (Link, ohne Leerzeichen)</label><input type="text" name="phone_raw" value="{{ settings.phone_raw | default(value='+4915234007225') }}"></div>
+        <div class="form-group"><label>E-Mail</label><input type="text" name="email_contact" value="{{ settings.email_contact | default(value='termin@faszienbehandlung.jetzt') }}"></div>
+
+        <h2>Adresse</h2>
+        <div class="form-group"><label>Straße</label><input type="text" name="address_street" value="{{ settings.address_street | default(value='Sulgauer Straße 24') }}"></div>
+        <div class="form-row">
+          <div class="form-group"><label>PLZ</label><input type="text" name="address_zip" value="{{ settings.address_zip | default(value='78713') }}"></div>
+          <div class="form-group"><label>Ort</label><input type="text" name="address_city" value="{{ settings.address_city | default(value='Sulgen') }}"></div>
+        </div>
+
+        <h2>Stornierung</h2>
+        <div class="form-group"><label>Stornierungsfrist (Stunden)</label><input type="text" name="cancellation_hours" value="{{ settings.cancellation_hours | default(value='24') }}"></div>
+
+        <button type="submit" class="auth-btn" style="margin-top:24px">💾 Einstellungen speichern</button>
+      </form>
+    </div>
+  </main>
+  <script>
+    document.getElementById('settings-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const data = {};
+      new FormData(e.target).forEach((v, k) => data[k] = v);
+      const res = await fetch('/api/admin/settings', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data) });
+      if ((await res.json()).success) {
+        const msg = document.getElementById('msg');
+        msg.textContent = '✓ Einstellungen gespeichert!';
+        msg.style.display = 'block';
+        setTimeout(() => msg.style.display = 'none', 3000);
+      }
+    });
+  </script>
+  <script src="/static/js/admin.js"></script>
+</body>
+</html>
