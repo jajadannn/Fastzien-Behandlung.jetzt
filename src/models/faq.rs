@@ -36,7 +36,7 @@ impl Faq {
         let mut stmt = conn.prepare(
             "SELECT id, question, answer_html, sort_order, is_active, updated_at FROM faqs ORDER BY sort_order ASC"
         )?;
-        let rows = stmt.query_map([], |row| Self::from_row(row))?;
+        let rows = stmt.query_map([], Self::from_row)?;
         rows.collect()
     }
 
@@ -44,10 +44,11 @@ impl Faq {
         let mut stmt = conn.prepare(
             "SELECT id, question, answer_html, sort_order, is_active, updated_at FROM faqs WHERE is_active = 1 ORDER BY sort_order ASC"
         )?;
-        let rows = stmt.query_map([], |row| Self::from_row(row))?;
+        let rows = stmt.query_map([], Self::from_row)?;
         rows.collect()
     }
 
+    #[allow(dead_code)]
     pub fn find_by_id(conn: &Connection, id: i64) -> Result<Option<Self>> {
         let mut stmt = conn.prepare(
             "SELECT id, question, answer_html, sort_order, is_active, updated_at FROM faqs WHERE id = ?1"

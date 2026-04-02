@@ -58,9 +58,9 @@ async fn main() -> std::io::Result<()> {
             .route("/reset-password", web::get().to(handlers::auth_handler::reset_password_page))
             .route("/reset-password/{token}", web::get().to(handlers::auth_handler::reset_password_token_page))
             // Auth API
+            .route("/logout", web::get().to(handlers::auth_handler::logout_page))
             .route("/api/auth/login", web::post().to(handlers::auth_handler::api_login))
             .route("/api/auth/register", web::post().to(handlers::auth_handler::api_register))
-            .route("/api/auth/logout", web::post().to(handlers::auth_handler::api_logout))
             .route("/api/auth/reset-password", web::post().to(handlers::auth_handler::api_reset_password_request))
             .route("/api/auth/reset-password/{token}", web::post().to(handlers::auth_handler::api_reset_password_confirm))
             // Customer portal pages

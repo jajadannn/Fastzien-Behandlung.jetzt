@@ -370,6 +370,7 @@ pub async fn api_save_settings(
 pub struct SuggestForm {
     pub customer_id: i64,
     pub slots: Vec<String>,  // list of datetime strings
+    #[allow(dead_code)]
     pub message: Option<String>,
 }
 

@@ -25,7 +25,7 @@
       <a href="/admin/reviews">Bewertungen</a>
       <a href="/admin/settings">Einstellungen</a>
       <a href="/" class="nav-site">🌐 Website</a>
-      <button class="nav-logout" onclick="logout()">Abmelden</button>
+      <a href="/logout" class="nav-logout" style="text-decoration: none;">Abmelden</a>
     </div>
   </nav>
 
@@ -46,12 +46,12 @@
         </div>
         <div class="stat-card stat-warning">
           <div class="stat-icon">💰</div>
-          <div class="stat-value">{{ "%.2f" | format(value=total_pending) }} €</div>
+          <div class="stat-value">{{ total_pending | round(method="common", precision=2) }} €</div>
           <div class="stat-label">Offene Beträge</div>
         </div>
         <div class="stat-card stat-success">
           <div class="stat-icon">✅</div>
-          <div class="stat-value">{{ "%.2f" | format(value=total_paid) }} €</div>
+          <div class="stat-value">{{ total_paid | round(method="common", precision=2) }} €</div>
           <div class="stat-label">Bezahlt (gesamt)</div>
         </div>
       </div>
@@ -65,7 +65,7 @@
             <tbody>
               {% for apt in upcoming_appointments %}
               <tr>
-                <td>{{ apt.start_time }}</td>
+                <td>{{ apt.start_time | date(format="%d.%m.%Y %H:%M") }}</td>
                 <td><a href="/admin/customers/{{ apt.customer_id }}">{{ apt.customer_name | default(value="–") }}</a></td>
                 <td>{% if apt.is_home_visit %}🏠 Hausbesuch{% else %}🏥 Praxis{% endif %}</td>
                 <td><span class="status-badge status-{{ apt.status }}">{{ apt.status }}</span></td>
@@ -89,7 +89,7 @@
                 <td><a href="/admin/customers/{{ c.id }}">{{ c.first_name }} {{ c.last_name }}</a></td>
                 <td>{{ c.email }}</td>
                 <td>{{ c.phone }}</td>
-                <td>{{ "%.2f" | format(value=0.0) }} €</td>
+                <td>{{ 0.0 | round(method="common", precision=2) }} €</td>
               </tr>
               {% endfor %}
             </tbody>

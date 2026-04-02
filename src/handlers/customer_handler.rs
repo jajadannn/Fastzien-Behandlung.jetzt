@@ -4,7 +4,6 @@ use std::sync::Mutex;
 use tera::Tera;
 
 use crate::auth;
-use crate::email::EmailService;
 use crate::models::customer::{Customer, ProfileUpdate, PasswordChange, EmailChange};
 use crate::models::appointment::Appointment;
 use crate::models::payment::{Payment, CreditPackage};
@@ -45,7 +44,15 @@ pub async fn dashboard(
 
     match tmpl.render("customer/dashboard.html", &ctx) {
         Ok(body) => HttpResponse::Ok().content_type("text/html; charset=utf-8").body(body),
-        Err(e) => HttpResponse::InternalServerError().body(format!("Template error: {}", e)),
+        Err(e) => {
+            let mut err_msg = format!("Template error: {}", e);
+            let mut cause = std::error::Error::source(&e);
+            while let Some(src) = cause {
+                err_msg.push_str(&format!("\nCaused by: {}", src));
+                cause = std::error::Error::source(src);
+            }
+            HttpResponse::InternalServerError().body(err_msg)
+        }
     }
 }
 

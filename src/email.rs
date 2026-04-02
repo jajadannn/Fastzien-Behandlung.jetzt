@@ -193,7 +193,7 @@ impl EmailService {
             </div>
         "#, name, slots_html);
 
-        if let Err(e) = self.send_html(to_email, name, &subject, &body) {
+        if let Err(e) = self.send_html(to_email, name, subject, &body) {
             error!("Failed to send appointment suggestion: {}", e);
         }
     }

@@ -1,9 +1,5 @@
 // ===== Customer Portal JS =====
 
-async function logout() {
-  await fetch('/api/auth/logout', { method: 'POST' });
-  window.location.href = '/';
-}
 
 async function cancelAppointment(id) {
   if (!confirm('Termin wirklich stornieren?')) return;

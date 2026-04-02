@@ -1,8 +1,7 @@
-use actix_web::{web, HttpRequest, HttpResponse};
+use actix_web::{web, HttpResponse};
 use rusqlite::Connection;
 use std::sync::Mutex;
 
-use crate::auth;
 use crate::models::settings::SiteSetting;
 
 pub async fn get_settings(

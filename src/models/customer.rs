@@ -107,11 +107,12 @@ impl Customer {
         }
     }
 
+    #[allow(dead_code)]
     pub fn find_all(conn: &Connection) -> Result<Vec<Self>> {
         let mut stmt = conn.prepare(
             "SELECT id, email, password_hash, first_name, last_name, phone, street, zip_code, city, notes, is_admin, created_at, updated_at FROM customers ORDER BY last_name, first_name"
         )?;
-        let rows = stmt.query_map([], |row| Self::from_row(row))?;
+        let rows = stmt.query_map([], Self::from_row)?;
         rows.collect()
     }
 
@@ -119,7 +120,7 @@ impl Customer {
         let mut stmt = conn.prepare(
             "SELECT id, email, password_hash, first_name, last_name, phone, street, zip_code, city, notes, is_admin, created_at, updated_at FROM customers WHERE is_admin = 0 ORDER BY last_name, first_name"
         )?;
-        let rows = stmt.query_map([], |row| Self::from_row(row))?;
+        let rows = stmt.query_map([], Self::from_row)?;
         rows.collect()
     }
 
@@ -131,6 +132,7 @@ impl Customer {
         Ok(conn.last_insert_rowid())
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn update_profile(conn: &Connection, id: i64, first_name: &str, last_name: &str, phone: &str, street: &str, zip_code: &str, city: &str) -> Result<()> {
         conn.execute(
             "UPDATE customers SET first_name = ?1, last_name = ?2, phone = ?3, street = ?4, zip_code = ?5, city = ?6, updated_at = datetime('now') WHERE id = ?7",

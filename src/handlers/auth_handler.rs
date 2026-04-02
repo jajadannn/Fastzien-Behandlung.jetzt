@@ -128,16 +128,21 @@ pub async fn api_register(
     }
 }
 
-pub async fn api_logout() -> HttpResponse {
+pub async fn logout_page(tmpl: web::Data<Tera>) -> HttpResponse {
     let cookie = Cookie::build("auth_token", "")
         .path("/")
         .http_only(true)
         .max_age(actix_web::cookie::time::Duration::seconds(0))
         .finish();
 
-    HttpResponse::Ok()
-        .cookie(cookie)
-        .json(serde_json::json!({"success": true, "redirect": "/"}))
+    let ctx = tera::Context::new();
+    match tmpl.render("auth/logout.html", &ctx) {
+        Ok(body) => HttpResponse::Ok()
+            .cookie(cookie)
+            .content_type("text/html; charset=utf-8")
+            .body(body),
+        Err(e) => HttpResponse::InternalServerError().body(format!("Template error: {}", e)),
+    }
 }
 
 pub async fn api_reset_password_request(

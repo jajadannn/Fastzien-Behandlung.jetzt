@@ -20,7 +20,7 @@
       <a href="/admin/reviews">Bewertungen</a>
       <a href="/admin/settings">Einstellungen</a>
       <a href="/" class="nav-site">🌐</a>
-      <button class="nav-logout" onclick="logout()">Abmelden</button>
+      <a href="/logout" class="nav-logout" style="text-decoration: none;">Abmelden</a>
     </div>
   </nav>
   <main class="admin-main">
@@ -32,7 +32,7 @@
           <tbody>
             {% for apt in appointments %}
             <tr>
-              <td>{{ apt.start_time }}</td>
+              <td>{{ apt.start_time | date(format="%d.%m.%Y %H:%M") }}</td>
               <td><a href="/admin/customers/{{ apt.customer_id }}">{{ apt.customer_name | default(value="–") }}</a></td>
               <td>{{ apt.appointment_type }}</td>
               <td>{% if apt.is_home_visit %}🏠 Hausbesuch{% else %}🏥 Praxis{% endif %}</td>

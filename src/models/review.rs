@@ -42,7 +42,7 @@ impl Review {
         let mut stmt = conn.prepare(
             "SELECT id, author_name, author_location, content, stars, sort_order, is_active, updated_at FROM reviews ORDER BY sort_order ASC"
         )?;
-        let rows = stmt.query_map([], |row| Self::from_row(row))?;
+        let rows = stmt.query_map([], Self::from_row)?;
         rows.collect()
     }
 
@@ -50,7 +50,7 @@ impl Review {
         let mut stmt = conn.prepare(
             "SELECT id, author_name, author_location, content, stars, sort_order, is_active, updated_at FROM reviews WHERE is_active = 1 ORDER BY sort_order ASC"
         )?;
-        let rows = stmt.query_map([], |row| Self::from_row(row))?;
+        let rows = stmt.query_map([], Self::from_row)?;
         rows.collect()
     }
 
@@ -62,6 +62,7 @@ impl Review {
         Ok(conn.last_insert_rowid())
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn update(conn: &Connection, id: i64, name: &str, location: &str, content: &str, stars: i32, sort_order: i32, is_active: bool) -> Result<()> {
         conn.execute(
             "UPDATE reviews SET author_name = ?1, author_location = ?2, content = ?3, stars = ?4, sort_order = ?5, is_active = ?6, updated_at = datetime('now') WHERE id = ?7",

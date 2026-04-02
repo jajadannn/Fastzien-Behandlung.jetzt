@@ -23,7 +23,7 @@
       <a href="/portal/credits">Guthaben</a>
       <a href="/portal/profile">Profil</a>
       {% if is_admin %}<a href="/admin" class="nav-admin">⚙️ Admin</a>{% endif %}
-      <button class="nav-logout" onclick="logout()">Abmelden</button>
+      <a href="/logout" class="nav-logout" style="text-decoration: none;">Abmelden</a>
     </div>
   </nav>
 
@@ -55,7 +55,7 @@
         <div class="dash-card">
           <div class="dash-card-icon">💳</div>
           <div class="dash-card-content">
-            <h3>{{ "%.2f" | format(value=pending_amount) }} €</h3>
+            <h3>{{ pending_amount | round(method="common", precision=2) }} €</h3>
             <p>Offener Betrag</p>
           </div>
         </div>
@@ -76,10 +76,10 @@
           {% for apt in upcoming_appointments %}
           <div class="appointment-card">
             <div class="apt-date-badge">
-              <span class="apt-day">{{ apt.start_time | truncate(length=10, end="") }}</span>
+              <span class="apt-day">{{ apt.start_time | date(format="%d.%m.") }}</span>
             </div>
             <div class="apt-details">
-              <div class="apt-time">🕐 {{ apt.start_time | truncate(length=16, end="") }} – {{ apt.end_time | truncate(length=16, end="") }}</div>
+              <div class="apt-time">🕐 {{ apt.start_time | date(format="%H:%M") }} – {{ apt.end_time | date(format="%H:%M") }}</div>
               <div class="apt-type">
                 {% if apt.is_home_visit %}🏠 Hausbesuch{% else %}🏥 Praxis{% endif %}
                 · {{ apt.appointment_type }}

@@ -52,7 +52,7 @@ impl Payment {
         let mut stmt = conn.prepare(
             "SELECT id, customer_id, appointment_id, amount, payment_type, status, notes, paid_at, created_at FROM payments WHERE customer_id = ?1 ORDER BY created_at DESC"
         )?;
-        let rows = stmt.query_map(params![customer_id], |row| Self::from_row(row))?;
+        let rows = stmt.query_map(params![customer_id], Self::from_row)?;
         rows.collect()
     }
 
@@ -60,7 +60,7 @@ impl Payment {
         let mut stmt = conn.prepare(
             "SELECT id, customer_id, appointment_id, amount, payment_type, status, notes, paid_at, created_at FROM payments ORDER BY created_at DESC"
         )?;
-        let rows = stmt.query_map([], |row| Self::from_row(row))?;
+        let rows = stmt.query_map([], Self::from_row)?;
         rows.collect()
     }
 
@@ -106,7 +106,7 @@ impl CreditPackage {
         let mut stmt = conn.prepare(
             "SELECT id, customer_id, total_sessions, used_sessions, price_per_session, valid_until, created_at FROM credit_packages WHERE customer_id = ?1 AND used_sessions < total_sessions AND valid_until > datetime('now') ORDER BY created_at ASC"
         )?;
-        let rows = stmt.query_map(params![customer_id], |row| Self::from_row(row))?;
+        let rows = stmt.query_map(params![customer_id], Self::from_row)?;
         rows.collect()
     }
 
@@ -114,10 +114,11 @@ impl CreditPackage {
         let mut stmt = conn.prepare(
             "SELECT id, customer_id, total_sessions, used_sessions, price_per_session, valid_until, created_at FROM credit_packages WHERE customer_id = ?1 ORDER BY created_at DESC"
         )?;
-        let rows = stmt.query_map(params![customer_id], |row| Self::from_row(row))?;
+        let rows = stmt.query_map(params![customer_id], Self::from_row)?;
         rows.collect()
     }
 
+    #[allow(dead_code)]
     pub fn create(conn: &Connection, customer_id: i64, total_sessions: i32, price_per_session: f64, valid_until: &str) -> Result<i64> {
         conn.execute(
             "INSERT INTO credit_packages (customer_id, total_sessions, price_per_session, valid_until) VALUES (?1, ?2, ?3, ?4)",

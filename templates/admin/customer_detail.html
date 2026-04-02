@@ -20,7 +20,7 @@
       <a href="/admin/reviews">Bewertungen</a>
       <a href="/admin/settings">Einstellungen</a>
       <a href="/" class="nav-site">🌐</a>
-      <button class="nav-logout" onclick="logout()">Abmelden</button>
+      <a href="/logout" class="nav-logout" style="text-decoration: none;">Abmelden</a>
     </div>
   </nav>
   <main class="admin-main">
@@ -38,8 +38,8 @@
         </div>
         <div class="detail-card">
           <h3>Finanzen</h3>
-          <div class="detail-row"><span>💰 Offen</span><span class="{% if pending_amount > 0 %}text-warning{% endif %}">{{ "%.2f" | format(value=pending_amount) }} €</span></div>
-          <div class="detail-row"><span>✅ Bezahlt</span><span>{{ "%.2f" | format(value=paid_amount) }} €</span></div>
+          <div class="detail-row"><span>💰 Offen</span><span class="{% if pending_amount > 0 %}text-warning{% endif %}">{{ pending_amount | round(method="common", precision=2) }} €</span></div>
+          <div class="detail-row"><span>✅ Bezahlt</span><span>{{ paid_amount | round(method="common", precision=2) }} €</span></div>
           <div class="detail-row"><span>🎟️ Guthaben</span><span>{{ remaining_credits }} Sitzungen</span></div>
         </div>
       </div>
@@ -66,7 +66,7 @@
             <tbody>
               {% for apt in appointments %}
               <tr>
-                <td>{{ apt.start_time }}</td>
+                <td>{{ apt.start_time | date(format="%d.%m.%Y %H:%M") }}</td>
                 <td>{% if apt.is_home_visit %}🏠{% else %}🏥{% endif %} {{ apt.appointment_type }}</td>
                 <td><span class="status-badge status-{{ apt.status }}">{{ apt.status }}</span></td>
                 <td>{% if apt.status == "confirmed" %}<button onclick="adminCancelAppointment({{ apt.id }})" class="btn-small btn-danger">Stornieren</button>{% endif %}</td>
