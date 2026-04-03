@@ -130,6 +130,7 @@ async fn main() -> std::io::Result<()> {
             .route("/api/admin/appointments/cancel-suggest", web::post().to(handlers::admin_handler::api_cancel_with_suggestions))
             // Public API
             .route("/api/settings", web::get().to(handlers::api::get_settings))
+            .route("/llms.txt", web::get().to(handlers::api::get_llms_txt))
             // Static files
             .service(fs::Files::new("/static", "static").show_files_listing().prefer_utf8(true))
             // Legacy image files (for landing page backward compat)

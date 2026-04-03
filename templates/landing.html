@@ -59,7 +59,28 @@
     "telephone": "{{ settings.phone_raw | default(value='+4915234007225') }}",
     "email": "{{ settings.email_contact | default(value='termin@faszienbehandlung.jetzt') }}",
     "openingHours": ["Mo-Fr 16:00-22:00", "Sa 09:00-19:00"],
-    "priceRange": "€€"
+    "priceRange": "€€",
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "{{ avg_rating | default(value='5.0') }}",
+      "reviewCount": "{{ review_count | default(value='5') }}",
+      "bestRating": "5"
+    },
+    "hasOfferCatalog": {
+      "@type": "OfferCatalog",
+      "name": "Faszienbehandlung",
+      "itemListElement": [
+        {
+          "@type": "Offer",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "Gantke® Einzelbehandlung (90 Min.)"
+          },
+          "price": "{{ settings.price_single | default(value='195') }}",
+          "priceCurrency": "EUR"
+        }
+      ]
+    }
   }
   </script>
 
