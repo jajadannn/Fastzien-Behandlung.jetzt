@@ -40,13 +40,25 @@ pub async fn dashboard(
 
     let mut total_pending: f64 = 0.0;
     let mut total_paid: f64 = 0.0;
-    for c in &customers {
-        total_pending += Payment::pending_total_by_customer(&conn, c.id).unwrap_or(0.0);
-        total_paid += Payment::paid_total_by_customer(&conn, c.id).unwrap_or(0.0);
-    }
+
+    // Build enriched customer data with per-customer amounts
+    let customer_data: Vec<serde_json::Value> = customers.iter().map(|c| {
+        let pending = Payment::pending_total_by_customer(&conn, c.id).unwrap_or(0.0);
+        let paid = Payment::paid_total_by_customer(&conn, c.id).unwrap_or(0.0);
+        total_pending += pending;
+        total_paid += paid;
+        serde_json::json!({
+            "id": c.id,
+            "email": c.email,
+            "first_name": c.first_name,
+            "last_name": c.last_name,
+            "phone": c.phone,
+            "pending_amount": pending,
+        })
+    }).collect();
 
     let mut ctx = tera::Context::new();
-    ctx.insert("customers", &customers);
+    ctx.insert("customers", &customer_data);
     ctx.insert("upcoming_appointments", &upcoming);
     ctx.insert("total_customers", &total_customers);
     ctx.insert("total_upcoming", &total_upcoming);
@@ -176,8 +188,37 @@ pub async fn payments_page(
     let payments = Payment::find_all(&conn).unwrap_or_default();
     let customers = Customer::find_all_non_admin(&conn).unwrap_or_default();
 
+    // Find any admin accounts too for looking up customer names
+    let all_customers_map: std::collections::HashMap<i64, String> = {
+        let mut map = std::collections::HashMap::new();
+        for c in &customers {
+            map.insert(c.id, format!("{} {}", c.first_name, c.last_name));
+        }
+        // Also check admin
+        if let Ok(Some(admin)) = Customer::find_by_id(&conn, 1) {
+            map.insert(admin.id, format!("{} {}", admin.first_name, admin.last_name));
+        }
+        map
+    };
+
+    // Enrich payments with customer names
+    let payment_data: Vec<serde_json::Value> = payments.iter().map(|p| {
+        let customer_name = all_customers_map.get(&p.customer_id)
+            .cloned()
+            .unwrap_or_else(|| format!("Kunde #{}", p.customer_id));
+        serde_json::json!({
+            "id": p.id,
+            "customer_id": p.customer_id,
+            "customer_name": customer_name,
+            "amount": p.amount,
+            "payment_type": p.payment_type,
+            "status": p.status,
+            "created_at": p.created_at,
+        })
+    }).collect();
+
     let mut ctx = tera::Context::new();
-    ctx.insert("payments", &payments);
+    ctx.insert("payments", &payment_data);
     ctx.insert("customers", &customers);
     ctx.insert("is_admin", &true);
 
@@ -399,6 +440,79 @@ pub async fn api_suggest_appointment(
     let name = customer.full_name();
     tokio::spawn(async move {
         es.send_appointment_suggestion(&email, &name, &slots_html);
+    });
+
+    HttpResponse::Ok().json(serde_json::json!({"success": true}))
+}
+
+#[derive(Deserialize)]
+pub struct CancelSuggestForm {
+    pub appointment_id: i64,
+    pub slots: Vec<String>,
+}
+
+pub async fn api_cancel_with_suggestions(
+    req: HttpRequest,
+    form: web::Json<CancelSuggestForm>,
+    db: web::Data<Mutex<Connection>>,
+    jwt_secret: web::Data<String>,
+    email_service: web::Data<EmailService>,
+) -> HttpResponse {
+    if let Err(r) = require_admin(&req, &jwt_secret) { return r; }
+
+    let conn = db.lock().unwrap();
+
+    let appointment = match Appointment::find_by_id(&conn, form.appointment_id) {
+        Ok(Some(a)) => a,
+        _ => return HttpResponse::NotFound().json(serde_json::json!({"error": "Termin nicht gefunden"})),
+    };
+
+    if appointment.status != "confirmed" {
+        return HttpResponse::BadRequest().json(serde_json::json!({"error": "Termin kann nicht storniert werden"}));
+    }
+
+    let customer = match Customer::find_by_id(&conn, appointment.customer_id) {
+        Ok(Some(c)) => c,
+        _ => return HttpResponse::NotFound().json(serde_json::json!({"error": "Kunde nicht gefunden"})),
+    };
+
+    // Cancel the appointment in database
+    let _ = Appointment::cancel(&conn, form.appointment_id);
+
+    // If it was a pack appointment, return the credit
+    if appointment.appointment_type == "pack" {
+        let active_credits = CreditPackage::find_active_by_customer(&conn, appointment.customer_id).unwrap_or_default();
+        if let Some(credit) = active_credits.first() {
+            let _ = conn.execute(
+                "UPDATE credit_packages SET used_sessions = MAX(used_sessions - 1, 0) WHERE id = ?1",
+                rusqlite::params![credit.id],
+            );
+        }
+    }
+
+    let es = email_service.get_ref().clone();
+    let email = customer.email.clone();
+    let name = customer.full_name();
+    let start_time = appointment.start_time.clone();
+    
+    let slots_html = form.slots.iter()
+        .map(|s| format!("<p style='margin: 8px 0; padding: 8px 12px; background: #dff0f7; border-radius: 8px;'>📅 {}</p>", s))
+        .collect::<Vec<_>>()
+        .join("");
+
+    tokio::spawn(async move {
+        if let Ok(dt) = chrono::NaiveDateTime::parse_from_str(&start_time, "%Y-%m-%d %H:%M:%S") {
+            let date_str = dt.format("%d.%m.%Y").to_string();
+            let time_str = dt.format("%H:%M").to_string();
+            
+            if slots_html.is_empty() {
+                // Send standard cancellation if no slots provided
+                es.send_appointment_cancellation(&email, &name, &date_str, &time_str);
+            } else {
+                // Send combined cancellation + suggestions
+                es.send_admin_cancellation_with_suggestions(&email, &name, &date_str, &time_str, &slots_html);
+            }
+        }
     });
 
     HttpResponse::Ok().json(serde_json::json!({"success": true}))

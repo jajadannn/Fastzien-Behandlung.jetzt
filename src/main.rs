@@ -27,7 +27,40 @@ async fn main() -> std::io::Result<()> {
     let db_data = web::Data::new(Mutex::new(conn));
 
     // Initialize templates
-    let tera = Tera::new("templates/**/*.html").expect("Failed to load templates");
+    let mut tera = Tera::new("templates/**/*.html").expect("Failed to load templates");
+
+    // Custom filter: format_date - converts "YYYY-MM-DD HH:MM:SS" to German format
+    tera.register_filter("format_date", |value: &tera::Value, args: &std::collections::HashMap<String, tera::Value>| {
+        let s = value.as_str().unwrap_or("");
+        let format = args.get("format")
+            .and_then(|v| v.as_str())
+            .unwrap_or("%d.%m.%Y %H:%M");
+
+        // Parse "YYYY-MM-DD HH:MM:SS" format
+        if let Ok(dt) = chrono::NaiveDateTime::parse_from_str(s, "%Y-%m-%d %H:%M:%S") {
+            Ok(tera::Value::String(dt.format(format).to_string()))
+        } else if s.len() >= 16 {
+            // Fallback: extract date and time parts from the string
+            let date_part = &s[..10]; // YYYY-MM-DD
+            let time_part = if s.len() >= 16 { &s[11..16] } else { "" }; // HH:MM
+            // Manual conversion: YYYY-MM-DD -> DD.MM.YYYY
+            if date_part.len() == 10 {
+                let day = &date_part[8..10];
+                let month = &date_part[5..7];
+                let year = &date_part[0..4];
+                if format.contains("%H") && !time_part.is_empty() {
+                    Ok(tera::Value::String(format!("{}.{}.{} {}", day, month, year, time_part)))
+                } else {
+                    Ok(tera::Value::String(format!("{}.{}.{}", day, month, year)))
+                }
+            } else {
+                Ok(tera::Value::String(s.to_string()))
+            }
+        } else {
+            Ok(tera::Value::String(s.to_string()))
+        }
+    });
+
     let tera_data = web::Data::new(tera);
 
     // Initialize email service
@@ -94,6 +127,7 @@ async fn main() -> std::io::Result<()> {
             .route("/api/admin/reviews/{id}", web::delete().to(handlers::admin_handler::api_delete_review))
             .route("/api/admin/settings", web::post().to(handlers::admin_handler::api_save_settings))
             .route("/api/admin/appointments/suggest", web::post().to(handlers::admin_handler::api_suggest_appointment))
+            .route("/api/admin/appointments/cancel-suggest", web::post().to(handlers::admin_handler::api_cancel_with_suggestions))
             // Public API
             .route("/api/settings", web::get().to(handlers::api::get_settings))
             // Static files

@@ -29,38 +29,32 @@ pub struct BookingForm {
 
 impl Appointment {
     fn from_row(row: &Row) -> Result<Self> {
-        let st: String = row.get(2)?;
-        let et: String = row.get(3)?;
-        let ca: String = row.get(8)?;
         Ok(Appointment {
             id: row.get(0)?,
             customer_id: row.get(1)?,
-            start_time: if st.contains('T') { st } else { format!("{}Z", st.replace(" ", "T")) },
-            end_time: if et.contains('T') { et } else { format!("{}Z", et.replace(" ", "T")) },
+            start_time: row.get(2)?,
+            end_time: row.get(3)?,
             status: row.get(4)?,
             appointment_type: row.get(5)?,
             is_home_visit: row.get::<_, i32>(6)? != 0,
             notes: row.get(7)?,
-            created_at: if ca.contains('T') { ca } else { format!("{}Z", ca.replace(" ", "T")) },
+            created_at: row.get(8)?,
             customer_name: None,
             customer_email: None,
         })
     }
 
     fn from_row_with_customer(row: &Row) -> Result<Self> {
-        let st: String = row.get(2)?;
-        let et: String = row.get(3)?;
-        let ca: String = row.get(8)?;
         Ok(Appointment {
             id: row.get(0)?,
             customer_id: row.get(1)?,
-            start_time: if st.contains('T') { st } else { format!("{}Z", st.replace(" ", "T")) },
-            end_time: if et.contains('T') { et } else { format!("{}Z", et.replace(" ", "T")) },
+            start_time: row.get(2)?,
+            end_time: row.get(3)?,
             status: row.get(4)?,
             appointment_type: row.get(5)?,
             is_home_visit: row.get::<_, i32>(6)? != 0,
             notes: row.get(7)?,
-            created_at: if ca.contains('T') { ca } else { format!("{}Z", ca.replace(" ", "T")) },
+            created_at: row.get(8)?,
             customer_name: Some(format!("{} {}", row.get::<_, String>(9)?, row.get::<_, String>(10)?)),
             customer_email: Some(row.get(11)?),
         })

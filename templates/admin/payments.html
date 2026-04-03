@@ -33,7 +33,7 @@
             {% for p in payments %}
             <tr>
               <td>{{ p.created_at }}</td>
-              <td>{{ p.customer_id }}</td>
+              <td><a href="/admin/customers/{{ p.customer_id }}">{{ p.customer_name }}</a></td>
               <td>{{ p.amount }} €</td>
               <td>{% if p.payment_type == "pack" %}10er-Karte{% else %}Einzelsitzung{% endif %}</td>
               <td><span class="status-badge status-{{ p.status }}">{% if p.status == "pending" %}Offen{% else %}Bezahlt{% endif %}</span></td>
@@ -45,6 +45,6 @@
       </div>
     </div>
   </main>
-  <script src="/static/js/admin.js"></script>
+  <script src="/static/js/admin.js?v=6"></script>
 </body>
 </html>

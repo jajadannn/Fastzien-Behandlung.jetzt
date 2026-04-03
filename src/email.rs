@@ -144,6 +144,37 @@ impl EmailService {
         }
     }
 
+    pub fn send_admin_cancellation_with_suggestions(&self, to_email: &str, name: &str, date: &str, time: &str, slots_html: &str) {
+        let subject = format!("Wichtige Information zu deinem Termin am {}", date);
+        let body = format!(r#"
+            <div style="font-family: 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; background: #f7fbfd; border-radius: 16px; overflow: hidden;">
+                <div style="background: linear-gradient(135deg, #964279, #7a3661); padding: 32px; text-align: center;">
+                    <h1 style="color: white; font-size: 22px; margin: 0;">Terminänderung nötig</h1>
+                </div>
+                <div style="padding: 32px;">
+                    <p style="color: #1a2a33; font-size: 16px;">Hallo {},</p>
+                    <p style="color: #3d5a6b; font-size: 15px; line-height: 1.7;">
+                        Leider muss ich unseren Termin am <strong>{} um {}</strong> kurzfristig absagen.
+                    </p>
+                    <p style="color: #3d5a6b; font-size: 15px; line-height: 1.7;">
+                        Hier sind zwei alternative Termine, die für mich besser passen würden. Bitte lass mich wissen, ob einer davon für dich in Frage kommt, oder ob wir einen anderen Termin finden sollen:
+                    </p>
+                    <div style="margin: 24px 0;">
+                        {}
+                    </div>
+                    <div style="text-align: center; margin: 32px 0;">
+                        <a href="https://faszien-behandlung.jetzt/portal/book" style="display: inline-block; background: #964279; color: white; padding: 14px 36px; border-radius: 50px; text-decoration: none; font-weight: 600;">Alternativen Termin buchen</a>
+                    </div>
+                </div>
+            </div>
+        "#, name, date, time, slots_html);
+
+        if let Err(e) = self.send_html(to_email, name, &subject, &body) {
+            error!("Failed to send cancellation with suggestions email: {}", e);
+        }
+    }
+
+
     pub fn send_password_reset(&self, to_email: &str, name: &str, reset_url: &str) {
         let subject = "Passwort zurücksetzen – Faszienbehandlung";
         let body = format!(r#"

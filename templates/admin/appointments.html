@@ -32,12 +32,12 @@
           <tbody>
             {% for apt in appointments %}
             <tr>
-              <td>{{ apt.start_time | date(format="%d.%m.%Y %H:%M") }}</td>
+              <td>{{ apt.start_time | format_date(format="%d.%m.%Y %H:%M") }}</td>
               <td><a href="/admin/customers/{{ apt.customer_id }}">{{ apt.customer_name | default(value="–") }}</a></td>
               <td>{{ apt.appointment_type }}</td>
               <td>{% if apt.is_home_visit %}🏠 Hausbesuch{% else %}🏥 Praxis{% endif %}</td>
               <td><span class="status-badge status-{{ apt.status }}">{{ apt.status }}</span></td>
-              <td>{% if apt.status == "confirmed" %}<button onclick="adminCancelAppointment({{ apt.id }})" class="btn-small btn-danger">Stornieren</button>{% endif %}</td>
+              <td>{% if apt.status == "confirmed" %}<button onclick="openCancelModal({{ apt.id }})" class="btn-small btn-danger">Stornieren</button>{% endif %}</td>
             </tr>
             {% endfor %}
           </tbody>
@@ -45,6 +45,33 @@
       </div>
     </div>
   </main>
-  <script src="/static/js/admin.js"></script>
+  
+  <div id="cancel-modal-overlay" class="admin-modal-overlay">
+    <div class="admin-modal">
+      <h2>Termin stornieren</h2>
+      <p>Möchtest du dem Kunden alternative Termine vorschlagen? (Optional)</p>
+      
+      <div class="portal-form">
+        <input type="hidden" id="cancel-appointment-id">
+        <div class="form-group">
+          <label>Vorschlag 1 (Optional)</label>
+          <input type="datetime-local" id="cancel-suggest-1">
+        </div>
+        <div class="form-group">
+          <label>Vorschlag 2 (Optional)</label>
+          <input type="datetime-local" id="cancel-suggest-2">
+        </div>
+        
+        <div class="modal-actions">
+          <button class="btn-small" onclick="closeCancelModal()" style="background:#e5e7eb; color:#374151;">Abbrechen</button>
+          <button class="btn-small btn-danger" onclick="confirmCancelWithSuggestions()" id="btn-cancel-confirm">
+            <span class="btn-text">Stornieren & Senden</span>
+            <span class="btn-loader" style="display:none"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="/static/js/admin.js?v=6"></script>
 </body>
 </html>

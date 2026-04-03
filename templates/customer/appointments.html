@@ -54,7 +54,7 @@
             == "completed" %}Abgeschlossen{% endif %}
           </div>
           <div class="apt-details">
-            <div class="apt-time">📅 {{ apt.start_time | date(format="%d.%m.%Y %H:%M") }}</div>
+            <div class="apt-time">📅 {{ apt.start_time | format_date(format="%d.%m.%Y %H:%M") }}</div>
             <div class="apt-type">
               {% if apt.is_home_visit %}🏠 Hausbesuch{% else %}🏥 Praxis{% endif %}
               · {% if apt.appointment_type == "pack" %}10er-Karte{% else %}Einzelsitzung{% endif %}
@@ -73,7 +73,7 @@
     </div>
   </main>
 
-  <script src="/static/js/customer.js"></script>
+  <script src="/static/js/customer.js?v=6"></script>
 </body>
 
 </html>

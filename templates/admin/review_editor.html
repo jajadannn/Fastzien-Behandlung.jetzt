@@ -83,6 +83,6 @@
     }
     async function deleteReview(id) { if (!confirm('Bewertung löschen?')) return; await fetch(`/api/admin/reviews/${id}`, { method: 'DELETE' }); location.reload(); }
   </script>
-  <script src="/static/js/admin.js"></script>
+  <script src="/static/js/admin.js?v=6"></script>
 </body>
 </html>

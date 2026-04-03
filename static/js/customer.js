@@ -2,12 +2,11 @@
 
 
 async function cancelAppointment(id) {
-  if (!confirm('Termin wirklich stornieren?')) return;
   try {
     const res = await fetch('/api/appointments/' + id + '/cancel', { method: 'POST' });
     const data = await res.json();
     if (data.success) {
-      location.reload();
+      window.location.href = window.location.pathname + '?t=' + Date.now();
     } else {
       alert(data.error || 'Stornierung fehlgeschlagen');
     }

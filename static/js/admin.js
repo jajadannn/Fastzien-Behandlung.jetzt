@@ -6,26 +6,70 @@ async function logout() {
 }
 
 async function markPaid(paymentId) {
-  if (!confirm('Zahlung als bezahlt markieren?')) return;
   try {
     const res = await fetch('/api/admin/payments/' + paymentId + '/mark-paid', { method: 'POST' });
     const data = await res.json();
-    if (data.success) location.reload();
-    else alert(data.error || 'Fehler');
+    if (data.success) {
+      window.location.href = window.location.pathname + '?t=' + Date.now();
+    } else {
+      alert(data.error || 'Fehler');
+    }
   } catch (err) {
     alert('Verbindungsfehler');
   }
 }
 
-async function adminCancelAppointment(id) {
-  if (!confirm('Termin stornieren?')) return;
+function openCancelModal(id) {
+  document.getElementById('cancel-appointment-id').value = id;
+  document.getElementById('cancel-suggest-1').value = '';
+  document.getElementById('cancel-suggest-2').value = '';
+  document.getElementById('cancel-modal-overlay').classList.add('active');
+}
+
+function closeCancelModal() {
+  document.getElementById('cancel-modal-overlay').classList.remove('active');
+}
+
+async function confirmCancelWithSuggestions() {
+  const id = document.getElementById('cancel-appointment-id').value;
+  const s1 = document.getElementById('cancel-suggest-1').value;
+  const s2 = document.getElementById('cancel-suggest-2').value;
+  
+  const slots = [];
+  if (s1) {
+    const d1 = new Date(s1);
+    slots.push(d1.toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }));
+  }
+  if (s2) {
+    const d2 = new Date(s2);
+    slots.push(d2.toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }));
+  }
+
+  const btn = document.getElementById('btn-cancel-confirm');
+  btn.querySelector('.btn-text').style.display = 'none';
+  btn.querySelector('.btn-loader').style.display = 'inline-block';
+  btn.disabled = true;
+
   try {
-    const res = await fetch('/api/appointments/' + id + '/cancel', { method: 'POST' });
+    const res = await fetch('/api/admin/appointments/cancel-suggest', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ appointment_id: parseInt(id), slots: slots }),
+    });
     const data = await res.json();
-    if (data.success) location.reload();
-    else alert(data.error || 'Fehler');
+    if (data.success) {
+      window.location.href = window.location.pathname + '?t=' + Date.now();
+    } else {
+      alert(data.error || 'Fehler beim Stornieren');
+      closeCancelModal();
+    }
   } catch (err) {
     alert('Verbindungsfehler');
+    closeCancelModal();
+  } finally {
+    btn.querySelector('.btn-text').style.display = 'inline';
+    btn.querySelector('.btn-loader').style.display = 'none';
+    btn.disabled = false;
   }
 }
 

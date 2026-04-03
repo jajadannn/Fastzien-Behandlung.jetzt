@@ -352,3 +352,33 @@
   .detail-grid { grid-template-columns: 1fr; }
   .editor-form .form-row { grid-template-columns: 1fr; }
 }
+
+/* Modals */
+.admin-modal-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 9999;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.2s;
+}
+.admin-modal-overlay.active {
+  opacity: 1; pointer-events: auto;
+}
+.admin-modal {
+  background: var(--bg);
+  border-radius: 16px;
+  width: 90%; max-width: 480px;
+  box-shadow: var(--shadow-heavy);
+  padding: 32px;
+  transform: translateY(20px);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.admin-modal-overlay.active .admin-modal {
+  transform: translateY(0);
+}
+.admin-modal h2 { margin-top: 0; font-size: 1.4rem; margin-bottom: 12px; color: var(--text-dark); }
+.admin-modal p { font-size: 0.95rem; color: var(--text-mid); margin-bottom: 24px; line-height: 1.5; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 32px; }
+.modal-actions button { margin: 0; }

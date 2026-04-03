@@ -189,16 +189,40 @@ fn seed_reviews(conn: &Connection) -> Result<()> {
 }
 
 fn seed_admin(conn: &Connection, email: &str, password: &str) -> Result<()> {
-    let count: i64 = conn.query_row(
-        "SELECT COUNT(*) FROM customers WHERE is_admin = 1", [], |row| row.get(0)
-    )?;
-    if count > 0 { return Ok(()); }
+    // Check if any admin exists
+    let existing: Option<(i64, String, String)> = conn.prepare(
+        "SELECT id, email, password_hash FROM customers WHERE is_admin = 1"
+    )?.query_row([], |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?)))
+    .ok();
 
-    let password_hash = hash(password, DEFAULT_COST).expect("Failed to hash admin password");
-    conn.execute(
-        "INSERT INTO customers (email, password_hash, first_name, last_name, is_admin) VALUES (?1, ?2, 'Admin', 'Admin', 1)",
-        params![email, password_hash],
-    )?;
-    info!("Admin account created with email: {}", email);
+    match existing {
+        Some((id, existing_email, existing_hash)) => {
+            // Update email if changed
+            if existing_email != email {
+                conn.execute(
+                    "UPDATE customers SET email = ?1, updated_at = datetime('now') WHERE id = ?2",
+                    params![email, id],
+                )?;
+                info!("Admin email updated to: {}", email);
+            }
+            // Update password if it doesn't match
+            if !bcrypt::verify(password, &existing_hash).unwrap_or(false) {
+                let new_hash = hash(password, DEFAULT_COST).expect("Failed to hash admin password");
+                conn.execute(
+                    "UPDATE customers SET password_hash = ?1, updated_at = datetime('now') WHERE id = ?2",
+                    params![new_hash, id],
+                )?;
+                info!("Admin password updated for: {}", email);
+            }
+        }
+        None => {
+            let password_hash = hash(password, DEFAULT_COST).expect("Failed to hash admin password");
+            conn.execute(
+                "INSERT INTO customers (email, password_hash, first_name, last_name, is_admin) VALUES (?1, ?2, 'Admin', 'Admin', 1)",
+                params![email, password_hash],
+            )?;
+            info!("Admin account created with email: {}", email);
+        }
+    }
     Ok(())
 }
