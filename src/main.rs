@@ -2,6 +2,7 @@ mod config;
 mod db;
 mod auth;
 mod email;
+mod caldav;
 mod models;
 mod handlers;
 
@@ -133,6 +134,7 @@ async fn main() -> std::io::Result<()> {
             .route("/api/admin/settings", web::post().to(handlers::admin_handler::api_save_settings))
             .route("/api/admin/appointments/suggest", web::post().to(handlers::admin_handler::api_suggest_appointment))
             .route("/api/admin/appointments/cancel-suggest", web::post().to(handlers::admin_handler::api_cancel_with_suggestions))
+            .route("/api/admin/test-caldav", web::get().to(handlers::admin_handler::api_test_caldav))
             // Public API
             .route("/api/settings", web::get().to(handlers::api::get_settings))
             .route("/llms.txt", web::get().to(handlers::api::get_llms_txt))

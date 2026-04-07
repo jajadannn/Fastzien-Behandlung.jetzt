@@ -67,6 +67,23 @@
         <h2>Stornierung</h2>
         <div class="form-group"><label>Stornierungsfrist (Stunden)</label><input type="text" name="cancellation_hours" value="{{ settings.cancellation_hours | default(value='24') }}"></div>
 
+        <h2>Nextcloud Kalender-Abgleich</h2>
+        <p style="font-size:13px; color:var(--text-light); margin-bottom:12px;">
+          Wenn ein Eintrag im Nextcloud-Kalender existiert, wird der betroffene Slot für Kunden nicht als verfügbar angezeigt.
+          CalDAV-URL z.&nbsp;B.: <code>https://cloud.example.com/remote.php/dav/calendars/benutzername/kalender-name</code>
+        </p>
+        <div class="form-group"><label>CalDAV-URL</label><input type="text" name="nextcloud_caldav_url" value="{{ settings.nextcloud_caldav_url | default(value='') }}" placeholder="https://cloud.example.com/remote.php/dav/calendars/…"></div>
+        <div class="form-row">
+          <div class="form-group"><label>Nextcloud-Benutzername</label><input type="text" name="nextcloud_caldav_username" value="{{ settings.nextcloud_caldav_username | default(value='') }}" autocomplete="off"></div>
+          <div class="form-group"><label>App-Passwort <small>– kein Kontopasswort!</small></label><input type="password" name="nextcloud_caldav_password" value="{{ settings.nextcloud_caldav_password | default(value='') }}" autocomplete="new-password"></div>
+        </div>
+        <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
+          <button type="button" id="test-caldav-btn" onclick="testCaldav()" style="padding:10px 22px; background:var(--sky); color:#fff; border:none; border-radius:50px; font-family:inherit; font-size:.9rem; font-weight:600; cursor:pointer; transition:background .2s;">
+            🔌 Verbindung testen
+          </button>
+          <span id="caldav-result" style="font-size:.9rem;"></span>
+        </div>
+
         <button type="submit" class="auth-btn" style="margin-top:24px">💾 Einstellungen speichern</button>
       </form>
     </div>
@@ -84,6 +101,32 @@
         setTimeout(() => msg.style.display = 'none', 3000);
       }
     });
+
+    async function testCaldav() {
+      const btn = document.getElementById('test-caldav-btn');
+      const result = document.getElementById('caldav-result');
+      btn.disabled = true;
+      btn.textContent = '⏳ Teste…';
+      result.textContent = '';
+      result.style.color = '';
+      try {
+        const res = await fetch('/api/admin/test-caldav');
+        const d = await res.json();
+        if (d.success) {
+          result.textContent = '✅ ' + d.message;
+          result.style.color = '#166534';
+        } else {
+          result.textContent = '❌ ' + d.error;
+          result.style.color = '#991b1b';
+        }
+      } catch (e) {
+        result.textContent = '❌ Netzwerkfehler';
+        result.style.color = '#991b1b';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '🔌 Verbindung testen';
+      }
+    }
   </script>
   <script src="/static/js/admin.js?v=6"></script>
 </body>

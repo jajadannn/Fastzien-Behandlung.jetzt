@@ -3,6 +3,7 @@ use rusqlite::Connection;
 use std::sync::Mutex;
 use tera::Tera;
 use serde::Deserialize;
+use reqwest;
 
 use crate::auth;
 use crate::email::EmailService;
@@ -522,4 +523,99 @@ pub async fn api_cancel_with_suggestions(
     });
 
     HttpResponse::Ok().json(serde_json::json!({"success": true}))
+}
+
+
+/// GET /api/admin/test-caldav — test Nextcloud CalDAV connection with current settings
+pub async fn api_test_caldav(
+    req: HttpRequest,
+    db: web::Data<Mutex<Connection>>,
+    jwt_secret: web::Data<String>,
+) -> HttpResponse {
+    if let Err(r) = require_admin(&req, &jwt_secret) { return r; }
+
+    let (url, user, pass) = {
+        let conn = db.lock().unwrap();
+        (
+            SiteSetting::get_or_default(&conn, "nextcloud_caldav_url", ""),
+            SiteSetting::get_or_default(&conn, "nextcloud_caldav_username", ""),
+            SiteSetting::get_or_default(&conn, "nextcloud_caldav_password", ""),
+        )
+    };
+
+    if url.is_empty() {
+        return HttpResponse::BadRequest().json(serde_json::json!({
+            "success": false,
+            "error": "Keine CalDAV-URL konfiguriert"
+        }));
+    }
+
+    let client = match reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(8))
+        .build()
+    {
+        Ok(c) => c,
+        Err(e) => return HttpResponse::InternalServerError().json(serde_json::json!({
+            "success": false, "error": format!("HTTP-Client-Fehler: {}", e)
+        })),
+    };
+
+    let full_url = format!("{}/", url.trim_end_matches('/'));
+
+    let body = r#"<?xml version="1.0" encoding="UTF-8"?>
+<D:propfind xmlns:D="DAV:">
+  <D:prop><D:resourcetype/><D:displayname/></D:prop>
+</D:propfind>"#;
+
+    let resp = client
+        .request(
+            reqwest::Method::from_bytes(b"PROPFIND").expect("PROPFIND is valid"),
+            &full_url,
+        )
+        .basic_auth(&user, Some(&pass))
+        .header("Content-Type", "application/xml; charset=utf-8")
+        .header("Depth", "0")
+        .body(body)
+        .send()
+        .await;
+
+    match resp {
+        Ok(r) => {
+            let status = r.status().as_u16();
+            match status {
+                207 | 200 => HttpResponse::Ok().json(serde_json::json!({
+                    "success": true,
+                    "message": "Verbindung erfolgreich \u{2013} Kalender erreichbar"
+                })),
+                401 => HttpResponse::Ok().json(serde_json::json!({
+                    "success": false,
+                    "error": "Authentifizierung fehlgeschlagen \u{2013} Benutzername oder App-Passwort falsch"
+                })),
+                403 => HttpResponse::Ok().json(serde_json::json!({
+                    "success": false,
+                    "error": "Zugriff verweigert \u{2013} App-Passwort hat keine Kalender-Berechtigung"
+                })),
+                404 => HttpResponse::Ok().json(serde_json::json!({
+                    "success": false,
+                    "error": "Kalender nicht gefunden \u{2013} URL pr\u{fc}fen"
+                })),
+                _ => HttpResponse::Ok().json(serde_json::json!({
+                    "success": false,
+                    "error": format!("Unerwarteter HTTP-Status: {}", status)
+                })),
+            }
+        }
+        Err(e) if e.is_timeout() => HttpResponse::Ok().json(serde_json::json!({
+            "success": false,
+            "error": "Zeit\u{fc}berschreitung \u{2013} Server nicht erreichbar"
+        })),
+        Err(e) if e.is_connect() => HttpResponse::Ok().json(serde_json::json!({
+            "success": false,
+            "error": format!("Verbindung fehlgeschlagen \u{2013} {}", e)
+        })),
+        Err(e) => HttpResponse::Ok().json(serde_json::json!({
+            "success": false,
+            "error": format!("Fehler: {}", e)
+        })),
+    }
 }

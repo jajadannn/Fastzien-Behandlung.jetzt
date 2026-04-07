@@ -364,6 +364,12 @@
   margin-top: 20px;
   padding-top: 20px;
   border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.booking-options .form-group {
+  margin-bottom: 0;
 }
 
 /* Portal form */

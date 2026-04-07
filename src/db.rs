@@ -151,6 +151,9 @@ fn seed_settings(conn: &Connection) -> Result<()> {
         ("address_zip", "78713"),
         ("address_city", "Sulgen"),
         ("cancellation_hours", "24"),
+        ("nextcloud_caldav_url", ""),
+        ("nextcloud_caldav_username", ""),
+        ("nextcloud_caldav_password", ""),
     ];
     for (key, value) in defaults {
         conn.execute(

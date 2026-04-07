@@ -24,9 +24,7 @@ pub async fn api_book(
         None => return HttpResponse::Unauthorized().json(serde_json::json!({"error": "Nicht angemeldet"})),
     };
 
-    let conn = db.lock().unwrap();
-
-    // Parse date and time
+    // Parse date and time first (no lock needed)
     let date = match NaiveDate::parse_from_str(&form.date, "%Y-%m-%d") {
         Ok(d) => d,
         Err(_) => return HttpResponse::BadRequest().json(serde_json::json!({"error": "Ungültiges Datum"})),
@@ -36,28 +34,46 @@ pub async fn api_book(
         Err(_) => return HttpResponse::BadRequest().json(serde_json::json!({"error": "Ungültige Uhrzeit"})),
     };
 
-    let duration_min: i64 = SiteSetting::get_or_default(&conn, "appointment_duration_min", "90").parse().unwrap_or(90);
+    let now = chrono::Utc::now().naive_utc();
+
+    // --- Phase 1: validate and read CalDAV settings under the lock ---
+    let (caldav_url, caldav_user, caldav_pass, duration_min) = {
+        let conn = db.lock().unwrap();
+        let duration_min: i64 = SiteSetting::get_or_default(&conn, "appointment_duration_min", "90").parse().unwrap_or(90);
+        let caldav_url = SiteSetting::get_or_default(&conn, "nextcloud_caldav_url", "");
+        let caldav_user = SiteSetting::get_or_default(&conn, "nextcloud_caldav_username", "");
+        let caldav_pass = SiteSetting::get_or_default(&conn, "nextcloud_caldav_password", "");
+        (caldav_url, caldav_user, caldav_pass, duration_min)
+    }; // lock released
+
     let start = NaiveDateTime::new(date, time);
     let end = start + Duration::minutes(duration_min);
-
     let start_str = start.format("%Y-%m-%d %H:%M:%S").to_string();
     let end_str = end.format("%Y-%m-%d %H:%M:%S").to_string();
 
-    let now = chrono::Utc::now().naive_utc();
-
-    // Must be in the future
     if start <= now {
         return HttpResponse::BadRequest().json(serde_json::json!({"error": "Termin muss in der Zukunft liegen"}));
     }
-
-    // Must be at least 24 hours away
     if start - now < Duration::hours(24) {
         return HttpResponse::BadRequest().json(serde_json::json!({
             "error": "Termine können frühestens 24 Stunden im Voraus gebucht werden"
         }));
     }
 
-    // Check slot availability
+    // --- Phase 2: check Nextcloud CalDAV (async, outside the lock) ---
+    if !caldav_url.is_empty() && !caldav_user.is_empty() {
+        let busy = crate::caldav::fetch_busy_periods(&caldav_url, &caldav_user, &caldav_pass, &date).await;
+        if crate::caldav::has_conflict(&busy, &start, &end) {
+            return HttpResponse::Conflict().json(serde_json::json!({
+                "error": "Dieser Zeitraum ist durch einen anderen Termin belegt"
+            }));
+        }
+    }
+
+    // --- Phase 3: create booking under the lock ---
+    let conn = db.lock().unwrap();
+
+    // Re-check DB availability (race condition guard)
     match Appointment::is_slot_available(&conn, &start_str, &end_str) {
         Ok(false) => return HttpResponse::Conflict().json(serde_json::json!({"error": "Dieser Zeitraum ist leider bereits belegt"})),
         Err(e) => return HttpResponse::InternalServerError().json(serde_json::json!({"error": format!("{}", e)})),
@@ -67,17 +83,14 @@ pub async fn api_book(
     let is_home_visit = form.is_home_visit.unwrap_or(false);
     let notes = form.notes.as_deref().unwrap_or("");
 
-    // Use credit package if available
     let active_credits = CreditPackage::find_active_by_customer(&conn, claims.sub).unwrap_or_default();
     let appointment_type = if !active_credits.is_empty() { "pack" } else { "single" };
 
-    // Create appointment
     let appointment_id = match Appointment::create(&conn, claims.sub, &start_str, &end_str, appointment_type, is_home_visit, notes) {
         Ok(id) => id,
         Err(e) => return HttpResponse::InternalServerError().json(serde_json::json!({"error": format!("{}", e)})),
     };
 
-    // Handle payment / credits
     let price_single: f64 = SiteSetting::get_or_default(&conn, "price_single", "195").replace(',', ".").parse().unwrap_or(195.0);
     let home_surcharge: f64 = SiteSetting::get_or_default(&conn, "home_visit_surcharge", "15").replace(',', ".").parse().unwrap_or(15.0);
 
@@ -91,13 +104,11 @@ pub async fn api_book(
         let _ = Payment::create(&conn, claims.sub, Some(appointment_id), amount, "single");
     }
 
-    // Gather customer info for email notifications
     let customer = Customer::find_by_id(&conn, claims.sub).unwrap().unwrap();
     let date_str = date.format("%d.%m.%Y").to_string();
     let time_str = time.format("%H:%M").to_string();
     let customer_address = customer.full_address();
     let admin_email = config.admin_email.clone();
-
     let es = email_service.get_ref().clone();
     let cust_email = customer.email.clone();
     let cust_name = customer.full_name();
@@ -105,6 +116,7 @@ pub async fn api_book(
     let notes_owned = notes.to_string();
     let date_str2 = date_str.clone();
     let time_str2 = time_str.clone();
+    drop(conn); // release lock before spawning
 
     tokio::spawn(async move {
         es.send_appointment_confirmation(&cust_email, &cust_name, &date_str, &time_str, is_home_visit);
@@ -208,53 +220,79 @@ pub async fn api_available_slots(
         Err(_) => return HttpResponse::BadRequest().json(serde_json::json!({"error": "Ungültiges Datum"})),
     };
 
-    let conn = db.lock().unwrap();
-    let duration_min: i64 = SiteSetting::get_or_default(&conn, "appointment_duration_min", "90").parse().unwrap_or(90);
-    let break_min: i64 = SiteSetting::get_or_default(&conn, "appointment_break_min", "0").parse().unwrap_or(0);
-    // slot_step = how many minutes between start of one slot and start of next
-    let slot_step = duration_min + break_min;
+    // --- Phase 1: compute DB-available candidates under the lock ---
+    struct Candidate {
+        start: NaiveDateTime,
+        end: NaiveDateTime,
+        time_str: String,
+        display: String,
+    }
 
-    // Determine opening hours based on day of week
-    let weekday = date.weekday();
-    let (start_hour, end_hour): (i64, i64) = match weekday {
-        Weekday::Mon | Weekday::Tue | Weekday::Wed | Weekday::Thu | Weekday::Fri => (16, 22),
-        Weekday::Sat => (9, 19),
-        Weekday::Sun => return HttpResponse::Ok().json(serde_json::json!({"slots": []})),
-    };
+    let (candidates, caldav_url, caldav_user, caldav_pass) = {
+        let conn = db.lock().unwrap();
+        let duration_min: i64 = SiteSetting::get_or_default(&conn, "appointment_duration_min", "90").parse().unwrap_or(90);
+        let break_min: i64 = SiteSetting::get_or_default(&conn, "appointment_break_min", "0").parse().unwrap_or(0);
+        let slot_step = duration_min + break_min;
 
-    let mut slots = Vec::new();
-    let mut current_minutes: i64 = start_hour * 60;
+        let caldav_url = SiteSetting::get_or_default(&conn, "nextcloud_caldav_url", "");
+        let caldav_user = SiteSetting::get_or_default(&conn, "nextcloud_caldav_username", "");
+        let caldav_pass = SiteSetting::get_or_default(&conn, "nextcloud_caldav_password", "");
 
-    loop {
-        let h = (current_minutes / 60) as u32;
-        let m = (current_minutes % 60) as u32;
-
-        if h as i64 >= end_hour { break; }
-
-        let start_time = NaiveDateTime::new(date, NaiveTime::from_hms_opt(h, m, 0).unwrap());
-        let end_time = start_time + Duration::minutes(duration_min);
-
-        // Don't generate a slot that runs past closing time
-        let closing = NaiveDateTime::new(date, NaiveTime::from_hms_opt(end_hour as u32, 0, 0).unwrap());
-        if end_time > closing { break; }
+        let weekday = date.weekday();
+        let (start_hour, end_hour): (i64, i64) = match weekday {
+            Weekday::Mon | Weekday::Tue | Weekday::Wed | Weekday::Thu | Weekday::Fri => (16, 22),
+            Weekday::Sat => (9, 19),
+            Weekday::Sun => return HttpResponse::Ok().json(serde_json::json!({"slots": []})),
+        };
 
         let now = chrono::Utc::now().naive_utc();
+        let mut candidates = Vec::new();
+        let mut current_minutes: i64 = start_hour * 60;
 
-        // Only show slots that are more than 24h in the future
-        if start_time > now + Duration::hours(24) {
-            let start_str = start_time.format("%Y-%m-%d %H:%M:%S").to_string();
-            let end_str = end_time.format("%Y-%m-%d %H:%M:%S").to_string();
+        loop {
+            let h = (current_minutes / 60) as u32;
+            let m = (current_minutes % 60) as u32;
+            if h as i64 >= end_hour { break; }
 
-            if Appointment::is_slot_available(&conn, &start_str, &end_str).unwrap_or(false) {
-                slots.push(serde_json::json!({
-                    "time": start_time.format("%H:%M").to_string(),
-                    "display": format!("{} – {}", start_time.format("%H:%M"), end_time.format("%H:%M")),
-                }));
+            let start_time = NaiveDateTime::new(date, NaiveTime::from_hms_opt(h, m, 0).unwrap());
+            let end_time = start_time + Duration::minutes(duration_min);
+
+            let closing = NaiveDateTime::new(date, NaiveTime::from_hms_opt(end_hour as u32, 0, 0).unwrap());
+            if end_time > closing { break; }
+
+            if start_time > now + Duration::hours(24) {
+                let start_str = start_time.format("%Y-%m-%d %H:%M:%S").to_string();
+                let end_str = end_time.format("%Y-%m-%d %H:%M:%S").to_string();
+
+                if Appointment::is_slot_available(&conn, &start_str, &end_str).unwrap_or(false) {
+                    candidates.push(Candidate {
+                        start: start_time,
+                        end: end_time,
+                        time_str: start_time.format("%H:%M").to_string(),
+                        display: format!("{} – {}", start_time.format("%H:%M"), end_time.format("%H:%M")),
+                    });
+                }
             }
+
+            current_minutes += slot_step;
         }
 
-        current_minutes += slot_step;
-    }
+        (candidates, caldav_url, caldav_user, caldav_pass)
+    }; // DB lock released here
+
+    // --- Phase 2: fetch Nextcloud busy periods (async, outside the lock) ---
+    let busy = if !caldav_url.is_empty() && !caldav_user.is_empty() {
+        crate::caldav::fetch_busy_periods(&caldav_url, &caldav_user, &caldav_pass, &date).await
+    } else {
+        vec![]
+    };
+
+    // --- Phase 3: filter out Nextcloud conflicts ---
+    let slots: Vec<_> = candidates
+        .into_iter()
+        .filter(|c| !crate::caldav::has_conflict(&busy, &c.start, &c.end))
+        .map(|c| serde_json::json!({"time": c.time_str, "display": c.display}))
+        .collect();
 
     HttpResponse::Ok().json(serde_json::json!({"slots": slots}))
 }
