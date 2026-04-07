@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>E-Mail bestätigen – Faszienbehandlung</title>
+  <link rel="icon" href="/favicon.v1.ico">
+  <link rel="preload" href="/fonts/cormorant-garamond-normal-latin.v1.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/dm-sans-latin.v1.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/static/css/main.css">
+  <link rel="stylesheet" href="/static/css/customer.css">
+</head>
+<body>
+  <nav class="portal-nav">
+    <a href="/" class="portal-logo">
+      <img src="/Logo.png" alt="Faszienbehandlung" height="32">
+      <span>Kundenportal</span>
+    </a>
+    <div class="portal-nav-links">
+      <a href="/portal" class="active">Dashboard</a>
+      {% if is_admin %}<a href="/admin" class="nav-admin">⚙️ Admin</a>{% endif %}
+      <a href="/logout" class="nav-logout" style="text-decoration: none;">Abmelden</a>
+    </div>
+  </nav>
+
+  <main class="portal-main">
+    <div class="portal-container" style="max-width: 560px;">
+      <div style="text-align: center; padding: 60px 24px;">
+        <div style="font-size: 64px; margin-bottom: 16px;">📧</div>
+        <h1 style="font-family: 'Cormorant Garamond', serif; font-size: clamp(1.6rem, 4vw, 2.4rem); color: var(--sky-dark); margin-bottom: 12px;">
+          E-Mail-Adresse bestätigen
+        </h1>
+        <p style="color: var(--text-mid); font-size: 16px; line-height: 1.7; margin-bottom: 8px;">
+          Wir haben eine Bestätigungs-E-Mail an
+        </p>
+        <p style="color: var(--text); font-weight: 600; font-size: 16px; margin-bottom: 24px;">
+          {{ email }}
+        </p>
+        <p style="color: var(--text-mid); font-size: 15px; line-height: 1.7; margin-bottom: 32px;">
+          Bitte klicke auf den Link in der E-Mail, um dein Konto zu aktivieren und alle Funktionen zu nutzen. Überprüfe auch deinen Spam-Ordner.
+        </p>
+
+        <div id="resend-area">
+          <button id="resend-btn" class="btn-primary" style="padding: 12px 32px; font-size: 15px;">
+            E-Mail erneut senden
+          </button>
+          <p id="resend-msg" style="margin-top: 12px; color: var(--text-mid); font-size: 14px; display: none;"></p>
+        </div>
+
+        <div style="margin-top: 40px; padding-top: 24px; border-top: 1px solid var(--border);">
+          <a href="/" style="color: var(--text-light); font-size: 14px; text-decoration: none;">← Zurück zur Startseite</a>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    document.getElementById('resend-btn').addEventListener('click', async () => {
+      const btn = document.getElementById('resend-btn');
+      const msg = document.getElementById('resend-msg');
+      btn.disabled = true;
+      btn.textContent = 'Wird gesendet …';
+      msg.style.display = 'none';
+
+      try {
+        const res = await fetch('/api/customer/resend-verification', { method: 'POST' });
+        const data = await res.json();
+        msg.textContent = data.message || data.error || 'Anfrage verarbeitet.';
+        msg.style.color = data.success ? 'var(--sky-dark)' : 'var(--plum)';
+        msg.style.display = 'block';
+        if (data.success) {
+          btn.textContent = 'Gesendet ✓';
+          setTimeout(() => {
+            btn.disabled = false;
+            btn.textContent = 'E-Mail erneut senden';
+          }, 60000);
+        } else {
+          btn.disabled = false;
+          btn.textContent = 'E-Mail erneut senden';
+        }
+      } catch {
+        msg.textContent = 'Verbindungsfehler. Bitte versuche es erneut.';
+        msg.style.color = 'var(--plum)';
+        msg.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'E-Mail erneut senden';
+      }
+    });
+  </script>
+</body>
+</html>

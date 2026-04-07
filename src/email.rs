@@ -60,6 +60,7 @@ impl EmailService {
         Ok(())
     }
 
+    #[allow(dead_code)]
     pub fn send_welcome(&self, to_email: &str, first_name: &str) {
         let subject = "Willkommen bei Faszienbehandlung Thilo Seifried";
         let body = format!(r#"
@@ -199,6 +200,86 @@ impl EmailService {
 
         if let Err(e) = self.send_html(to_email, name, subject, &body) {
             error!("Failed to send password reset email: {}", e);
+        }
+    }
+
+    /// Sent to customer after registration so they can confirm their e-mail address.
+    pub fn send_email_verification(&self, to_email: &str, name: &str, verify_url: &str) {
+        let display = if name.is_empty() { "Neuer Kunde" } else { name };
+        let subject = "E-Mail bestätigen – Faszienbehandlung Thilo Seifried";
+        let body = format!(r#"
+            <div style="font-family: 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; background: #f7fbfd; border-radius: 16px; overflow: hidden;">
+                <div style="background: linear-gradient(135deg, #70AECD, #4d93b8); padding: 32px; text-align: center;">
+                    <h1 style="color: white; font-size: 24px; margin: 0;">Willkommen, {}!</h1>
+                </div>
+                <div style="padding: 32px;">
+                    <p style="color: #1a2a33; font-size: 16px; line-height: 1.7;">
+                        Vielen Dank für deine Registrierung bei Faszienbehandlung Thilo Seifried.
+                    </p>
+                    <p style="color: #3d5a6b; font-size: 15px; line-height: 1.7;">
+                        Bitte bestätige deine E-Mail-Adresse mit einem Klick auf den Button. Der Link ist <strong>24 Stunden</strong> gültig.
+                    </p>
+                    <div style="text-align: center; margin: 32px 0;">
+                        <a href="{}" style="display: inline-block; background: #964279; color: white; padding: 14px 36px; border-radius: 50px; text-decoration: none; font-weight: 600; font-size: 15px;">E-Mail-Adresse bestätigen</a>
+                    </div>
+                    <p style="color: #6a8fa0; font-size: 13px; text-align: center;">
+                        Falls du diese Registrierung nicht vorgenommen hast, ignoriere diese E-Mail.<br>
+                        Bei Fragen erreichst du uns unter +49 152 34 00 72 25
+                    </p>
+                </div>
+            </div>
+        "#, display, verify_url);
+
+        if let Err(e) = self.send_html(to_email, name, subject, &body) {
+            error!("Failed to send email verification: {}", e);
+        }
+    }
+
+    /// Sent to the admin email when a customer books a new appointment.
+    #[allow(clippy::too_many_arguments)]
+    pub fn send_admin_booking_notification(
+        &self,
+        admin_email: &str,
+        customer_name: &str,
+        customer_phone: &str,
+        customer_address: &str,
+        date_str: &str,
+        time_str: &str,
+        notes: &str,
+        is_home_visit: bool,
+    ) {
+        let visit_label = if is_home_visit { "Hausbesuch" } else { "Praxis" };
+        let notes_block = if notes.is_empty() {
+            String::new()
+        } else {
+            format!("<p style='margin: 4px 0; color: #1a2a33;'><strong>📝 Notiz:</strong> {}</p>", notes)
+        };
+        let subject = format!("Neue Buchung: {} am {}", customer_name, date_str);
+        let body = format!(r#"
+            <div style="font-family: 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; background: #f7fbfd; border-radius: 16px; overflow: hidden;">
+                <div style="background: linear-gradient(135deg, #70AECD, #4d93b8); padding: 32px; text-align: center;">
+                    <h1 style="color: white; font-size: 22px; margin: 0;">Neue Terminbuchung</h1>
+                </div>
+                <div style="padding: 32px;">
+                    <p style="color: #3d5a6b; font-size: 15px;">Ein Kunde hat soeben einen Termin gebucht:</p>
+                    <div style="background: white; border: 1px solid rgba(112,174,205,0.2); border-radius: 12px; padding: 20px; margin: 20px 0;">
+                        <p style="margin: 4px 0; color: #1a2a33;"><strong>👤 Kunde:</strong> {}</p>
+                        <p style="margin: 4px 0; color: #1a2a33;"><strong>📞 Telefon:</strong> {}</p>
+                        <p style="margin: 4px 0; color: #1a2a33;"><strong>🏠 Adresse:</strong> {}</p>
+                        <p style="margin: 4px 0; color: #1a2a33;"><strong>📅 Datum:</strong> {}</p>
+                        <p style="margin: 4px 0; color: #1a2a33;"><strong>🕐 Uhrzeit:</strong> {}</p>
+                        <p style="margin: 4px 0; color: #1a2a33;"><strong>📍 Art:</strong> {}</p>
+                        {}
+                    </div>
+                    <div style="text-align: center; margin: 32px 0;">
+                        <a href="https://faszienbehandlung.jetzt/admin" style="display: inline-block; background: #964279; color: white; padding: 14px 36px; border-radius: 50px; text-decoration: none; font-weight: 600;">Admin-Bereich öffnen</a>
+                    </div>
+                </div>
+            </div>
+        "#, customer_name, customer_phone, customer_address, date_str, time_str, visit_label, notes_block);
+
+        if let Err(e) = self.send_html(admin_email, "", &subject, &body) {
+            error!("Failed to send admin booking notification: {}", e);
         }
     }
 

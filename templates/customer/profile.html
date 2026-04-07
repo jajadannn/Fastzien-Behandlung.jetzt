@@ -13,7 +13,7 @@
 <body>
   <nav class="portal-nav">
     <a href="/" class="portal-logo">
-      <img src="/Logo-128.v2.png" alt="Faszienbehandlung" height="32">
+      <img src="/Logo.png" alt="Faszienbehandlung" height="32">
       <span>Kundenportal</span>
     </a>
     <div class="portal-nav-links">
@@ -72,6 +72,34 @@
           <button type="submit" class="auth-btn">Passwort ändern</button>
         </form>
       </div>
+
+      <div class="profile-section">
+        <h2>Datenschutz & Meine Daten</h2>
+        <p style="color: var(--text-mid); font-size: 14px; margin-bottom: 16px;">
+          Gemäß DSGVO haben Sie das Recht auf Auskunft, Datenübertragbarkeit und Löschung Ihrer gespeicherten Daten.
+          Weitere Informationen finden Sie in unseren <a href="/datenschutz" target="_blank" rel="noopener" style="color: var(--sky-dark);">Datenschutzhinweisen</a>.
+        </p>
+
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <div>
+            <a href="/api/customer/export-data" class="auth-btn" style="display:inline-block; text-align:center; text-decoration:none; background: var(--sky); padding: 10px 20px; font-size: 14px;">
+              📥 Meine Daten exportieren (JSON)
+            </a>
+            <p style="font-size: 12px; color: var(--text-light); margin-top: 6px;">Lädt eine Kopie aller über Sie gespeicherten Daten herunter (Art. 20 DSGVO).</p>
+          </div>
+
+          <div style="margin-top: 8px; padding: 16px; background: #fff8f0; border: 1px solid #f5d9b8; border-left: 4px solid #e8963a; border-radius: 12px;">
+            <p style="font-size: 14px; font-weight: 600; color: #7a3a10; margin-bottom: 6px;">Konto unwiderruflich löschen</p>
+            <p style="font-size: 13px; color: #7a5a30; margin-bottom: 12px;">
+              Ihr Konto sowie alle damit verbundenen Termine werden gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.
+              Bestehende Zahlungsverpflichtungen bleiben davon unberührt.
+            </p>
+            <button id="delete-account-btn" class="auth-btn" style="background: #c0392b; border-color: #c0392b; font-size: 14px; padding: 9px 18px;">
+              🗑️ Konto löschen
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   </main>
 
@@ -111,6 +139,18 @@
       })});
       const d = await res.json();
       if (d.success) { showMsg('Passwort geändert!'); document.getElementById('password-form').reset(); } else showErr(d.error);
+    });
+
+    document.getElementById('delete-account-btn').addEventListener('click', async () => {
+      if (!confirm('Möchten Sie Ihr Konto wirklich unwiderruflich löschen? Alle Ihre Daten und Termine werden entfernt.')) return;
+      const res = await fetch('/api/customer/delete-account', { method: 'DELETE' });
+      const d = await res.json();
+      if (d.success) {
+        alert('Ihr Konto wurde gelöscht. Sie werden nun zur Startseite weitergeleitet.');
+        window.location.href = '/';
+      } else {
+        showErr(d.error || 'Konto konnte nicht gelöscht werden.');
+      }
     });
   </script>
   <script src="/static/js/customer.js?v=6"></script>

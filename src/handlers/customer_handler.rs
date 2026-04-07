@@ -16,6 +16,17 @@ fn require_auth(req: &HttpRequest, jwt_secret: &str) -> Result<auth::Claims, Htt
     }
 }
 
+/// Renders the "please verify your email" page when the customer is not yet verified.
+fn email_not_verified_response(tmpl: &Tera, email: &str, is_admin: bool) -> HttpResponse {
+    let mut ctx = tera::Context::new();
+    ctx.insert("email", email);
+    ctx.insert("is_admin", &is_admin);
+    match tmpl.render("customer/email_not_verified.html", &ctx) {
+        Ok(body) => HttpResponse::Ok().content_type("text/html; charset=utf-8").body(body),
+        Err(e) => HttpResponse::InternalServerError().body(format!("Template error: {}", e)),
+    }
+}
+
 pub async fn dashboard(
     req: HttpRequest,
     tmpl: web::Data<Tera>,
@@ -29,14 +40,22 @@ pub async fn dashboard(
 
     let conn = db.lock().unwrap();
     let customer = Customer::find_by_id(&conn, claims.sub).unwrap().unwrap();
+
+    if !customer.email_verified {
+        return email_not_verified_response(&tmpl, &customer.email, claims.is_admin);
+    }
+
     let upcoming = Appointment::find_upcoming_by_customer(&conn, claims.sub).unwrap_or_default();
     let pending_amount = Payment::pending_total_by_customer(&conn, claims.sub).unwrap_or(0.0);
     let remaining_credits = CreditPackage::remaining_sessions(&conn, claims.sub).unwrap_or(0);
     let settings = SiteSetting::get_all(&conn).unwrap_or_default();
 
+    let next_appointment = upcoming.first().cloned();
+
     let mut ctx = tera::Context::new();
     ctx.insert("customer", &customer);
     ctx.insert("upcoming_appointments", &upcoming);
+    ctx.insert("next_appointment", &next_appointment);
     ctx.insert("pending_amount", &pending_amount);
     ctx.insert("remaining_credits", &remaining_credits);
     ctx.insert("settings", &settings);
@@ -68,6 +87,11 @@ pub async fn appointments_page(
     };
 
     let conn = db.lock().unwrap();
+    let customer = Customer::find_by_id(&conn, claims.sub).unwrap().unwrap();
+    if !customer.email_verified {
+        return email_not_verified_response(&tmpl, &customer.email, claims.is_admin);
+    }
+
     let appointments = Appointment::find_by_customer(&conn, claims.sub).unwrap_or_default();
     let settings = SiteSetting::get_all(&conn).unwrap_or_default();
 
@@ -94,6 +118,11 @@ pub async fn book_page(
     };
 
     let conn = db.lock().unwrap();
+    let customer = Customer::find_by_id(&conn, claims.sub).unwrap().unwrap();
+    if !customer.email_verified {
+        return email_not_verified_response(&tmpl, &customer.email, claims.is_admin);
+    }
+
     let remaining_credits = CreditPackage::remaining_sessions(&conn, claims.sub).unwrap_or(0);
     let settings = SiteSetting::get_all(&conn).unwrap_or_default();
 
@@ -121,6 +150,9 @@ pub async fn profile_page(
 
     let conn = db.lock().unwrap();
     let customer = Customer::find_by_id(&conn, claims.sub).unwrap().unwrap();
+    if !customer.email_verified {
+        return email_not_verified_response(&tmpl, &customer.email, claims.is_admin);
+    }
 
     let mut ctx = tera::Context::new();
     ctx.insert("customer", &customer);
@@ -144,6 +176,11 @@ pub async fn credits_page(
     };
 
     let conn = db.lock().unwrap();
+    let customer = Customer::find_by_id(&conn, claims.sub).unwrap().unwrap();
+    if !customer.email_verified {
+        return email_not_verified_response(&tmpl, &customer.email, claims.is_admin);
+    }
+
     let payments = Payment::find_by_customer(&conn, claims.sub).unwrap_or_default();
     let credit_packages = CreditPackage::find_all_by_customer(&conn, claims.sub).unwrap_or_default();
     let pending_amount = Payment::pending_total_by_customer(&conn, claims.sub).unwrap_or(0.0);
@@ -244,6 +281,88 @@ pub async fn api_change_email(
 
     match Customer::update_email(&conn, claims.sub, &form.new_email) {
         Ok(_) => HttpResponse::Ok().json(serde_json::json!({"success": true})),
+        Err(e) => HttpResponse::InternalServerError().json(serde_json::json!({"error": format!("{}", e)})),
+    }
+}
+
+/// GET /api/customer/export-data — DSGVO Art. 20 data portability export
+pub async fn api_export_data(
+    req: HttpRequest,
+    db: web::Data<Mutex<Connection>>,
+    jwt_secret: web::Data<String>,
+) -> HttpResponse {
+    let claims = match auth::get_claims(&req, &jwt_secret) {
+        Some(c) => c,
+        None => return HttpResponse::Unauthorized().json(serde_json::json!({"error": "Nicht angemeldet"})),
+    };
+
+    let conn = db.lock().unwrap();
+    let customer = match Customer::find_by_id(&conn, claims.sub) {
+        Ok(Some(c)) => c,
+        _ => return HttpResponse::NotFound().json(serde_json::json!({"error": "Konto nicht gefunden"})),
+    };
+    let appointments = Appointment::find_by_customer(&conn, claims.sub).unwrap_or_default();
+    let payments = Payment::find_by_customer(&conn, claims.sub).unwrap_or_default();
+
+    let export = serde_json::json!({
+        "export_date": chrono::Local::now().format("%Y-%m-%dT%H:%M:%S").to_string(),
+        "account": {
+            "id": customer.id,
+            "email": customer.email,
+            "first_name": customer.first_name,
+            "last_name": customer.last_name,
+            "phone": customer.phone,
+            "street": customer.street,
+            "zip_code": customer.zip_code,
+            "city": customer.city,
+            "created_at": customer.created_at,
+            "email_verified": customer.email_verified,
+        },
+        "appointments": appointments,
+        "payments": payments,
+    });
+
+    HttpResponse::Ok()
+        .content_type("application/json; charset=utf-8")
+        .insert_header(("Content-Disposition", "attachment; filename=\"meine-daten.json\""))
+        .body(serde_json::to_string_pretty(&export).unwrap_or_default())
+}
+
+/// DELETE /api/customer/delete-account — DSGVO Art. 17 right to erasure
+pub async fn api_delete_account(
+    req: HttpRequest,
+    db: web::Data<Mutex<Connection>>,
+    jwt_secret: web::Data<String>,
+) -> HttpResponse {
+    let claims = match auth::get_claims(&req, &jwt_secret) {
+        Some(c) => c,
+        None => return HttpResponse::Unauthorized().json(serde_json::json!({"error": "Nicht angemeldet"})),
+    };
+
+    // Prevent deletion of admin account
+    if claims.is_admin {
+        return HttpResponse::Forbidden().json(serde_json::json!({"error": "Admin-Konto kann nicht selbst gelöscht werden"}));
+    }
+
+    let conn = db.lock().unwrap();
+    // Cascade delete: appointments and payments are linked via foreign key or we delete them explicitly
+    let customer_id = claims.sub;
+    let _ = conn.execute("DELETE FROM payments WHERE customer_id = ?1", rusqlite::params![customer_id]);
+    let _ = conn.execute("DELETE FROM appointments WHERE customer_id = ?1", rusqlite::params![customer_id]);
+    let _ = conn.execute("DELETE FROM credit_packages WHERE customer_id = ?1", rusqlite::params![customer_id]);
+    match conn.execute("DELETE FROM customers WHERE id = ?1", rusqlite::params![customer_id]) {
+        Ok(_) => {
+            // Clear the auth cookie
+            HttpResponse::Ok()
+                .cookie(
+                    actix_web::cookie::Cookie::build("auth_token", "")
+                        .path("/")
+                        .max_age(actix_web::cookie::time::Duration::seconds(0))
+                        .http_only(true)
+                        .finish()
+                )
+                .json(serde_json::json!({"success": true}))
+        }
         Err(e) => HttpResponse::InternalServerError().json(serde_json::json!({"error": format!("{}", e)})),
     }
 }

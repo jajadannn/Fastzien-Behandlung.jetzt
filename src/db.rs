@@ -14,6 +14,7 @@ pub fn initialize(db_path: &str, admin_email: &str, admin_password: &str) -> Res
     conn.execute_batch("PRAGMA foreign_keys=ON;")?;
 
     create_tables(&conn)?;
+    migrate_existing_db(&conn)?;
     seed_settings(&conn)?;
     seed_faqs(&conn)?;
     seed_reviews(&conn)?;
@@ -39,6 +40,10 @@ fn create_tables(conn: &Connection) -> Result<()> {
             is_admin INTEGER NOT NULL DEFAULT 0,
             reset_token TEXT,
             reset_token_expires TEXT,
+            email_verified INTEGER NOT NULL DEFAULT 0,
+            verification_token TEXT,
+            verification_token_expires TEXT,
+            calendar_token TEXT,
             created_at TEXT NOT NULL DEFAULT (datetime('now')),
             updated_at TEXT NOT NULL DEFAULT (datetime('now'))
         );
@@ -111,6 +116,22 @@ fn create_tables(conn: &Connection) -> Result<()> {
     Ok(())
 }
 
+/// Migrate existing databases that were created before new columns were added.
+fn migrate_existing_db(conn: &Connection) -> Result<()> {
+    // SQLite does not support ALTER TABLE ADD COLUMN IF NOT EXISTS,
+    // so we attempt each ALTER and ignore the error if column already exists.
+    let migrations = vec![
+        "ALTER TABLE customers ADD COLUMN email_verified INTEGER NOT NULL DEFAULT 0",
+        "ALTER TABLE customers ADD COLUMN verification_token TEXT",
+        "ALTER TABLE customers ADD COLUMN verification_token_expires TEXT",
+        "ALTER TABLE customers ADD COLUMN calendar_token TEXT",
+    ];
+    for sql in migrations {
+        let _ = conn.execute_batch(sql); // ignore "duplicate column" error
+    }
+    Ok(())
+}
+
 fn seed_settings(conn: &Connection) -> Result<()> {
     let defaults = vec![
         ("price_single", "195"),
@@ -118,6 +139,7 @@ fn seed_settings(conn: &Connection) -> Result<()> {
         ("price_pack_count", "10"),
         ("home_visit_surcharge", "15"),
         ("appointment_duration_min", "90"),
+        ("appointment_break_min", "0"),
         ("hours_weekday", "Mo–Fr 16:00–22:00 Uhr"),
         ("hours_saturday", "Sa 9:00–19:00 Uhr"),
         ("hours_stripe", "Mo–Fr 16:00–22:00 Uhr · Sa 9:00–19:00 Uhr"),
@@ -189,7 +211,6 @@ fn seed_reviews(conn: &Connection) -> Result<()> {
 }
 
 fn seed_admin(conn: &Connection, email: &str, password: &str) -> Result<()> {
-    // Check if any admin exists
     let existing: Option<(i64, String, String)> = conn.prepare(
         "SELECT id, email, password_hash FROM customers WHERE is_admin = 1"
     )?.query_row([], |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?)))
@@ -197,7 +218,6 @@ fn seed_admin(conn: &Connection, email: &str, password: &str) -> Result<()> {
 
     match existing {
         Some((id, existing_email, existing_hash)) => {
-            // Update email if changed
             if existing_email != email {
                 conn.execute(
                     "UPDATE customers SET email = ?1, updated_at = datetime('now') WHERE id = ?2",
@@ -205,7 +225,6 @@ fn seed_admin(conn: &Connection, email: &str, password: &str) -> Result<()> {
                 )?;
                 info!("Admin email updated to: {}", email);
             }
-            // Update password if it doesn't match
             if !bcrypt::verify(password, &existing_hash).unwrap_or(false) {
                 let new_hash = hash(password, DEFAULT_COST).expect("Failed to hash admin password");
                 conn.execute(
@@ -214,11 +233,16 @@ fn seed_admin(conn: &Connection, email: &str, password: &str) -> Result<()> {
                 )?;
                 info!("Admin password updated for: {}", email);
             }
+            // Ensure admin is verified and has a calendar token
+            conn.execute(
+                "UPDATE customers SET email_verified = 1, calendar_token = COALESCE(calendar_token, lower(hex(randomblob(16)))) WHERE id = ?1",
+                params![id],
+            )?;
         }
         None => {
             let password_hash = hash(password, DEFAULT_COST).expect("Failed to hash admin password");
             conn.execute(
-                "INSERT INTO customers (email, password_hash, first_name, last_name, is_admin) VALUES (?1, ?2, 'Admin', 'Admin', 1)",
+                "INSERT INTO customers (email, password_hash, first_name, last_name, is_admin, email_verified, calendar_token) VALUES (?1, ?2, 'Admin', 'Admin', 1, 1, lower(hex(randomblob(16))))",
                 params![email, password_hash],
             )?;
             info!("Admin account created with email: {}", email);

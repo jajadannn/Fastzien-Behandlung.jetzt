@@ -479,6 +479,12 @@ pub async fn api_cancel_with_suggestions(
     // Cancel the appointment in database
     let _ = Appointment::cancel(&conn, form.appointment_id);
 
+    // Reset pending payment for this appointment
+    let _ = conn.execute(
+        "UPDATE payments SET status = 'cancelled' WHERE appointment_id = ?1 AND status = 'pending'",
+        rusqlite::params![form.appointment_id],
+    );
+
     // If it was a pack appointment, return the credit
     if appointment.appointment_type == "pack" {
         let active_credits = CreditPackage::find_active_by_customer(&conn, appointment.customer_id).unwrap_or_default();

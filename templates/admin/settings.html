@@ -10,7 +10,7 @@
 </head>
 <body>
   <nav class="admin-nav">
-    <a href="/" class="admin-logo"><img src="/Logo-128.v2.png" alt="" height="30"><span>Admin</span></a>
+    <a href="/" class="admin-logo"><img src="/Logo.png" alt="" height="30"><span>Admin</span></a>
     <div class="admin-nav-links">
       <a href="/admin">Übersicht</a>
       <a href="/admin/customers">Kunden</a>
@@ -47,6 +47,10 @@
         <div class="form-group"><label>Zeile (Fusszeile)</label><input type="text" name="hours_stripe" value="{{ settings.hours_stripe | default(value='Mo–Fr 16:00–22:00 Uhr · Sa 9:00–19:00 Uhr') }}"></div>
         <div class="form-group"><label>Kurzform</label><input type="text" name="hours_stripe_short" value="{{ settings.hours_stripe_short | default(value='Mo–Fr 16–22 Uhr · Sa 9–19 Uhr') }}"></div>
         <div class="form-group"><label>Terminlänge (Minuten)</label><input type="text" name="appointment_duration_min" value="{{ settings.appointment_duration_min | default(value='90') }}"></div>
+        <div class="form-group">
+          <label>Pause zwischen Terminen (Minuten) <small style="color:var(--text-light); font-weight:400">– 0 = kein Puffer</small></label>
+          <input type="text" name="appointment_break_min" value="{{ settings.appointment_break_min | default(value='0') }}">
+        </div>
 
         <h2>Kontakt</h2>
         <div class="form-group"><label>Telefon (Anzeige)</label><input type="text" name="phone" value="{{ settings.phone | default(value='+49 152 34 00 72 25') }}"></div>

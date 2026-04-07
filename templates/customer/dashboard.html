@@ -13,7 +13,7 @@
 <body>
   <nav class="portal-nav">
     <a href="/" class="portal-logo">
-      <img src="/Logo-128.v2.png" alt="Faszienbehandlung" height="32">
+      <img src="/Logo.png" alt="Faszienbehandlung" height="32">
       <span>Kundenportal</span>
     </a>
     <div class="portal-nav-links">
@@ -34,6 +34,7 @@
         <p>Willkommen in deinem persönlichen Bereich</p>
       </div>
 
+      <!-- Summary cards -->
       <div class="dashboard-grid">
         <a href="/portal/book" class="dash-card dash-card-primary">
           <div class="dash-card-icon">📅</div>
@@ -52,7 +53,7 @@
           </div>
         </div>
 
-        <div class="dash-card">
+        <div class="dash-card {% if pending_amount > 0 %}dash-card-warning{% endif %}">
           <div class="dash-card-icon">💳</div>
           <div class="dash-card-content">
             <h3>{{ pending_amount | round(method="common", precision=2) }} €</h3>
@@ -69,30 +70,78 @@
         </div>
       </div>
 
-      {% if upcoming_appointments | length > 0 %}
+      <!-- Next appointment highlight -->
+      {% if next_appointment %}
+      <div class="portal-section" style="margin-bottom: 16px;">
+        <h2>Nächster Termin</h2>
+        <div class="appointment-card" style="border-left: 4px solid var(--sky); background: var(--sky-pale);">
+          <div class="apt-date-badge" style="background: var(--sky); color: white;">
+            <span class="apt-day">{{ next_appointment.start_time | format_date(format="%d.%m.") }}</span>
+          </div>
+          <div class="apt-details">
+            <div class="apt-time" style="font-weight: 600; color: var(--sky-dark);">
+              🕐 {{ next_appointment.start_time | format_date(format="%H:%M") }} – {{ next_appointment.end_time | format_date(format="%H:%M") }} Uhr
+            </div>
+            <div class="apt-type">
+              {% if next_appointment.is_home_visit %}🏠 Hausbesuch{% else %}📍 Praxis Sulgen{% endif %}
+              &nbsp;·&nbsp; {{ next_appointment.start_time | format_date(format="%d.%m.%Y") }}
+            </div>
+            {% if next_appointment.notes != "" %}
+            <div style="margin-top: 6px; font-size: 13px; color: var(--text-mid);">📝 {{ next_appointment.notes }}</div>
+            {% endif %}
+          </div>
+          <div class="apt-actions">
+            <button class="btn-cancel" onclick="cancelAppointment({{ next_appointment.id }})">Stornieren</button>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Additional upcoming appointments -->
+      {% if upcoming_appointments | length > 1 %}
       <div class="portal-section">
-        <h2>Nächste Termine</h2>
+        <h2>Weitere Termine</h2>
         <div class="appointment-list">
           {% for apt in upcoming_appointments %}
+          {% if not loop.first %}
           <div class="appointment-card">
             <div class="apt-date-badge">
               <span class="apt-day">{{ apt.start_time | format_date(format="%d.%m.") }}</span>
             </div>
             <div class="apt-details">
-              <div class="apt-time">🕐 {{ apt.start_time | format_date(format="%H:%M") }} – {{ apt.end_time | format_date(format="%H:%M") }}</div>
-              <div class="apt-type">
-                {% if apt.is_home_visit %}🏠 Hausbesuch{% else %}🏥 Praxis{% endif %}
-                · {{ apt.appointment_type }}
-              </div>
+              <div class="apt-time">🕐 {{ apt.start_time | format_date(format="%H:%M") }} – {{ apt.end_time | format_date(format="%H:%M") }} Uhr</div>
+              <div class="apt-type">{% if apt.is_home_visit %}🏠 Hausbesuch{% else %}📍 Praxis{% endif %}</div>
             </div>
             <div class="apt-actions">
               <button class="btn-cancel" onclick="cancelAppointment({{ apt.id }})">Stornieren</button>
             </div>
           </div>
+          {% endif %}
           {% endfor %}
         </div>
       </div>
       {% endif %}
+
+      <!-- Calendar subscription -->
+      {% if customer.calendar_token %}
+      <div class="portal-section">
+        <h2>Kalender-Abo</h2>
+        <p style="color: var(--text-mid); font-size: 14px; margin-bottom: 12px;">
+          Abonniere deine Termine direkt in Nextcloud, iOS, macOS oder Google Kalender – immer aktuell.
+        </p>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+          <a href="webcal://faszienbehandlung.jetzt/api/calendar/{{ customer.calendar_token }}/termine.ics"
+             style="display:inline-block; padding: 9px 20px; background: var(--sky-pale); border: 1px solid var(--border); border-radius: 50px; font-size: 13px; font-weight: 500; color: var(--sky-dark); text-decoration: none;">
+            📅 Kalender abonnieren
+          </a>
+          <a href="/api/calendar/{{ customer.calendar_token }}/termine.ics"
+             style="display:inline-block; padding: 9px 20px; background: var(--sky-pale); border: 1px solid var(--border); border-radius: 50px; font-size: 13px; font-weight: 500; color: var(--sky-dark); text-decoration: none;">
+            ⬇️ .ics herunterladen
+          </a>
+        </div>
+      </div>
+      {% endif %}
+
     </div>
   </main>
 

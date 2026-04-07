@@ -45,7 +45,7 @@
     "@type": "HealthAndBeautyBusiness",
     "name": "Faszienbehandlung Thilo Seifried – Gantke® Methode",
     "url": "https://faszien-behandlung.jetzt/",
-    "image": "https://faszien-behandlung.jetzt/Logo-256.v2.png",
+    "image": "https://faszien-behandlung.jetzt/Logo.png",
     "description": "Gantke® Faszienbehandlung in Sulgen & Dunningen. Thilo Seifried behandelt chronische Rückenschmerzen, Verspannungen, Migräne und Gelenkbeschwerden. 90 Minuten ab {{ settings.price_single | default(value='195') }} €.",
     "address": {
       "@type": "PostalAddress",
@@ -101,8 +101,7 @@
   <nav class="topbar" aria-label="Hauptnavigation">
     <a class="topbar-logo" href="#home">
       <img
-        src="/Logo-128.v2.png"
-        srcset="/Logo-128.v2.png 1x, /Logo-256.v2.png 2x"
+        src="/Logo.png"
         alt="Faszienbehandlung Thilo Seifried"
         width="92"
         height="38">
@@ -121,7 +120,7 @@
         <a href="/portal" class="btn-book">👤 Mein Konto</a>
         {% endif %}
       {% else %}
-      <a href="/portal/book" class="btn-book">📅 Termin buchen</a>
+      <a href="/register" class="btn-book">📅 Termin buchen</a>
       {% endif %}
     </div>
   </nav>
@@ -130,9 +129,7 @@
   <section class="hero" id="home">
     <div class="hero-media" aria-hidden="true">
       <img
-        src="/Start-960.v2.jpg"
-        srcset="/Start-960.v2.jpg 960w, /Start-1400.v2.jpg 1400w"
-        sizes="100vw"
+        src="/Start.avif"
         alt=""
         fetchpriority="high"
         decoding="async"
@@ -144,7 +141,11 @@
       <h1>Endlich wieder<br><em>schmerzfrei</em> bewegen.</h1>
       <p class="hero-sub">Chronische Rückenschmerzen, Verspannungen, Migräne – die Gantke® Faszienbehandlung löst die Ursache, nicht nur die Symptome. Spürbar ab der ersten Sitzung.</p>
       <div class="hero-cta-group">
-        <a class="btn-primary" href="/portal/book">📅 Jetzt Termin buchen</a>
+        {% if is_logged_in %}
+        <a class="btn-primary" href="{% if is_logged_in %}/portal/book{% else %}/register{% endif %}">📅 Jetzt Termin buchen</a>
+        {% else %}
+        <a class="btn-primary" href="/register">📅 Jetzt Termin buchen</a>
+        {% endif %}
         <a class="btn-secondary" href="#ueber">Mehr erfahren ↓</a>
       </div>
       <p class="hero-note">✓ Online buchbar &nbsp;·&nbsp; ✓ 90 Min. ab {{ settings.price_single | default(value="195") }} € &nbsp;·&nbsp; ✓ Kostenlose Parkplätze</p>
@@ -189,9 +190,7 @@
         <div class="about-photo-wrap js-animate">
           <div class="about-photo">
             <img
-              src="/Portrait-240.v2.jpg"
-              srcset="/Portrait-240.v2.jpg 240w, /Portrait-320.v2.jpg 320w, /Portrait-480.v2.jpg 480w"
-              sizes="(max-width: 768px) 145px, 240px"
+              src="/Portrait.jpg"
               alt="Thilo Seifried – Gantke® Faszienbehandler in Sulgen"
               width="240"
               height="280"
@@ -215,7 +214,7 @@
             <div class="fact-item"><div class="fact-val">Mo–Sa</div><div class="fact-desc">{{ settings.hours_stripe_short | default(value="Mo–Fr 16–22 Uhr · Sa 9–19 Uhr") }}</div></div>
             <div class="fact-item"><div class="fact-val">+{{ settings.home_visit_surcharge | default(value="15") }} €</div><div class="fact-desc">Fahrtpauschale für Hausbesuche</div></div>
           </div>
-          <div style="margin-top:24px"><a class="btn-primary" href="/portal/book">Termin vereinbaren →</a></div>
+          <div style="margin-top:24px"><a class="btn-primary" href="{% if is_logged_in %}/portal/book{% else %}/register{% endif %}">Termin vereinbaren →</a></div>
         </div>
       </div>
     </div>
@@ -251,7 +250,7 @@
       </div>
       <div style="text-align:center;margin-top:48px">
         <p style="color:rgba(255,255,255,0.8);margin-bottom:20px;font-size:.95rem">Eine Sitzung dauert ca. 90 Minuten · Hausbesuche im Raum Sulgen/Schramberg möglich</p>
-        <a class="btn-cta-large" href="/portal/book">📅 Termin jetzt buchen</a>
+        <a class="btn-cta-large" href="{% if is_logged_in %}/portal/book{% else %}/register{% endif %}">📅 Termin jetzt buchen</a>
       </div>
     </div>
   </section>
@@ -293,7 +292,7 @@
         </div>
       </div>
       <p class="price-note-text">Private Zusatzversicherungen erstatten häufig einen Teil – bitte vorab bei deiner Versicherung anfragen.</p>
-      <div style="text-align:center;margin-top:28px"><a class="btn-primary" href="/portal/book">Jetzt Termin buchen</a></div>
+      <div style="text-align:center;margin-top:28px"><a class="btn-primary" href="{% if is_logged_in %}/portal/book{% else %}/register{% endif %}">Jetzt Termin buchen</a></div>
     </div>
   </section>
 
@@ -337,7 +336,7 @@
     <div class="cta-inner container">
       <h2>Bereit, endlich<br><em style="font-style:italic;font-weight:300">schmerzfrei</em> zu leben?</h2>
       <p>Buche jetzt deinen Termin – schnell, einfach und unverbindlich online. Die ersten freien Termine werden oft schnell belegt.</p>
-      <a class="btn-cta-large" href="/portal/book">📅 Jetzt Termin buchen</a>
+      <a class="btn-cta-large" href="{% if is_logged_in %}/portal/book{% else %}/register{% endif %}">📅 Jetzt Termin buchen</a>
       <p class="cta-micro">Kostenlose Erstberatung inklusive · Keine Vorauszahlung</p>
       <div class="cta-contact">
         <span>📞 <a href="tel:{{ settings.phone_raw | default(value='+4915234007225') }}">{{ settings.phone | default(value="+49 152 34 00 72 25") }}</a></span>

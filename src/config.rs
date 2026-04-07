@@ -4,6 +4,7 @@ use std::env;
 pub struct Config {
     pub host: String,
     pub port: u16,
+    pub base_url: String,
     pub database_url: String,
     pub jwt_secret: String,
     pub jwt_expiry_hours: i64,
@@ -25,6 +26,8 @@ impl Config {
                 .unwrap_or_else(|_| "8080".to_string())
                 .parse()
                 .expect("PORT must be a number"),
+            base_url: env::var("BASE_URL")
+                .unwrap_or_else(|_| "https://faszienbehandlung.jetzt".to_string()),
             database_url: env::var("DATABASE_URL")
                 .unwrap_or_else(|_| "data/faszien.db".to_string()),
             jwt_secret: env::var("JWT_SECRET")

@@ -4,6 +4,7 @@ use std::sync::Mutex;
 use chrono::{NaiveDateTime, NaiveDate, NaiveTime, Duration, Datelike, Weekday};
 
 use crate::auth;
+use crate::config::Config;
 use crate::email::EmailService;
 use crate::models::appointment::{Appointment, BookingForm};
 use crate::models::payment::{Payment, CreditPackage};
@@ -16,6 +17,7 @@ pub async fn api_book(
     db: web::Data<Mutex<Connection>>,
     jwt_secret: web::Data<String>,
     email_service: web::Data<EmailService>,
+    config: web::Data<Config>,
 ) -> HttpResponse {
     let claims = match auth::get_claims(&req, &jwt_secret) {
         Some(c) => c,
@@ -41,10 +43,18 @@ pub async fn api_book(
     let start_str = start.format("%Y-%m-%d %H:%M:%S").to_string();
     let end_str = end.format("%Y-%m-%d %H:%M:%S").to_string();
 
-    // Check if in the future
     let now = chrono::Utc::now().naive_utc();
+
+    // Must be in the future
     if start <= now {
         return HttpResponse::BadRequest().json(serde_json::json!({"error": "Termin muss in der Zukunft liegen"}));
+    }
+
+    // Must be at least 24 hours away
+    if start - now < Duration::hours(24) {
+        return HttpResponse::BadRequest().json(serde_json::json!({
+            "error": "Termine können frühestens 24 Stunden im Voraus gebucht werden"
+        }));
     }
 
     // Check slot availability
@@ -57,7 +67,7 @@ pub async fn api_book(
     let is_home_visit = form.is_home_visit.unwrap_or(false);
     let notes = form.notes.as_deref().unwrap_or("");
 
-    // Check for credit package
+    // Use credit package if available
     let active_credits = CreditPackage::find_active_by_customer(&conn, claims.sub).unwrap_or_default();
     let appointment_type = if !active_credits.is_empty() { "pack" } else { "single" };
 
@@ -67,12 +77,11 @@ pub async fn api_book(
         Err(e) => return HttpResponse::InternalServerError().json(serde_json::json!({"error": format!("{}", e)})),
     };
 
-    // Handle payment/credits
+    // Handle payment / credits
     let price_single: f64 = SiteSetting::get_or_default(&conn, "price_single", "195").replace(',', ".").parse().unwrap_or(195.0);
     let home_surcharge: f64 = SiteSetting::get_or_default(&conn, "home_visit_surcharge", "15").replace(',', ".").parse().unwrap_or(15.0);
 
     if !active_credits.is_empty() {
-        // Use credit from pack
         let credit = &active_credits[0];
         let _ = CreditPackage::use_session(&conn, credit.id);
         let amount = credit.price_per_session + if is_home_visit { home_surcharge } else { 0.0 };
@@ -82,15 +91,27 @@ pub async fn api_book(
         let _ = Payment::create(&conn, claims.sub, Some(appointment_id), amount, "single");
     }
 
-    // Send confirmation email
+    // Gather customer info for email notifications
     let customer = Customer::find_by_id(&conn, claims.sub).unwrap().unwrap();
-    let es = email_service.get_ref().clone();
-    let email = customer.email.clone();
-    let name = customer.full_name();
     let date_str = date.format("%d.%m.%Y").to_string();
     let time_str = time.format("%H:%M").to_string();
+    let customer_address = customer.full_address();
+    let admin_email = config.admin_email.clone();
+
+    let es = email_service.get_ref().clone();
+    let cust_email = customer.email.clone();
+    let cust_name = customer.full_name();
+    let cust_phone = customer.phone.clone();
+    let notes_owned = notes.to_string();
+    let date_str2 = date_str.clone();
+    let time_str2 = time_str.clone();
+
     tokio::spawn(async move {
-        es.send_appointment_confirmation(&email, &name, &date_str, &time_str, is_home_visit);
+        es.send_appointment_confirmation(&cust_email, &cust_name, &date_str, &time_str, is_home_visit);
+        es.send_admin_booking_notification(
+            &admin_email, &cust_name, &cust_phone, &customer_address,
+            &date_str2, &time_str2, &notes_owned, is_home_visit,
+        );
     });
 
     HttpResponse::Ok().json(serde_json::json!({"success": true, "appointment_id": appointment_id}))
@@ -116,7 +137,6 @@ pub async fn api_cancel(
         _ => return HttpResponse::NotFound().json(serde_json::json!({"error": "Termin nicht gefunden"})),
     };
 
-    // Check ownership (unless admin)
     if appointment.customer_id != claims.sub && !claims.is_admin {
         return HttpResponse::Forbidden().json(serde_json::json!({"error": "Zugriff verweigert"}));
     }
@@ -125,7 +145,7 @@ pub async fn api_cancel(
         return HttpResponse::BadRequest().json(serde_json::json!({"error": "Termin kann nicht storniert werden"}));
     }
 
-    // Check 24h cancellation policy
+    // 24h cancellation policy (admin bypasses)
     let cancellation_hours: i64 = SiteSetting::get_or_default(&conn, "cancellation_hours", "24").parse().unwrap_or(24);
     if let Ok(start) = NaiveDateTime::parse_from_str(&appointment.start_time, "%Y-%m-%d %H:%M:%S") {
         let now = chrono::Utc::now().naive_utc();
@@ -139,11 +159,16 @@ pub async fn api_cancel(
 
     let _ = Appointment::cancel(&conn, appointment_id);
 
-    // If it was a pack appointment, return the credit
+    // Reset pending payment
+    let _ = conn.execute(
+        "UPDATE payments SET status = 'cancelled' WHERE appointment_id = ?1 AND status = 'pending'",
+        rusqlite::params![appointment_id],
+    );
+
+    // Return credit if pack appointment
     if appointment.appointment_type == "pack" {
         let active_credits = CreditPackage::find_active_by_customer(&conn, appointment.customer_id).unwrap_or_default();
         if let Some(credit) = active_credits.first() {
-            // Decrement used_sessions
             let _ = conn.execute(
                 "UPDATE credit_packages SET used_sessions = MAX(used_sessions - 1, 0) WHERE id = ?1",
                 rusqlite::params![credit.id],
@@ -151,7 +176,6 @@ pub async fn api_cancel(
         }
     }
 
-    // Send cancellation email
     let customer = Customer::find_by_id(&conn, appointment.customer_id).unwrap().unwrap();
     let es = email_service.get_ref().clone();
     let email = customer.email.clone();
@@ -186,30 +210,38 @@ pub async fn api_available_slots(
 
     let conn = db.lock().unwrap();
     let duration_min: i64 = SiteSetting::get_or_default(&conn, "appointment_duration_min", "90").parse().unwrap_or(90);
+    let break_min: i64 = SiteSetting::get_or_default(&conn, "appointment_break_min", "0").parse().unwrap_or(0);
+    // slot_step = how many minutes between start of one slot and start of next
+    let slot_step = duration_min + break_min;
 
     // Determine opening hours based on day of week
     let weekday = date.weekday();
-    let (start_hour, end_hour) = match weekday {
+    let (start_hour, end_hour): (i64, i64) = match weekday {
         Weekday::Mon | Weekday::Tue | Weekday::Wed | Weekday::Thu | Weekday::Fri => (16, 22),
         Weekday::Sat => (9, 19),
         Weekday::Sun => return HttpResponse::Ok().json(serde_json::json!({"slots": []})),
     };
 
     let mut slots = Vec::new();
-    let mut current_hour = start_hour;
-    let mut current_min = 0;
+    let mut current_minutes: i64 = start_hour * 60;
 
-    while current_hour < end_hour {
-        let start_time = NaiveDateTime::new(date, NaiveTime::from_hms_opt(current_hour, current_min, 0).unwrap());
+    loop {
+        let h = (current_minutes / 60) as u32;
+        let m = (current_minutes % 60) as u32;
+
+        if h as i64 >= end_hour { break; }
+
+        let start_time = NaiveDateTime::new(date, NaiveTime::from_hms_opt(h, m, 0).unwrap());
         let end_time = start_time + Duration::minutes(duration_min);
 
-        // Don't go past closing time
-        let closing = NaiveDateTime::new(date, NaiveTime::from_hms_opt(end_hour, 0, 0).unwrap());
+        // Don't generate a slot that runs past closing time
+        let closing = NaiveDateTime::new(date, NaiveTime::from_hms_opt(end_hour as u32, 0, 0).unwrap());
         if end_time > closing { break; }
 
-        // Don't show past times
         let now = chrono::Utc::now().naive_utc();
-        if start_time > now {
+
+        // Only show slots that are more than 24h in the future
+        if start_time > now + Duration::hours(24) {
             let start_str = start_time.format("%Y-%m-%d %H:%M:%S").to_string();
             let end_str = end_time.format("%Y-%m-%d %H:%M:%S").to_string();
 
@@ -221,12 +253,7 @@ pub async fn api_available_slots(
             }
         }
 
-        // Move to next 90-min slot
-        current_min += duration_min as u32;
-        while current_min >= 60 {
-            current_hour += 1;
-            current_min -= 60;
-        }
+        current_minutes += slot_step;
     }
 
     HttpResponse::Ok().json(serde_json::json!({"slots": slots}))

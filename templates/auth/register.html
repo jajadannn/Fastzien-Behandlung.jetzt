@@ -14,7 +14,7 @@
   <div class="auth-container">
     <div class="auth-card">
       <a href="/" class="auth-logo">
-        <img src="/Logo-256.v2.png" alt="Faszienbehandlung" width="120" height="49">
+        <img src="/Logo.png" alt="Faszienbehandlung" width="120" height="49">
       </a>
       <h1>Konto erstellen</h1>
       <p class="auth-subtitle">Registriere dich, um online Termine zu buchen</p>
@@ -22,28 +22,63 @@
       <div id="error-msg" class="auth-error" style="display:none"></div>
 
       <form id="register-form" class="auth-form">
+        <!-- Name -->
         <div class="form-row">
           <div class="form-group">
             <label for="first_name">Vorname *</label>
-            <input type="text" id="first_name" name="first_name" required placeholder="Max">
+            <input type="text" id="first_name" name="first_name" required placeholder="Max" autocomplete="given-name">
           </div>
           <div class="form-group">
             <label for="last_name">Nachname *</label>
-            <input type="text" id="last_name" name="last_name" required placeholder="Mustermann">
+            <input type="text" id="last_name" name="last_name" required placeholder="Mustermann" autocomplete="family-name">
           </div>
         </div>
+
+        <!-- Contact -->
         <div class="form-group">
           <label for="email">E-Mail-Adresse *</label>
           <input type="email" id="email" name="email" required placeholder="deine@email.de" autocomplete="email">
         </div>
         <div class="form-group">
-          <label for="phone">Telefon</label>
-          <input type="tel" id="phone" name="phone" placeholder="+49 123 456 7890">
+          <label for="phone">Telefon *</label>
+          <input type="tel" id="phone" name="phone" required placeholder="+49 152 123 456" autocomplete="tel">
         </div>
+
+        <!-- Address -->
+        <div class="form-group">
+          <label for="street">Straße und Hausnummer *</label>
+          <input type="text" id="street" name="street" required placeholder="Musterstraße 1" autocomplete="street-address">
+        </div>
+        <div class="form-row">
+          <div class="form-group" style="flex: 0 0 130px;">
+            <label for="postal_code">PLZ *</label>
+            <input type="text" id="postal_code" name="postal_code" required placeholder="78713" maxlength="10" autocomplete="postal-code">
+          </div>
+          <div class="form-group">
+            <label for="city">Ort *</label>
+            <input type="text" id="city" name="city" required placeholder="Sulgen" autocomplete="address-level2">
+          </div>
+        </div>
+
+        <!-- Password -->
         <div class="form-group">
           <label for="password">Passwort * <small>(min. 6 Zeichen)</small></label>
           <input type="password" id="password" name="password" required minlength="6" placeholder="••••••••" autocomplete="new-password">
         </div>
+
+        <p style="font-size: 13px; color: var(--text-light); margin: 4px 0 16px;">
+          Nach der Registrierung erhältst du eine Bestätigungs-E-Mail, bevor du Termine buchen kannst.
+        </p>
+
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label style="display:flex; align-items:flex-start; gap:10px; cursor:pointer; font-weight:400;">
+            <input type="checkbox" id="dsgvo_consent" name="dsgvo_consent" required style="margin-top:3px; flex-shrink:0; width:16px; height:16px; accent-color:var(--sky-dark);">
+            <span style="font-size:13px; color:var(--text-mid); line-height:1.5;">
+              Ich habe die <a href="/datenschutz" target="_blank" rel="noopener" style="color:var(--sky-dark);">Datenschutzhinweise</a> gelesen und stimme der Verarbeitung meiner personenbezogenen Daten zur Terminverwaltung zu. *
+            </span>
+          </label>
+        </div>
+
         <button type="submit" class="auth-btn" id="submit-btn">
           <span class="btn-text">Konto erstellen</span>
           <span class="btn-loader" style="display:none"></span>
@@ -79,6 +114,9 @@
             first_name: document.getElementById('first_name').value,
             last_name: document.getElementById('last_name').value,
             phone: document.getElementById('phone').value || null,
+            street: document.getElementById('street').value || null,
+            postal_code: document.getElementById('postal_code').value || null,
+            city: document.getElementById('city').value || null,
           }),
         });
         const data = await res.json();

@@ -15,6 +15,8 @@ pub struct Customer {
     pub city: String,
     pub notes: String,
     pub is_admin: bool,
+    pub email_verified: bool,
+    pub calendar_token: Option<String>,
     pub created_at: String,
     pub updated_at: String,
 }
@@ -26,6 +28,9 @@ pub struct RegisterForm {
     pub first_name: String,
     pub last_name: String,
     pub phone: Option<String>,
+    pub street: String,
+    pub postal_code: String,
+    pub city: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -66,6 +71,11 @@ pub struct PasswordReset {
     pub new_password: String,
 }
 
+// Shared SELECT column list so all queries stay in sync with from_row()
+const SELECT_COLS: &str =
+    "id, email, password_hash, first_name, last_name, phone, street, zip_code, city, notes, \
+     is_admin, email_verified, calendar_token, created_at, updated_at";
+
 impl Customer {
     fn from_row(row: &Row) -> Result<Self> {
         Ok(Customer {
@@ -80,15 +90,16 @@ impl Customer {
             city: row.get(8)?,
             notes: row.get(9)?,
             is_admin: row.get::<_, i32>(10)? != 0,
-            created_at: row.get(11)?,
-            updated_at: row.get(12)?,
+            email_verified: row.get::<_, i32>(11)? != 0,
+            calendar_token: row.get(12)?,
+            created_at: row.get(13)?,
+            updated_at: row.get(14)?,
         })
     }
 
     pub fn find_by_id(conn: &Connection, id: i64) -> Result<Option<Self>> {
-        let mut stmt = conn.prepare(
-            "SELECT id, email, password_hash, first_name, last_name, phone, street, zip_code, city, notes, is_admin, created_at, updated_at FROM customers WHERE id = ?1"
-        )?;
+        let sql = format!("SELECT {} FROM customers WHERE id = ?1", SELECT_COLS);
+        let mut stmt = conn.prepare(&sql)?;
         let mut rows = stmt.query(params![id])?;
         match rows.next()? {
             Some(row) => Ok(Some(Self::from_row(row)?)),
@@ -97,9 +108,8 @@ impl Customer {
     }
 
     pub fn find_by_email(conn: &Connection, email: &str) -> Result<Option<Self>> {
-        let mut stmt = conn.prepare(
-            "SELECT id, email, password_hash, first_name, last_name, phone, street, zip_code, city, notes, is_admin, created_at, updated_at FROM customers WHERE email = ?1"
-        )?;
+        let sql = format!("SELECT {} FROM customers WHERE email = ?1", SELECT_COLS);
+        let mut stmt = conn.prepare(&sql)?;
         let mut rows = stmt.query(params![email])?;
         match rows.next()? {
             Some(row) => Ok(Some(Self::from_row(row)?)),
@@ -109,33 +119,95 @@ impl Customer {
 
     #[allow(dead_code)]
     pub fn find_all(conn: &Connection) -> Result<Vec<Self>> {
-        let mut stmt = conn.prepare(
-            "SELECT id, email, password_hash, first_name, last_name, phone, street, zip_code, city, notes, is_admin, created_at, updated_at FROM customers ORDER BY last_name, first_name"
-        )?;
+        let sql = format!("SELECT {} FROM customers ORDER BY last_name, first_name", SELECT_COLS);
+        let mut stmt = conn.prepare(&sql)?;
         let rows = stmt.query_map([], Self::from_row)?;
         rows.collect()
     }
 
     pub fn find_all_non_admin(conn: &Connection) -> Result<Vec<Self>> {
-        let mut stmt = conn.prepare(
-            "SELECT id, email, password_hash, first_name, last_name, phone, street, zip_code, city, notes, is_admin, created_at, updated_at FROM customers WHERE is_admin = 0 ORDER BY last_name, first_name"
-        )?;
+        let sql = format!(
+            "SELECT {} FROM customers WHERE is_admin = 0 ORDER BY last_name, first_name",
+            SELECT_COLS
+        );
+        let mut stmt = conn.prepare(&sql)?;
         let rows = stmt.query_map([], Self::from_row)?;
         rows.collect()
     }
 
-    pub fn create(conn: &Connection, email: &str, password_hash: &str, first_name: &str, last_name: &str, phone: &str) -> Result<i64> {
+    pub fn find_by_reset_token(conn: &Connection, token: &str) -> Result<Option<Self>> {
+        let sql = format!(
+            "SELECT {} FROM customers WHERE reset_token = ?1 AND reset_token_expires > datetime('now')",
+            SELECT_COLS
+        );
+        let mut stmt = conn.prepare(&sql)?;
+        let mut rows = stmt.query(params![token])?;
+        match rows.next()? {
+            Some(row) => Ok(Some(Self::from_row(row)?)),
+            None => Ok(None),
+        }
+    }
+
+    pub fn find_by_verification_token(conn: &Connection, token: &str) -> Result<Option<Self>> {
+        let sql = format!(
+            "SELECT {} FROM customers \
+             WHERE verification_token = ?1 AND verification_token_expires > datetime('now')",
+            SELECT_COLS
+        );
+        let mut stmt = conn.prepare(&sql)?;
+        let mut rows = stmt.query(params![token])?;
+        match rows.next()? {
+            Some(row) => Ok(Some(Self::from_row(row)?)),
+            None => Ok(None),
+        }
+    }
+
+    pub fn find_by_calendar_token(conn: &Connection, token: &str) -> Result<Option<Self>> {
+        let sql = format!("SELECT {} FROM customers WHERE calendar_token = ?1", SELECT_COLS);
+        let mut stmt = conn.prepare(&sql)?;
+        let mut rows = stmt.query(params![token])?;
+        match rows.next()? {
+            Some(row) => Ok(Some(Self::from_row(row)?)),
+            None => Ok(None),
+        }
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    pub fn create(
+        conn: &Connection,
+        email: &str,
+        password_hash: &str,
+        first_name: &str,
+        last_name: &str,
+        phone: &str,
+        street: &str,
+        zip_code: &str,
+        city: &str,
+        calendar_token: &str,
+    ) -> Result<i64> {
         conn.execute(
-            "INSERT INTO customers (email, password_hash, first_name, last_name, phone) VALUES (?1, ?2, ?3, ?4, ?5)",
-            params![email, password_hash, first_name, last_name, phone],
+            "INSERT INTO customers \
+             (email, password_hash, first_name, last_name, phone, street, zip_code, city, calendar_token, email_verified) \
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, 0)",
+            params![email, password_hash, first_name, last_name, phone, street, zip_code, city, calendar_token],
         )?;
         Ok(conn.last_insert_rowid())
     }
 
     #[allow(clippy::too_many_arguments)]
-    pub fn update_profile(conn: &Connection, id: i64, first_name: &str, last_name: &str, phone: &str, street: &str, zip_code: &str, city: &str) -> Result<()> {
+    pub fn update_profile(
+        conn: &Connection,
+        id: i64,
+        first_name: &str,
+        last_name: &str,
+        phone: &str,
+        street: &str,
+        zip_code: &str,
+        city: &str,
+    ) -> Result<()> {
         conn.execute(
-            "UPDATE customers SET first_name = ?1, last_name = ?2, phone = ?3, street = ?4, zip_code = ?5, city = ?6, updated_at = datetime('now') WHERE id = ?7",
+            "UPDATE customers SET first_name = ?1, last_name = ?2, phone = ?3, \
+             street = ?4, zip_code = ?5, city = ?6, updated_at = datetime('now') WHERE id = ?7",
             params![first_name, last_name, phone, street, zip_code, city, id],
         )?;
         Ok(())
@@ -165,17 +237,6 @@ impl Customer {
         Ok(())
     }
 
-    pub fn find_by_reset_token(conn: &Connection, token: &str) -> Result<Option<Self>> {
-        let mut stmt = conn.prepare(
-            "SELECT id, email, password_hash, first_name, last_name, phone, street, zip_code, city, notes, is_admin, created_at, updated_at FROM customers WHERE reset_token = ?1 AND reset_token_expires > datetime('now')"
-        )?;
-        let mut rows = stmt.query(params![token])?;
-        match rows.next()? {
-            Some(row) => Ok(Some(Self::from_row(row)?)),
-            None => Ok(None),
-        }
-    }
-
     pub fn clear_reset_token(conn: &Connection, id: i64) -> Result<()> {
         conn.execute(
             "UPDATE customers SET reset_token = NULL, reset_token_expires = NULL WHERE id = ?1",
@@ -184,7 +245,32 @@ impl Customer {
         Ok(())
     }
 
+    pub fn set_verification_token(conn: &Connection, id: i64, token: &str, expires: &str) -> Result<()> {
+        conn.execute(
+            "UPDATE customers SET verification_token = ?1, verification_token_expires = ?2 WHERE id = ?3",
+            params![token, expires, id],
+        )?;
+        Ok(())
+    }
+
+    pub fn mark_email_verified(conn: &Connection, id: i64) -> Result<()> {
+        conn.execute(
+            "UPDATE customers SET email_verified = 1, verification_token = NULL, \
+             verification_token_expires = NULL, updated_at = datetime('now') WHERE id = ?1",
+            params![id],
+        )?;
+        Ok(())
+    }
+
     pub fn full_name(&self) -> String {
         format!("{} {}", self.first_name, self.last_name).trim().to_string()
+    }
+
+    pub fn full_address(&self) -> String {
+        let mut parts = Vec::new();
+        if !self.street.is_empty() { parts.push(self.street.clone()); }
+        let zip_city = format!("{} {}", self.zip_code, self.city).trim().to_string();
+        if !zip_city.is_empty() { parts.push(zip_city); }
+        parts.join(", ")
     }
 }

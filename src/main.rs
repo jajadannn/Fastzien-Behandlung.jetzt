@@ -36,14 +36,11 @@ async fn main() -> std::io::Result<()> {
             .and_then(|v| v.as_str())
             .unwrap_or("%d.%m.%Y %H:%M");
 
-        // Parse "YYYY-MM-DD HH:MM:SS" format
         if let Ok(dt) = chrono::NaiveDateTime::parse_from_str(s, "%Y-%m-%d %H:%M:%S") {
             Ok(tera::Value::String(dt.format(format).to_string()))
         } else if s.len() >= 16 {
-            // Fallback: extract date and time parts from the string
-            let date_part = &s[..10]; // YYYY-MM-DD
-            let time_part = if s.len() >= 16 { &s[11..16] } else { "" }; // HH:MM
-            // Manual conversion: YYYY-MM-DD -> DD.MM.YYYY
+            let date_part = &s[..10];
+            let time_part = if s.len() >= 16 { &s[11..16] } else { "" };
             if date_part.len() == 10 {
                 let day = &date_part[8..10];
                 let month = &date_part[5..7];
@@ -90,6 +87,8 @@ async fn main() -> std::io::Result<()> {
             .route("/register", web::get().to(handlers::auth_handler::register_page))
             .route("/reset-password", web::get().to(handlers::auth_handler::reset_password_page))
             .route("/reset-password/{token}", web::get().to(handlers::auth_handler::reset_password_token_page))
+            // E-Mail verification
+            .route("/verify-email/{token}", web::get().to(handlers::auth_handler::verify_email_page))
             // Auth API
             .route("/logout", web::get().to(handlers::auth_handler::logout_page))
             .route("/api/auth/login", web::post().to(handlers::auth_handler::api_login))
@@ -106,10 +105,16 @@ async fn main() -> std::io::Result<()> {
             .route("/api/customer/profile", web::post().to(handlers::customer_handler::api_update_profile))
             .route("/api/customer/change-password", web::post().to(handlers::customer_handler::api_change_password))
             .route("/api/customer/change-email", web::post().to(handlers::customer_handler::api_change_email))
+            .route("/api/customer/resend-verification", web::post().to(handlers::auth_handler::api_resend_verification))
+            .route("/api/customer/export-data", web::get().to(handlers::customer_handler::api_export_data))
+            .route("/api/customer/delete-account", web::delete().to(handlers::customer_handler::api_delete_account))
             // Booking API
             .route("/api/appointments/book", web::post().to(handlers::booking_handler::api_book))
             .route("/api/appointments/{id}/cancel", web::post().to(handlers::booking_handler::api_cancel))
             .route("/api/appointments/available-slots", web::get().to(handlers::booking_handler::api_available_slots))
+            // Calendar exports (token-based, Nextcloud/iOS/Google compatible)
+            .route("/api/calendar/{token}/termine.ics", web::get().to(handlers::calendar_handler::customer_calendar_ics))
+            .route("/api/admin/calendar/{token}/alle-termine.ics", web::get().to(handlers::calendar_handler::admin_calendar_ics))
             // Admin pages
             .route("/admin", web::get().to(handlers::admin_handler::dashboard))
             .route("/admin/customers", web::get().to(handlers::admin_handler::customers_page))
@@ -133,7 +138,7 @@ async fn main() -> std::io::Result<()> {
             .route("/llms.txt", web::get().to(handlers::api::get_llms_txt))
             // Static files
             .service(fs::Files::new("/static", "static").show_files_listing().prefer_utf8(true))
-            // Legacy image files (for landing page backward compat)
+            // Root-level static files (images, fonts, favicon, etc.)
             .service(fs::Files::new("/", ".").show_files_listing().prefer_utf8(true).index_file("_none_"))
     })
     .bind(&bind_addr)?

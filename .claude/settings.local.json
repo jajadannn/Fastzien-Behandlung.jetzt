@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git ls-tree:*)",
+      "Bash(grep \"\\\\.html$\")",
+      "Bash(grep \"static/.*\\\\.\\\\\\(css\\\\|js\\\\\\)$\")",
+      "Read(//c/tmp/**)",
+      "Bash(unzip -q \"/c/Users/Fabian/Downloads/Faszienbehandlung.jetzt-Rust-Version-master.zip\")",
+      "Bash(unzip -l \"/c/Users/Fabian/Downloads/Faszienbehandlung.jetzt-Rust-Version-master.zip\")",
+      "Bash(unzip -q /c/Users/Fabian/Downloads/Faszienbehandlung.jetzt-Rust-Version-master.zip)"
+    ]
+  }
+}

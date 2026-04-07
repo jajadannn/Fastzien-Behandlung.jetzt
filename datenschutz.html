@@ -140,8 +140,7 @@
   <nav class="topbar" aria-label="Hauptnavigation">
     <a class="topbar-logo" href="index.html">
       <img
-        src="Logo-128.v2.png"
-        srcset="Logo-128.v2.png 1x, Logo-256.v2.png 2x"
+        src="Logo.png"
         alt="Faszienbehandlung Thilo Seifried"
         width="92"
         height="38">
@@ -174,11 +173,11 @@
 
       <div class="dp-section">
         <h2>2. Allgemeine Hinweise</h2>
-        <p>Diese Website ist als statische Informationsseite aufgebaut. Nach dem derzeitigen Stand werden keine eigenen Analyse- oder Marketing-Tools wie Google Analytics, Meta Pixel oder vergleichbare Tracking-Dienste eingesetzt.</p>
-        <p>Die auf der Website verwendeten Schriftarten werden lokal vom eigenen Webspace geladen. Es werden daf&uuml;r keine externen Font-Dienste von Google oder anderen Drittanbietern eingebunden.</p>
-        <p>Personenbezogene Daten werden nur verarbeitet, soweit dies technisch erforderlich ist, Sie Kontakt aufnehmen oder aktiv die Online-Terminbuchung aufrufen.</p>
+        <p>Diese Website bietet neben statischen Informationen auch ein eigenes Buchungs- und Kundenportal an. Es werden keine eigenen Analyse- oder Marketing-Tools wie Google Analytics, Meta Pixel oder vergleichbare Tracking-Dienste eingesetzt.</p>
+        <p>Die auf der Website verwendeten Schriftarten werden lokal vom eigenen Webserver geladen. Es werden keine externen Font-Dienste von Google oder anderen Drittanbietern eingebunden.</p>
+        <p>Personenbezogene Daten werden nur verarbeitet, soweit dies technisch erforderlich ist, Sie Kontakt aufnehmen oder das Online-Buchungssystem nutzen.</p>
         <div class="info-box">
-          <p>Stand dieser Datenschutzhinweise: 14. M&auml;rz 2026. Wenn sp&auml;ter weitere Dienste oder Formulare eingebunden werden, sollte diese Seite entsprechend aktualisiert werden.</p>
+          <p>Stand dieser Datenschutzhinweise: 7. April 2026.</p>
         </div>
       </div>
 
@@ -207,18 +206,60 @@
       </div>
 
       <div class="dp-section">
-        <h2>5. Online-Terminbuchung</h2>
-        <p>F&uuml;r die Terminbuchung wird ein extern geladenes Buchungsfenster unter <code>cloud.sdlv.de</code> verwendet. Dieses Buchungsfenster wird nicht bereits beim normalen Seitenaufruf geladen, sondern erst dann, wenn Sie aktiv auf &bdquo;Termin buchen&ldquo; klicken.</p>
+        <h2>5. Kundenkonto und Online-Terminbuchung</h2>
+        <p>Die Terminbuchung erfolgt &uuml;ber ein eigenes, auf dieser Website betriebenes Buchungssystem. Externe Buchungsanbieter werden nicht eingesetzt. Die Verarbeitung findet ausschlie&szlig;lich auf eigenem Serverinfrastruktur statt.</p>
+        <p><strong>5.1 Registrierung und Kundenkonto</strong></p>
+        <p>Zur Nutzung des Online-Buchungssystems ist die Anlage eines pers&ouml;nlichen Kundenkontos erforderlich. Bei der Registrierung erheben wir folgende Daten:</p>
         <ul>
-          <li><strong>Verarbeitete Daten beim Laden und Buchen:</strong> insbesondere IP-Adresse, technische Verbindungsdaten, Datum und Uhrzeit, Browserinformationen sowie die von Ihnen im Buchungsformular eingegebenen Angaben.</li>
-          <li><strong>Zweck:</strong> Bereitstellung des Buchungssystems, Terminverwaltung und Kommunikation rund um Ihren Termin.</li>
-          <li><strong>Rechtsgrundlage:</strong> Art. 6 Abs. 1 lit. b DSGVO, soweit die Verarbeitung der Terminvereinbarung dient; erg&auml;nzend Art. 6 Abs. 1 lit. f DSGVO f&uuml;r die technisch sichere Bereitstellung des Buchungssystems.</li>
-          <li><strong>Hinweis:</strong> Beim &Ouml;ffnen des Buchungsfensters kann das eingesetzte System technisch notwendige Cookies oder vergleichbare Speichertechniken verwenden.</li>
+          <li><strong>Pflichtangaben:</strong> Vorname, Nachname, E-Mail-Adresse, Telefonnummer, Passwort (gespeichert als bcrypt-Hash, nicht im Klartext).</li>
+          <li><strong>Freiwillige Angaben:</strong> Stra&szlig;e und Hausnummer, PLZ, Ort (werden f&uuml;r Hausbesuche ben&ouml;tigt).</li>
+          <li><strong>Zweck:</strong> Kontoverwaltung, Kommunikation rund um Termine, Ausstellung von Buchungsbest&auml;tigungen per E-Mail.</li>
+          <li><strong>Rechtsgrundlage:</strong> Art. 6 Abs. 1 lit. b DSGVO (Vertragsanbahnung/-erf&uuml;llung); f&uuml;r freiwillige Adressangaben Art. 6 Abs. 1 lit. a DSGVO (Einwilligung).</li>
+          <li><strong>Speicherdauer:</strong> Solange das Konto besteht oder gesetzliche Aufbewahrungspflichten eine l&auml;ngere Speicherung erfordern. Sie k&ouml;nnen Ihr Konto jederzeit selbstst&auml;ndig &uuml;ber das <a href="/portal/profile">Kundenportal &rarr; Profil</a> l&ouml;schen.</li>
+        </ul>
+        <p><strong>5.2 E-Mail-Adressverifikation</strong></p>
+        <p>Nach der Registrierung senden wir eine Best&auml;tigungs-E-Mail mit einem zeitlich begrenzten Verifizierungslink (24 Stunden g&uuml;ltig). Erst nach Klick auf diesen Link ist die Terminbuchung freigeschaltet.</p>
+        <ul>
+          <li><strong>Zweck:</strong> Sicherstellung der Erreichbarkeit und Schutz vor Missbrauch der E-Mail-Adresse.</li>
+          <li><strong>Rechtsgrundlage:</strong> Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an Sicherheit und Kontointegrität).</li>
+        </ul>
+        <p><strong>5.3 Terminbuchung und -verwaltung</strong></p>
+        <ul>
+          <li><strong>Verarbeitete Daten:</strong> Datum, Uhrzeit, Behandlungsort (Praxis oder Hausbesuch), optionale Notizen sowie die mit dem Konto gespeicherten Kontaktdaten.</li>
+          <li><strong>Zweck:</strong> Terminverwaltung, Best&auml;tigungen, Erinnerungen und ggf. Stornierungsvorschl&auml;ge per E-Mail.</li>
+          <li><strong>Rechtsgrundlage:</strong> Art. 6 Abs. 1 lit. b DSGVO.</li>
+          <li><strong>Gesundheitsdaten:</strong> Soweit Sie im Rahmen der Behandlung freiwillig Angaben zu Ihrem Gesundheitszustand machen, verarbeiten wir diese auf Grundlage von Art. 9 Abs. 2 lit. a DSGVO (ausdr&uuml;ckliche Einwilligung).</li>
+        </ul>
+        <p><strong>5.4 Kalender-Abonnement (WebCal / .ics)</strong></p>
+        <p>Auf Wunsch stellen wir Ihnen eine pers&ouml;nliche Kalender-Abonnement-URL zur Verf&uuml;gung, &uuml;ber die Sie Ihre Termine in Nextcloud, iOS, macOS oder Google Calendar einbinden k&ouml;nnen. Diese URL enth&auml;lt ein eindeutiges, zuf&auml;llig generiertes Token.</p>
+        <ul>
+          <li><strong>Zweck:</strong> Bereitstellung einer bequemen Kalenderintegration ohne Login-Erfordernis f&uuml;r Kalender-Apps.</li>
+          <li><strong>Rechtsgrundlage:</strong> Art. 6 Abs. 1 lit. b DSGVO.</li>
+          <li><strong>Hinweis:</strong> Das Token ist nur Ihnen bekannt. Falls Sie es als kompromittiert betrachten, wenden Sie sich bitte per E-Mail an uns – das Token kann zur&uuml;ckgesetzt werden.</li>
+        </ul>
+        <p><strong>5.5 E-Mail-Versand (Transaktionsmails)</strong></p>
+        <p>Buchungsbest&auml;tigungen, Verifizierungslinks und Stornierungshinweise werden per E-Mail versandt. Als E-Mail-Dienstleister wird <strong>mail.de</strong> (Deutsche Telekom-Tochter, Serverstandort Deutschland) genutzt.</p>
+        <ul>
+          <li><strong>Rechtsgrundlage:</strong> Art. 6 Abs. 1 lit. b DSGVO; erg&auml;nzend Art. 28 DSGVO (Auftragsverarbeitung).</li>
         </ul>
       </div>
 
       <div class="dp-section">
-        <h2>6. Externe Links, insbesondere Google Maps</h2>
+        <h2>6. Sitzungs-Cookie (Authentifizierung)</h2>
+        <p>Nach dem Login wird ein technisch notwendiges Cookie gesetzt, das Ihre Sitzung authentifiziert (JSON Web Token, HttpOnly). Ohne dieses Cookie ist das Kundenportal nicht nutzbar.</p>
+        <ul>
+          <li><strong>Name:</strong> <code>auth_token</code></li>
+          <li><strong>Art:</strong> HttpOnly-Cookie, kein Zugriff durch JavaScript, keine Tracking-Funktion.</li>
+          <li><strong>G&uuml;ltigkeit:</strong> 7 Tage oder bis zur Abmeldung.</li>
+          <li><strong>Rechtsgrundlage:</strong> Art. 6 Abs. 1 lit. f DSGVO (technisch notwendig f&uuml;r den sicheren Betrieb des Portals); eine gesonderte Einwilligung ist nach &sect; 25 Abs. 2 TTDSG nicht erforderlich, da das Cookie ausschlie&szlig;lich der &Uuml;bertragung einer Nachricht &uuml;ber ein Telekommunikationsnetz dient.</li>
+        </ul>
+        <div class="info-box">
+          <p>Es werden keine Analyse-, Werbe- oder Tracking-Cookies eingesetzt. Google Fonts, Google Analytics, Meta Pixel oder vergleichbare Dienste sind nicht eingebunden.</p>
+        </div>
+      </div>
+
+      <div class="dp-section">
+        <h2>7. Externe Links, insbesondere Google Maps</h2>
         <p>Auf dieser Website ist keine Karte direkt eingebettet. Es gibt jedoch einen Link zu Google Maps, &uuml;ber den Sie eine Route zur Praxis aufrufen k&ouml;nnen.</p>
         <ul>
           <li><strong>Wichtig:</strong> Erst wenn Sie den Link anklicken, verlassen Sie diese Website und es wird eine Verbindung zu Google aufgebaut.</li>
@@ -227,26 +268,29 @@
       </div>
 
       <div class="dp-section">
-        <h2>7. Speicherdauer</h2>
+        <h2>8. Speicherdauer</h2>
         <p>Personenbezogene Daten werden nur so lange gespeichert, wie dies f&uuml;r die jeweiligen Zwecke erforderlich ist oder gesetzliche Aufbewahrungspflichten bestehen. Sobald der Verarbeitungszweck entf&auml;llt und keine Aufbewahrungspflichten mehr greifen, werden die Daten gel&ouml;scht.</p>
+        <p>F&uuml;r Kundenkontodaten gilt: Nach L&ouml;schung des Kontos werden personenbezogene Daten unverz&uuml;glich gel&ouml;scht, soweit dem keine gesetzlichen Aufbewahrungspflichten (z.&nbsp;B. steuerrechtliche nach &sect; 147 AO: 10 Jahre f&uuml;r Buchungsbelege) entgegenstehen.</p>
       </div>
 
       <div class="dp-section">
-        <h2>8. Ihre Rechte</h2>
+        <h2>9. Ihre Rechte</h2>
         <p>Sie haben im Rahmen der gesetzlichen Vorgaben insbesondere folgende Rechte:</p>
         <ul>
-          <li><strong>Auskunft</strong> &uuml;ber Ihre bei mir gespeicherten personenbezogenen Daten.</li>
-          <li><strong>Berichtigung</strong> unrichtiger oder Vervollst&auml;ndigung unvollst&auml;ndiger Daten.</li>
-          <li><strong>L&ouml;schung</strong> Ihrer Daten, soweit keine gesetzlichen Aufbewahrungspflichten entgegenstehen.</li>
-          <li><strong>Einschr&auml;nkung der Verarbeitung</strong> unter den gesetzlichen Voraussetzungen.</li>
-          <li><strong>Widerspruch</strong> gegen Verarbeitungen, die auf Art. 6 Abs. 1 lit. f DSGVO beruhen.</li>
-          <li><strong>Daten&uuml;bertragbarkeit</strong>, soweit die gesetzlichen Voraussetzungen vorliegen.</li>
-          <li><strong>Beschwerde</strong> bei einer Datenschutzaufsichtsbeh&ouml;rde nach Art. 77 DSGVO.</li>
+          <li><strong>Auskunft (Art. 15 DSGVO)</strong> &uuml;ber Ihre bei uns gespeicherten personenbezogenen Daten. Als registrierter Kunde k&ouml;nnen Sie &uuml;ber <a href="/portal/profile">Kundenportal &rarr; Profil &rarr; Meine Daten exportieren</a> eine Kopie aller &uuml;ber Sie gespeicherten Daten als JSON-Datei herunterladen.</li>
+          <li><strong>Berichtigung (Art. 16 DSGVO)</strong> unrichtiger oder Vervollst&auml;ndigung unvollst&auml;ndiger Daten – direkt &uuml;ber das Kundenportal oder per E-Mail.</li>
+          <li><strong>L&ouml;schung (Art. 17 DSGVO)</strong> Ihrer Daten, soweit keine gesetzlichen Aufbewahrungspflichten entgegenstehen. Sie k&ouml;nnen Ihr Konto jederzeit selbstst&auml;ndig &uuml;ber <a href="/portal/profile">Kundenportal &rarr; Profil &rarr; Konto l&ouml;schen</a> entfernen. Alternativ gen&uuml;gt eine formlose E-Mail.</li>
+          <li><strong>Einschr&auml;nkung der Verarbeitung (Art. 18 DSGVO)</strong> unter den gesetzlichen Voraussetzungen.</li>
+          <li><strong>Widerspruch (Art. 21 DSGVO)</strong> gegen Verarbeitungen, die auf Art. 6 Abs. 1 lit. f DSGVO beruhen.</li>
+          <li><strong>Daten&uuml;bertragbarkeit (Art. 20 DSGVO)</strong> – nutzen Sie den Datenexport im Kundenportal oder wenden Sie sich direkt an uns.</li>
+          <li><strong>Widerruf einer Einwilligung (Art. 7 Abs. 3 DSGVO)</strong> jederzeit mit Wirkung f&uuml;r die Zukunft, ohne dass dies die Rechtm&auml;&szlig;igkeit der bis zum Widerruf erfolgten Verarbeitung ber&uuml;hrt.</li>
+          <li><strong>Beschwerde (Art. 77 DSGVO)</strong> bei einer Datenschutzaufsichtsbeh&ouml;rde, insbesondere am Wohnsitz, Arbeitsplatz oder dem Ort des mutma&szlig;lichen Versto&szlig;es. Zust&auml;ndige Beh&ouml;rde in Baden-W&uuml;rttemberg: <a href="https://www.baden-wuerttemberg.datenschutz.de" rel="noopener noreferrer" target="_blank">Landesbeauftragter f&uuml;r den Datenschutz und die Informationsfreiheit Baden-W&uuml;rttemberg</a>.</li>
         </ul>
+        <p style="margin-top:12px;">Zur Geltendmachung Ihrer Rechte wenden Sie sich bitte an: <a class="js-email" href="#"></a></p>
       </div>
 
       <div class="dp-section">
-        <h2>9. Aktualit&auml;t dieser Datenschutzhinweise</h2>
+        <h2>10. Aktualit&auml;t dieser Datenschutzhinweise</h2>
         <p>Diese Datenschutzerkl&auml;rung gibt den aktuell erkennbaren Stand der Datenverarbeitung auf dieser Website wieder. Sie kann angepasst werden, wenn sich Inhalte, Funktionen oder rechtliche Vorgaben &auml;ndern.</p>
       </div>
     </div>

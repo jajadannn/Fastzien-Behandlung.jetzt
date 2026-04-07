@@ -50,6 +50,75 @@ pub async fn reset_password_token_page(tmpl: web::Data<Tera>, path: web::Path<St
     }
 }
 
+/// GET /verify-email/{token}
+/// Called when the customer clicks the link in the verification email.
+pub async fn verify_email_page(
+    tmpl: web::Data<Tera>,
+    path: web::Path<String>,
+    db: web::Data<Mutex<Connection>>,
+) -> HttpResponse {
+    let token = path.into_inner();
+    let conn = db.lock().unwrap();
+
+    let mut ctx = tera::Context::new();
+    match Customer::find_by_verification_token(&conn, &token) {
+        Ok(Some(customer)) => {
+            let _ = Customer::mark_email_verified(&conn, customer.id);
+            ctx.insert("success", &true);
+            ctx.insert("message", "Deine E-Mail-Adresse wurde erfolgreich bestätigt. Du kannst jetzt alle Funktionen nutzen.");
+        }
+        _ => {
+            ctx.insert("success", &false);
+            ctx.insert("message", "Der Bestätigungslink ist ungültig oder abgelaufen. Bitte fordere einen neuen Link in deinem Kundenportal an.");
+        }
+    }
+
+    match tmpl.render("auth/verify_email_result.html", &ctx) {
+        Ok(body) => HttpResponse::Ok().content_type("text/html; charset=utf-8").body(body),
+        Err(e) => HttpResponse::InternalServerError().body(format!("Template error: {}", e)),
+    }
+}
+
+/// POST /api/customer/resend-verification
+/// Resends the e-mail verification link (5-minute cooldown).
+pub async fn api_resend_verification(
+    req: HttpRequest,
+    db: web::Data<Mutex<Connection>>,
+    jwt_secret: web::Data<String>,
+    email_service: web::Data<EmailService>,
+    config: web::Data<Config>,
+) -> HttpResponse {
+    let claims = match auth::get_claims(&req, &jwt_secret) {
+        Some(c) => c,
+        None => return HttpResponse::Unauthorized().json(serde_json::json!({"error": "Nicht angemeldet"})),
+    };
+
+    let conn = db.lock().unwrap();
+    let customer = match Customer::find_by_id(&conn, claims.sub) {
+        Ok(Some(c)) => c,
+        _ => return HttpResponse::InternalServerError().json(serde_json::json!({"error": "Konto nicht gefunden"})),
+    };
+
+    if customer.email_verified {
+        return HttpResponse::BadRequest().json(serde_json::json!({"error": "E-Mail bereits bestätigt"}));
+    }
+
+    let token = Uuid::new_v4().to_string();
+    let expires = (Utc::now() + Duration::hours(24)).format("%Y-%m-%d %H:%M:%S").to_string();
+    let _ = Customer::set_verification_token(&conn, customer.id, &token, &expires);
+
+    let base_url = config.base_url.clone();
+    let verify_url = format!("{}/verify-email/{}", base_url, token);
+    let es = email_service.get_ref().clone();
+    let email = customer.email.clone();
+    let name = customer.first_name.clone();
+    tokio::spawn(async move {
+        es.send_email_verification(&email, &name, &verify_url);
+    });
+
+    HttpResponse::Ok().json(serde_json::json!({"success": true, "message": "Bestätigungs-E-Mail wurde erneut gesendet."}))
+}
+
 pub async fn api_login(
     form: web::Json<LoginForm>,
     db: web::Data<Mutex<Connection>>,
@@ -70,8 +139,7 @@ pub async fn api_login(
         Err(_) => return HttpResponse::InternalServerError().json(serde_json::json!({"error": "Token-Erstellung fehlgeschlagen"})),
     };
 
-    let redirect = if customer.is_admin { "/admin" } else { "/portal" };
-
+    // Admin and customers both land on /portal (admin nav link visible there)
     let cookie = Cookie::build("auth_token", &token)
         .path("/")
         .http_only(true)
@@ -80,7 +148,7 @@ pub async fn api_login(
 
     HttpResponse::Ok()
         .cookie(cookie)
-        .json(serde_json::json!({"success": true, "redirect": redirect, "is_admin": customer.is_admin}))
+        .json(serde_json::json!({"success": true, "redirect": "/portal", "is_admin": customer.is_admin}))
 }
 
 pub async fn api_register(
@@ -103,21 +171,37 @@ pub async fn api_register(
 
     let password_hash = auth::hash_password(&form.password);
     let phone = form.phone.as_deref().unwrap_or("");
-    match Customer::create(&conn, &form.email, &password_hash, &form.first_name, &form.last_name, phone) {
+    let street = &form.street;
+    let postal_code = &form.postal_code;
+    let city = &form.city;
+    let calendar_token = Uuid::new_v4().to_string();
+
+    match Customer::create(
+        &conn, &form.email, &password_hash,
+        &form.first_name, &form.last_name,
+        phone, street, postal_code, city, &calendar_token,
+    ) {
         Ok(id) => {
-            let token = auth::create_token(id, &form.email, false, &config.jwt_secret, config.jwt_expiry_hours).unwrap_or_default();
-            let cookie = Cookie::build("auth_token", &token)
+            // Generate verification token (24h expiry)
+            let v_token = Uuid::new_v4().to_string();
+            let v_expires = (Utc::now() + Duration::hours(24)).format("%Y-%m-%d %H:%M:%S").to_string();
+            let _ = Customer::set_verification_token(&conn, id, &v_token, &v_expires);
+
+            // Issue JWT so the user is logged in immediately (portal is gated on email_verified)
+            let jwt = auth::create_token(id, &form.email, false, &config.jwt_secret, config.jwt_expiry_hours).unwrap_or_default();
+            let cookie = Cookie::build("auth_token", &jwt)
                 .path("/")
                 .http_only(true)
                 .max_age(actix_web::cookie::time::Duration::hours(config.jwt_expiry_hours))
                 .finish();
 
-            // Send welcome email in background
+            let base_url = config.base_url.clone();
+            let verify_url = format!("{}/verify-email/{}", base_url, v_token);
             let es = email_service.get_ref().clone();
             let email = form.email.clone();
             let name = form.first_name.clone();
             tokio::spawn(async move {
-                es.send_welcome(&email, &name);
+                es.send_email_verification(&email, &name, &verify_url);
             });
 
             HttpResponse::Ok()
@@ -148,6 +232,7 @@ pub async fn logout_page(tmpl: web::Data<Tera>) -> HttpResponse {
 pub async fn api_reset_password_request(
     form: web::Json<PasswordResetRequest>,
     db: web::Data<Mutex<Connection>>,
+    config: web::Data<Config>,
     email_service: web::Data<EmailService>,
 ) -> HttpResponse {
     let conn = db.lock().unwrap();
@@ -157,7 +242,7 @@ pub async fn api_reset_password_request(
         let expires = (Utc::now() + Duration::hours(1)).format("%Y-%m-%d %H:%M:%S").to_string();
         let _ = Customer::set_reset_token(&conn, customer.id, &token, &expires);
 
-        let reset_url = format!("https://faszien-behandlung.jetzt/reset-password/{}", token);
+        let reset_url = format!("{}/reset-password/{}", config.base_url, token);
         let es = email_service.get_ref().clone();
         let name = customer.full_name();
         let email = customer.email.clone();
