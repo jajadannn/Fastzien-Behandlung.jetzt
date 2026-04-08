@@ -37,13 +37,25 @@ pub async fn api_book(
     let now = chrono::Utc::now().naive_utc();
 
     // --- Phase 1: validate and read CalDAV settings under the lock ---
-    let (caldav_url, caldav_user, caldav_pass, duration_min) = {
-        let conn = db.lock().unwrap();
+    let (caldav_auth, calendar_urls, primary_url, duration_min) = {
+        let conn = db.lock().unwrap_or_else(|e| e.into_inner());
         let duration_min: i64 = SiteSetting::get_or_default(&conn, "appointment_duration_min", "90").parse().unwrap_or(90);
-        let caldav_url = SiteSetting::get_or_default(&conn, "nextcloud_caldav_url", "");
-        let caldav_user = SiteSetting::get_or_default(&conn, "nextcloud_caldav_username", "");
-        let caldav_pass = SiteSetting::get_or_default(&conn, "nextcloud_caldav_password", "");
-        (caldav_url, caldav_user, caldav_pass, duration_min)
+
+        let access_token = SiteSetting::get_or_default(&conn, "nextcloud_access_token", "");
+        let all_urls_str = SiteSetting::get_or_default(&conn, "nextcloud_all_calendar_urls", "");
+        let primary_url = SiteSetting::get_or_default(&conn, "nextcloud_primary_calendar_url", "");
+
+        if !access_token.is_empty() && !all_urls_str.is_empty() {
+            let urls: Vec<String> = all_urls_str.split(',').map(|s| s.trim().to_string()).filter(|s| !s.is_empty()).collect();
+            (crate::caldav::CalDavAuth::Bearer(access_token), urls, primary_url, duration_min)
+        } else {
+            let caldav_url = SiteSetting::get_or_default(&conn, "nextcloud_caldav_url", "");
+            let caldav_user = SiteSetting::get_or_default(&conn, "nextcloud_caldav_username", "");
+            let caldav_pass = SiteSetting::get_or_default(&conn, "nextcloud_caldav_password", "");
+            let primary = caldav_url.clone();
+            let urls = if caldav_url.is_empty() { vec![] } else { vec![caldav_url] };
+            (crate::caldav::CalDavAuth::Basic { user: caldav_user, pass: caldav_pass }, urls, primary, duration_min)
+        }
     }; // lock released
 
     let start = NaiveDateTime::new(date, time);
@@ -61,8 +73,19 @@ pub async fn api_book(
     }
 
     // --- Phase 2: check Nextcloud CalDAV (async, outside the lock) ---
-    if !caldav_url.is_empty() && !caldav_user.is_empty() {
-        let busy = crate::caldav::fetch_busy_periods(&caldav_url, &caldav_user, &caldav_pass, &date).await;
+    if !calendar_urls.is_empty() {
+        // Refresh OAuth token if needed
+        let auth = match &caldav_auth {
+            crate::caldav::CalDavAuth::Bearer(_) => {
+                if let Some(tok) = crate::handlers::oauth_handler::ensure_valid_token(&db).await {
+                    crate::caldav::CalDavAuth::Bearer(tok)
+                } else {
+                    caldav_auth.clone()
+                }
+            }
+            other => other.clone(),
+        };
+        let busy = crate::caldav::fetch_busy_periods_multi(&calendar_urls, &auth, &date).await;
         if crate::caldav::has_conflict(&busy, &start, &end) {
             return HttpResponse::Conflict().json(serde_json::json!({
                 "error": "Dieser Zeitraum ist durch einen anderen Termin belegt"
@@ -71,7 +94,7 @@ pub async fn api_book(
     }
 
     // --- Phase 3: create booking under the lock ---
-    let conn = db.lock().unwrap();
+    let conn = db.lock().unwrap_or_else(|e| e.into_inner());
 
     // Re-check DB availability (race condition guard)
     match Appointment::is_slot_available(&conn, &start_str, &end_str) {
@@ -118,12 +141,38 @@ pub async fn api_book(
     let time_str2 = time_str.clone();
     drop(conn); // release lock before spawning
 
+    let push_url    = primary_url.clone();
+    let push_auth   = caldav_auth.clone();
+    let cust_name2  = cust_name.clone();
+    let cust_phone2 = cust_phone.clone();
+    let cust_addr2  = customer_address.clone();
+    let notes2      = notes_owned.clone();
+
     tokio::spawn(async move {
         es.send_appointment_confirmation(&cust_email, &cust_name, &date_str, &time_str, is_home_visit);
         es.send_admin_booking_notification(
             &admin_email, &cust_name, &cust_phone, &customer_address,
             &date_str2, &time_str2, &notes_owned, is_home_visit,
         );
+        if !push_url.is_empty() {
+            let (url, user, pass, token) = match &push_auth {
+                crate::caldav::CalDavAuth::Basic { user, pass } => (push_url.clone(), user.clone(), pass.clone(), String::new()),
+                crate::caldav::CalDavAuth::Bearer(tok) => (push_url.clone(), String::new(), String::new(), tok.clone()),
+            };
+            if !token.is_empty() {
+                crate::caldav::push_event_bearer(
+                    &url, &token,
+                    appointment_id, &start, &end,
+                    &cust_name2, &cust_phone2, &cust_addr2, &notes2, is_home_visit,
+                ).await;
+            } else {
+                crate::caldav::push_event(
+                    &url, &user, &pass,
+                    appointment_id, &start, &end,
+                    &cust_name2, &cust_phone2, &cust_addr2, &notes2, is_home_visit,
+                ).await;
+            }
+        }
     });
 
     HttpResponse::Ok().json(serde_json::json!({"success": true, "appointment_id": appointment_id}))
@@ -142,7 +191,7 @@ pub async fn api_cancel(
     };
 
     let appointment_id = path.into_inner();
-    let conn = db.lock().unwrap();
+    let conn = db.lock().unwrap_or_else(|e| e.into_inner());
 
     let appointment = match Appointment::find_by_id(&conn, appointment_id) {
         Ok(Some(a)) => a,
@@ -189,10 +238,24 @@ pub async fn api_cancel(
     }
 
     let customer = Customer::find_by_id(&conn, appointment.customer_id).unwrap().unwrap();
+    let (del_auth, del_url) = {
+        let access_token = SiteSetting::get_or_default(&conn, "nextcloud_access_token", "");
+        let primary_url = SiteSetting::get_or_default(&conn, "nextcloud_primary_calendar_url", "");
+        if !access_token.is_empty() && !primary_url.is_empty() {
+            (crate::caldav::CalDavAuth::Bearer(access_token), primary_url)
+        } else {
+            let url  = SiteSetting::get_or_default(&conn, "nextcloud_caldav_url", "");
+            let user = SiteSetting::get_or_default(&conn, "nextcloud_caldav_username", "");
+            let pass = SiteSetting::get_or_default(&conn, "nextcloud_caldav_password", "");
+            (crate::caldav::CalDavAuth::Basic { user, pass }, url)
+        }
+    };
     let es = email_service.get_ref().clone();
     let email = customer.email.clone();
     let name = customer.full_name();
     let start_time = appointment.start_time.clone();
+    drop(conn);
+
     tokio::spawn(async move {
         if let Ok(dt) = NaiveDateTime::parse_from_str(&start_time, "%Y-%m-%d %H:%M:%S") {
             es.send_appointment_cancellation(
@@ -200,6 +263,14 @@ pub async fn api_cancel(
                 &dt.format("%d.%m.%Y").to_string(),
                 &dt.format("%H:%M").to_string(),
             );
+        }
+        if !del_url.is_empty() {
+            match &del_auth {
+                crate::caldav::CalDavAuth::Bearer(tok) =>
+                    crate::caldav::delete_event_bearer(&del_url, tok, appointment_id).await,
+                crate::caldav::CalDavAuth::Basic { user, pass } =>
+                    crate::caldav::delete_event(&del_url, user, pass, appointment_id).await,
+            }
         }
     });
 
@@ -228,15 +299,26 @@ pub async fn api_available_slots(
         display: String,
     }
 
-    let (candidates, caldav_url, caldav_user, caldav_pass) = {
-        let conn = db.lock().unwrap();
+    let (candidates, slot_auth, slot_urls) = {
+        let conn = db.lock().unwrap_or_else(|e| e.into_inner());
         let duration_min: i64 = SiteSetting::get_or_default(&conn, "appointment_duration_min", "90").parse().unwrap_or(90);
         let break_min: i64 = SiteSetting::get_or_default(&conn, "appointment_break_min", "0").parse().unwrap_or(0);
         let slot_step = duration_min + break_min;
 
-        let caldav_url = SiteSetting::get_or_default(&conn, "nextcloud_caldav_url", "");
-        let caldav_user = SiteSetting::get_or_default(&conn, "nextcloud_caldav_username", "");
-        let caldav_pass = SiteSetting::get_or_default(&conn, "nextcloud_caldav_password", "");
+        // OAuth2 takes priority over legacy Basic Auth
+        let access_token = SiteSetting::get_or_default(&conn, "nextcloud_access_token", "");
+        let all_urls_str = SiteSetting::get_or_default(&conn, "nextcloud_all_calendar_urls", "");
+        let (slot_auth, slot_urls): (crate::caldav::CalDavAuth, Vec<String>) =
+            if !access_token.is_empty() && !all_urls_str.is_empty() {
+                let urls = all_urls_str.split(',').map(|s| s.trim().to_string()).filter(|s| !s.is_empty()).collect();
+                (crate::caldav::CalDavAuth::Bearer(access_token), urls)
+            } else {
+                let caldav_url  = SiteSetting::get_or_default(&conn, "nextcloud_caldav_url", "");
+                let caldav_user = SiteSetting::get_or_default(&conn, "nextcloud_caldav_username", "");
+                let caldav_pass = SiteSetting::get_or_default(&conn, "nextcloud_caldav_password", "");
+                let urls = if caldav_url.is_empty() { vec![] } else { vec![caldav_url] };
+                (crate::caldav::CalDavAuth::Basic { user: caldav_user, pass: caldav_pass }, urls)
+            };
 
         let weekday = date.weekday();
         let (start_hour, end_hour): (i64, i64) = match weekday {
@@ -277,12 +359,23 @@ pub async fn api_available_slots(
             current_minutes += slot_step;
         }
 
-        (candidates, caldav_url, caldav_user, caldav_pass)
+        (candidates, slot_auth, slot_urls)
     }; // DB lock released here
 
     // --- Phase 2: fetch Nextcloud busy periods (async, outside the lock) ---
-    let busy = if !caldav_url.is_empty() && !caldav_user.is_empty() {
-        crate::caldav::fetch_busy_periods(&caldav_url, &caldav_user, &caldav_pass, &date).await
+    let busy = if !slot_urls.is_empty() {
+        // Refresh token if needed (OAuth mode)
+        let auth = match &slot_auth {
+            crate::caldav::CalDavAuth::Bearer(_) => {
+                if let Some(tok) = crate::handlers::oauth_handler::ensure_valid_token(&db).await {
+                    crate::caldav::CalDavAuth::Bearer(tok)
+                } else {
+                    slot_auth.clone()
+                }
+            }
+            other => other.clone(),
+        };
+        crate::caldav::fetch_busy_periods_multi(&slot_urls, &auth, &date).await
     } else {
         vec![]
     };

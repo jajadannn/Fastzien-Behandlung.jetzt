@@ -58,7 +58,7 @@ pub async fn verify_email_page(
     db: web::Data<Mutex<Connection>>,
 ) -> HttpResponse {
     let token = path.into_inner();
-    let conn = db.lock().unwrap();
+    let conn = db.lock().unwrap_or_else(|e| e.into_inner());
 
     let mut ctx = tera::Context::new();
     match Customer::find_by_verification_token(&conn, &token) {
@@ -93,7 +93,7 @@ pub async fn api_resend_verification(
         None => return HttpResponse::Unauthorized().json(serde_json::json!({"error": "Nicht angemeldet"})),
     };
 
-    let conn = db.lock().unwrap();
+    let conn = db.lock().unwrap_or_else(|e| e.into_inner());
     let customer = match Customer::find_by_id(&conn, claims.sub) {
         Ok(Some(c)) => c,
         _ => return HttpResponse::InternalServerError().json(serde_json::json!({"error": "Konto nicht gefunden"})),
@@ -124,7 +124,7 @@ pub async fn api_login(
     db: web::Data<Mutex<Connection>>,
     config: web::Data<Config>,
 ) -> HttpResponse {
-    let conn = db.lock().unwrap();
+    let conn = db.lock().unwrap_or_else(|e| e.into_inner());
     let customer = match Customer::find_by_email(&conn, &form.email) {
         Ok(Some(c)) => c,
         _ => return HttpResponse::Unauthorized().json(serde_json::json!({"error": "Ungültige Anmeldedaten"})),
@@ -164,7 +164,7 @@ pub async fn api_register(
         return HttpResponse::BadRequest().json(serde_json::json!({"error": "Passwort muss mindestens 6 Zeichen lang sein"}));
     }
 
-    let conn = db.lock().unwrap();
+    let conn = db.lock().unwrap_or_else(|e| e.into_inner());
     if let Ok(Some(_)) = Customer::find_by_email(&conn, &form.email) {
         return HttpResponse::Conflict().json(serde_json::json!({"error": "E-Mail-Adresse ist bereits registriert"}));
     }
@@ -235,7 +235,7 @@ pub async fn api_reset_password_request(
     config: web::Data<Config>,
     email_service: web::Data<EmailService>,
 ) -> HttpResponse {
-    let conn = db.lock().unwrap();
+    let conn = db.lock().unwrap_or_else(|e| e.into_inner());
     // Always return success to prevent email enumeration
     if let Ok(Some(customer)) = Customer::find_by_email(&conn, &form.email) {
         let token = Uuid::new_v4().to_string();
@@ -264,7 +264,7 @@ pub async fn api_reset_password_confirm(
         return HttpResponse::BadRequest().json(serde_json::json!({"error": "Passwort muss mindestens 6 Zeichen lang sein"}));
     }
 
-    let conn = db.lock().unwrap();
+    let conn = db.lock().unwrap_or_else(|e| e.into_inner());
     match Customer::find_by_reset_token(&conn, &token) {
         Ok(Some(customer)) => {
             let password_hash = auth::hash_password(&form.new_password);

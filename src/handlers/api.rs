@@ -7,7 +7,7 @@ use crate::models::settings::SiteSetting;
 pub async fn get_settings(
     db: web::Data<Mutex<Connection>>,
 ) -> HttpResponse {
-    let conn = db.lock().unwrap();
+    let conn = db.lock().unwrap_or_else(|e| e.into_inner());
     let settings = SiteSetting::get_all(&conn).unwrap_or_default();
     HttpResponse::Ok().json(settings)
 }
@@ -15,7 +15,7 @@ pub async fn get_settings(
 pub async fn get_llms_txt(
     db: web::Data<Mutex<Connection>>,
 ) -> HttpResponse {
-    let conn = db.lock().unwrap();
+    let conn = db.lock().unwrap_or_else(|e| e.into_inner());
     let settings = SiteSetting::get_all(&conn).unwrap_or_default();
     let faqs = crate::models::faq::Faq::find_active(&conn).unwrap_or_default();
 

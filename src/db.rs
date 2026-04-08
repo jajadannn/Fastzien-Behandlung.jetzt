@@ -154,6 +154,15 @@ fn seed_settings(conn: &Connection) -> Result<()> {
         ("nextcloud_caldav_url", ""),
         ("nextcloud_caldav_username", ""),
         ("nextcloud_caldav_password", ""),
+        ("nextcloud_base_url", ""),
+        ("nextcloud_oauth_client_id", ""),
+        ("nextcloud_oauth_client_secret", ""),
+        ("nextcloud_oauth_state", ""),
+        ("nextcloud_access_token", ""),
+        ("nextcloud_refresh_token", ""),
+        ("nextcloud_token_expiry", ""),
+        ("nextcloud_all_calendar_urls", ""),
+        ("nextcloud_primary_calendar_url", ""),
     ];
     for (key, value) in defaults {
         conn.execute(

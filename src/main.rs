@@ -135,6 +135,10 @@ async fn main() -> std::io::Result<()> {
             .route("/api/admin/appointments/suggest", web::post().to(handlers::admin_handler::api_suggest_appointment))
             .route("/api/admin/appointments/cancel-suggest", web::post().to(handlers::admin_handler::api_cancel_with_suggestions))
             .route("/api/admin/test-caldav", web::get().to(handlers::admin_handler::api_test_caldav))
+            // Nextcloud OAuth2
+            .route("/admin/nextcloud/connect", web::get().to(handlers::oauth_handler::nextcloud_connect))
+            .route("/admin/nextcloud/callback", web::get().to(handlers::oauth_handler::nextcloud_callback))
+            .route("/admin/nextcloud/disconnect", web::get().to(handlers::oauth_handler::nextcloud_disconnect))
             // Public API
             .route("/api/settings", web::get().to(handlers::api::get_settings))
             .route("/llms.txt", web::get().to(handlers::api::get_llms_txt))

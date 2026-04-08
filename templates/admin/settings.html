@@ -67,28 +67,122 @@
         <h2>Stornierung</h2>
         <div class="form-group"><label>Stornierungsfrist (Stunden)</label><input type="text" name="cancellation_hours" value="{{ settings.cancellation_hours | default(value='24') }}"></div>
 
-        <h2>Nextcloud Kalender-Abgleich</h2>
-        <p style="font-size:13px; color:var(--text-light); margin-bottom:12px;">
-          Wenn ein Eintrag im Nextcloud-Kalender existiert, wird der betroffene Slot für Kunden nicht als verfügbar angezeigt.
-          CalDAV-URL z.&nbsp;B.: <code>https://cloud.example.com/remote.php/dav/calendars/benutzername/kalender-name</code>
-        </p>
-        <div class="form-group"><label>CalDAV-URL</label><input type="text" name="nextcloud_caldav_url" value="{{ settings.nextcloud_caldav_url | default(value='') }}" placeholder="https://cloud.example.com/remote.php/dav/calendars/…"></div>
-        <div class="form-row">
-          <div class="form-group"><label>Nextcloud-Benutzername</label><input type="text" name="nextcloud_caldav_username" value="{{ settings.nextcloud_caldav_username | default(value='') }}" autocomplete="off"></div>
-          <div class="form-group"><label>App-Passwort <small>– kein Kontopasswort!</small></label><input type="password" name="nextcloud_caldav_password" value="{{ settings.nextcloud_caldav_password | default(value='') }}" autocomplete="new-password"></div>
+        <h2>Nextcloud Kalender-Verbindung</h2>
+
+        {% if settings.nextcloud_access_token %}
+        <!-- ── Verbunden ───────────────────────────────────────────── -->
+        <div style="padding:14px 18px; background:#f0fdf4; border:1px solid #86efac; border-radius:10px; margin-bottom:16px;">
+          <strong style="color:#166534;">✅ Verbunden mit Nextcloud</strong>
+          {% if settings.nextcloud_base_url %}<br><span style="font-size:.85rem; color:#555;">{{ settings.nextcloud_base_url }}</span>{% endif %}
+          {% if settings.nextcloud_all_calendar_urls %}
+          <br><span style="font-size:.85rem; color:#555;">Kalender erkannt: {{ settings.nextcloud_all_calendar_urls | split(pat=",") | length }}</span>
+          {% endif %}
         </div>
-        <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
-          <button type="button" id="test-caldav-btn" onclick="testCaldav()" style="padding:10px 22px; background:var(--sky); color:#fff; border:none; border-radius:50px; font-family:inherit; font-size:.9rem; font-weight:600; cursor:pointer; transition:background .2s;">
-            🔌 Verbindung testen
+
+        {% if settings.nextcloud_all_calendar_urls %}
+        <div class="form-group">
+          <label>Primärer Kalender <small style="color:var(--text-light); font-weight:400">– neue Buchungen werden hier eingetragen</small></label>
+          <select name="nextcloud_primary_calendar_url" style="width:100%; padding:10px 14px; border:1.5px solid #dde3ed; border-radius:10px; font-family:inherit; font-size:.95rem; background:#fff;">
+            {% for url in settings.nextcloud_all_calendar_urls | split(pat=",") %}
+            {% set url = url | trim %}
+            <option value="{{ url }}" {% if url == settings.nextcloud_primary_calendar_url %}selected{% endif %}>
+              {{ url | split(pat="/") | last }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        {% endif %}
+
+        <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-top:8px;">
+          <button type="button" onclick="location.href='/admin/nextcloud/disconnect'"
+            style="padding:9px 20px; background:#ef4444; color:#fff; border:none; border-radius:50px; font-family:inherit; font-size:.9rem; font-weight:600; cursor:pointer;">
+            🔌 Verbindung trennen
           </button>
-          <span id="caldav-result" style="font-size:.9rem;"></span>
         </div>
+
+        {% else %}
+        <!-- ── Nicht verbunden ────────────────────────────────────── -->
+        <p style="font-size:13px; color:var(--text-light); margin-bottom:14px;">
+          Registriere zuerst eine OAuth2-App in Nextcloud unter <em>Einstellungen → Verwaltung → Sicherheit → OAuth&nbsp;2.0-Clients</em>.
+          Als Redirect-URI eintragen: <code>https://faszienbehandlung.jetzt/admin/nextcloud/callback</code>
+        </p>
+        <div class="form-group">
+          <label>Nextcloud-URL</label>
+          <input type="text" name="nextcloud_base_url" value="{{ settings.nextcloud_base_url | default(value='') }}" placeholder="https://cloud.example.com">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Client&nbsp;ID</label>
+            <input type="text" name="nextcloud_oauth_client_id" value="{{ settings.nextcloud_oauth_client_id | default(value='') }}" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label>Client&nbsp;Secret</label>
+            <input type="password" name="nextcloud_oauth_client_secret" value="{{ settings.nextcloud_oauth_client_secret | default(value='') }}" autocomplete="new-password">
+          </div>
+        </div>
+        <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
+          <button type="button" onclick="connectNextcloud()"
+            style="padding:10px 22px; background:var(--sky); color:#fff; border:none; border-radius:50px; font-family:inherit; font-size:.9rem; font-weight:600; cursor:pointer; transition:background .2s;">
+            🔗 Mit Nextcloud verbinden
+          </button>
+          <span id="connect-hint" style="font-size:.85rem; color:var(--text-light);">Einstellungen zuerst speichern, dann verbinden.</span>
+        </div>
+
+        <details style="margin-top:20px;">
+          <summary style="font-size:.9rem; color:var(--text-light); cursor:pointer;">▸ Manuell per App-Passwort konfigurieren (Fallback)</summary>
+          <div style="margin-top:12px;">
+            <p style="font-size:12px; color:var(--text-light);">
+              Wenn OAuth2 nicht verfügbar ist, kann auch eine direkte CalDAV-URL mit App-Passwort verwendet werden.
+            </p>
+            <div class="form-group"><label>CalDAV-URL</label><input type="text" name="nextcloud_caldav_url" value="{{ settings.nextcloud_caldav_url | default(value='') }}" placeholder="https://cloud.example.com/remote.php/dav/calendars/…"></div>
+            <div class="form-row">
+              <div class="form-group"><label>Benutzername</label><input type="text" name="nextcloud_caldav_username" value="{{ settings.nextcloud_caldav_username | default(value='') }}" autocomplete="off"></div>
+              <div class="form-group"><label>App-Passwort</label><input type="password" name="nextcloud_caldav_password" value="{{ settings.nextcloud_caldav_password | default(value='') }}" autocomplete="new-password"></div>
+            </div>
+            <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
+              <button type="button" id="test-caldav-btn" onclick="testCaldav()" style="padding:9px 20px; background:#64748b; color:#fff; border:none; border-radius:50px; font-family:inherit; font-size:.9rem; font-weight:600; cursor:pointer;">
+                🔌 Verbindung testen
+              </button>
+              <span id="caldav-result" style="font-size:.9rem;"></span>
+            </div>
+          </div>
+        </details>
+        {% endif %}
 
         <button type="submit" class="auth-btn" style="margin-top:24px">💾 Einstellungen speichern</button>
       </form>
     </div>
   </main>
   <script>
+    // Show success/error banners from URL params
+    (() => {
+      const p = new URLSearchParams(location.search);
+      const msg = document.getElementById('msg');
+      if (p.get('caldav_connected') === '1') {
+        msg.textContent = '✅ Nextcloud erfolgreich verbunden! Kalender wurden automatisch erkannt.';
+        msg.style.display = 'block';
+      } else if (p.get('caldav_disconnected') === '1') {
+        msg.textContent = '🔌 Nextcloud-Verbindung getrennt.';
+        msg.style.display = 'block';
+      } else if (p.get('error')) {
+        msg.textContent = '❌ Fehler: ' + p.get('error').replace(/_/g, ' ');
+        msg.className = 'portal-error';
+        msg.style.display = 'block';
+      }
+    })();
+
+    async function connectNextcloud() {
+      // Save current form data first, then redirect
+      const data = {};
+      new FormData(document.getElementById('settings-form')).forEach((v, k) => data[k] = v);
+      await fetch('/api/admin/settings', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(data)
+      });
+      location.href = '/admin/nextcloud/connect';
+    }
+
     document.getElementById('settings-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const data = {};

@@ -14,7 +14,7 @@ pub async fn index(
     db: web::Data<Mutex<Connection>>,
     jwt_secret: web::Data<String>,
 ) -> HttpResponse {
-    let conn = db.lock().unwrap();
+    let conn = db.lock().unwrap_or_else(|e| e.into_inner());
     let settings = SiteSetting::get_all(&conn).unwrap_or_default();
     let faqs = Faq::find_active(&conn).unwrap_or_default();
     let reviews = Review::find_active(&conn).unwrap_or_default();

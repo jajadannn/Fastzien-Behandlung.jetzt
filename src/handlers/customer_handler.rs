@@ -38,7 +38,7 @@ pub async fn dashboard(
         Err(r) => return r,
     };
 
-    let conn = db.lock().unwrap();
+    let conn = db.lock().unwrap_or_else(|e| e.into_inner());
     let customer = Customer::find_by_id(&conn, claims.sub).unwrap().unwrap();
 
     if !customer.email_verified {
@@ -86,7 +86,7 @@ pub async fn appointments_page(
         Err(r) => return r,
     };
 
-    let conn = db.lock().unwrap();
+    let conn = db.lock().unwrap_or_else(|e| e.into_inner());
     let customer = Customer::find_by_id(&conn, claims.sub).unwrap().unwrap();
     if !customer.email_verified {
         return email_not_verified_response(&tmpl, &customer.email, claims.is_admin);
@@ -117,7 +117,7 @@ pub async fn book_page(
         Err(r) => return r,
     };
 
-    let conn = db.lock().unwrap();
+    let conn = db.lock().unwrap_or_else(|e| e.into_inner());
     let customer = Customer::find_by_id(&conn, claims.sub).unwrap().unwrap();
     if !customer.email_verified {
         return email_not_verified_response(&tmpl, &customer.email, claims.is_admin);
@@ -148,7 +148,7 @@ pub async fn profile_page(
         Err(r) => return r,
     };
 
-    let conn = db.lock().unwrap();
+    let conn = db.lock().unwrap_or_else(|e| e.into_inner());
     let customer = Customer::find_by_id(&conn, claims.sub).unwrap().unwrap();
     if !customer.email_verified {
         return email_not_verified_response(&tmpl, &customer.email, claims.is_admin);
@@ -175,7 +175,7 @@ pub async fn credits_page(
         Err(r) => return r,
     };
 
-    let conn = db.lock().unwrap();
+    let conn = db.lock().unwrap_or_else(|e| e.into_inner());
     let customer = Customer::find_by_id(&conn, claims.sub).unwrap().unwrap();
     if !customer.email_verified {
         return email_not_verified_response(&tmpl, &customer.email, claims.is_admin);
@@ -212,7 +212,7 @@ pub async fn api_update_profile(
         None => return HttpResponse::Unauthorized().json(serde_json::json!({"error": "Nicht angemeldet"})),
     };
 
-    let conn = db.lock().unwrap();
+    let conn = db.lock().unwrap_or_else(|e| e.into_inner());
     let customer = Customer::find_by_id(&conn, claims.sub).unwrap().unwrap();
 
     let first_name = form.first_name.as_deref().unwrap_or(&customer.first_name);
@@ -243,7 +243,7 @@ pub async fn api_change_password(
         return HttpResponse::BadRequest().json(serde_json::json!({"error": "Neues Passwort muss mindestens 6 Zeichen lang sein"}));
     }
 
-    let conn = db.lock().unwrap();
+    let conn = db.lock().unwrap_or_else(|e| e.into_inner());
     let customer = Customer::find_by_id(&conn, claims.sub).unwrap().unwrap();
 
     if !auth::verify_password(&form.current_password, &customer.password_hash) {
@@ -268,7 +268,7 @@ pub async fn api_change_email(
         None => return HttpResponse::Unauthorized().json(serde_json::json!({"error": "Nicht angemeldet"})),
     };
 
-    let conn = db.lock().unwrap();
+    let conn = db.lock().unwrap_or_else(|e| e.into_inner());
     let customer = Customer::find_by_id(&conn, claims.sub).unwrap().unwrap();
 
     if !auth::verify_password(&form.password, &customer.password_hash) {
@@ -296,7 +296,7 @@ pub async fn api_export_data(
         None => return HttpResponse::Unauthorized().json(serde_json::json!({"error": "Nicht angemeldet"})),
     };
 
-    let conn = db.lock().unwrap();
+    let conn = db.lock().unwrap_or_else(|e| e.into_inner());
     let customer = match Customer::find_by_id(&conn, claims.sub) {
         Ok(Some(c)) => c,
         _ => return HttpResponse::NotFound().json(serde_json::json!({"error": "Konto nicht gefunden"})),
@@ -344,7 +344,7 @@ pub async fn api_delete_account(
         return HttpResponse::Forbidden().json(serde_json::json!({"error": "Admin-Konto kann nicht selbst gelöscht werden"}));
     }
 
-    let conn = db.lock().unwrap();
+    let conn = db.lock().unwrap_or_else(|e| e.into_inner());
     // Cascade delete: appointments and payments are linked via foreign key or we delete them explicitly
     let customer_id = claims.sub;
     let _ = conn.execute("DELETE FROM payments WHERE customer_id = ?1", rusqlite::params![customer_id]);

@@ -30,7 +30,7 @@ pub async fn dashboard(
 ) -> HttpResponse {
     if let Err(r) = require_admin(&req, &jwt_secret) { return r; }
 
-    let conn = db.lock().unwrap();
+    let conn = db.lock().unwrap_or_else(|e| e.into_inner());
     let customers = Customer::find_all_non_admin(&conn).unwrap_or_default();
     let upcoming = Appointment::find_upcoming_all(&conn).unwrap_or_default();
     let settings = SiteSetting::get_all(&conn).unwrap_or_default();
@@ -82,7 +82,7 @@ pub async fn customers_page(
 ) -> HttpResponse {
     if let Err(r) = require_admin(&req, &jwt_secret) { return r; }
 
-    let conn = db.lock().unwrap();
+    let conn = db.lock().unwrap_or_else(|e| e.into_inner());
     let customers = Customer::find_all_non_admin(&conn).unwrap_or_default();
 
     // Get pending amounts for each customer
@@ -126,7 +126,7 @@ pub async fn customer_detail(
     if let Err(r) = require_admin(&req, &jwt_secret) { return r; }
 
     let customer_id = path.into_inner();
-    let conn = db.lock().unwrap();
+    let conn = db.lock().unwrap_or_else(|e| e.into_inner());
 
     let customer = match Customer::find_by_id(&conn, customer_id) {
         Ok(Some(c)) => c,
@@ -164,7 +164,7 @@ pub async fn appointments_page(
 ) -> HttpResponse {
     if let Err(r) = require_admin(&req, &jwt_secret) { return r; }
 
-    let conn = db.lock().unwrap();
+    let conn = db.lock().unwrap_or_else(|e| e.into_inner());
     let appointments = Appointment::find_all_with_customer(&conn).unwrap_or_default();
 
     let mut ctx = tera::Context::new();
@@ -185,7 +185,7 @@ pub async fn payments_page(
 ) -> HttpResponse {
     if let Err(r) = require_admin(&req, &jwt_secret) { return r; }
 
-    let conn = db.lock().unwrap();
+    let conn = db.lock().unwrap_or_else(|e| e.into_inner());
     let payments = Payment::find_all(&conn).unwrap_or_default();
     let customers = Customer::find_all_non_admin(&conn).unwrap_or_default();
 
@@ -237,7 +237,7 @@ pub async fn faq_editor(
 ) -> HttpResponse {
     if let Err(r) = require_admin(&req, &jwt_secret) { return r; }
 
-    let conn = db.lock().unwrap();
+    let conn = db.lock().unwrap_or_else(|e| e.into_inner());
     let faqs = Faq::find_all(&conn).unwrap_or_default();
 
     let mut ctx = tera::Context::new();
@@ -258,7 +258,7 @@ pub async fn review_editor(
 ) -> HttpResponse {
     if let Err(r) = require_admin(&req, &jwt_secret) { return r; }
 
-    let conn = db.lock().unwrap();
+    let conn = db.lock().unwrap_or_else(|e| e.into_inner());
     let reviews = Review::find_all(&conn).unwrap_or_default();
 
     let mut ctx = tera::Context::new();
@@ -279,7 +279,7 @@ pub async fn settings_page(
 ) -> HttpResponse {
     if let Err(r) = require_admin(&req, &jwt_secret) { return r; }
 
-    let conn = db.lock().unwrap();
+    let conn = db.lock().unwrap_or_else(|e| e.into_inner());
     let settings = SiteSetting::get_all(&conn).unwrap_or_default();
 
     let mut ctx = tera::Context::new();
@@ -303,7 +303,7 @@ pub async fn api_mark_paid(
     if let Err(r) = require_admin(&req, &jwt_secret) { return r; }
 
     let payment_id = path.into_inner();
-    let conn = db.lock().unwrap();
+    let conn = db.lock().unwrap_or_else(|e| e.into_inner());
     match Payment::mark_paid(&conn, payment_id) {
         Ok(_) => HttpResponse::Ok().json(serde_json::json!({"success": true})),
         Err(e) => HttpResponse::InternalServerError().json(serde_json::json!({"error": format!("{}", e)})),
@@ -318,7 +318,7 @@ pub async fn api_save_faq(
 ) -> HttpResponse {
     if let Err(r) = require_admin(&req, &jwt_secret) { return r; }
 
-    let conn = db.lock().unwrap();
+    let conn = db.lock().unwrap_or_else(|e| e.into_inner());
     let sort_order = form.sort_order.unwrap_or(0);
     let is_active = form.is_active.unwrap_or(true);
 
@@ -343,7 +343,7 @@ pub async fn api_delete_faq(
 ) -> HttpResponse {
     if let Err(r) = require_admin(&req, &jwt_secret) { return r; }
 
-    let conn = db.lock().unwrap();
+    let conn = db.lock().unwrap_or_else(|e| e.into_inner());
     match Faq::delete(&conn, path.into_inner()) {
         Ok(_) => HttpResponse::Ok().json(serde_json::json!({"success": true})),
         Err(e) => HttpResponse::InternalServerError().json(serde_json::json!({"error": format!("{}", e)})),
@@ -358,7 +358,7 @@ pub async fn api_save_review(
 ) -> HttpResponse {
     if let Err(r) = require_admin(&req, &jwt_secret) { return r; }
 
-    let conn = db.lock().unwrap();
+    let conn = db.lock().unwrap_or_else(|e| e.into_inner());
     let stars = form.stars.unwrap_or(5);
     let sort_order = form.sort_order.unwrap_or(0);
     let is_active = form.is_active.unwrap_or(true);
@@ -384,7 +384,7 @@ pub async fn api_delete_review(
 ) -> HttpResponse {
     if let Err(r) = require_admin(&req, &jwt_secret) { return r; }
 
-    let conn = db.lock().unwrap();
+    let conn = db.lock().unwrap_or_else(|e| e.into_inner());
     match Review::delete(&conn, path.into_inner()) {
         Ok(_) => HttpResponse::Ok().json(serde_json::json!({"success": true})),
         Err(e) => HttpResponse::InternalServerError().json(serde_json::json!({"error": format!("{}", e)})),
@@ -399,7 +399,7 @@ pub async fn api_save_settings(
 ) -> HttpResponse {
     if let Err(r) = require_admin(&req, &jwt_secret) { return r; }
 
-    let conn = db.lock().unwrap();
+    let conn = db.lock().unwrap_or_else(|e| e.into_inner());
     for (key, value) in form.iter() {
         if let Err(e) = SiteSetting::set(&conn, key, value) {
             return HttpResponse::InternalServerError().json(serde_json::json!({"error": format!("{}", e)}));
@@ -425,7 +425,7 @@ pub async fn api_suggest_appointment(
 ) -> HttpResponse {
     if let Err(r) = require_admin(&req, &jwt_secret) { return r; }
 
-    let conn = db.lock().unwrap();
+    let conn = db.lock().unwrap_or_else(|e| e.into_inner());
     let customer = match Customer::find_by_id(&conn, form.customer_id) {
         Ok(Some(c)) => c,
         _ => return HttpResponse::NotFound().json(serde_json::json!({"error": "Kunde nicht gefunden"})),
@@ -461,7 +461,7 @@ pub async fn api_cancel_with_suggestions(
 ) -> HttpResponse {
     if let Err(r) = require_admin(&req, &jwt_secret) { return r; }
 
-    let conn = db.lock().unwrap();
+    let conn = db.lock().unwrap_or_else(|e| e.into_inner());
 
     let appointment = match Appointment::find_by_id(&conn, form.appointment_id) {
         Ok(Some(a)) => a,
@@ -497,11 +497,25 @@ pub async fn api_cancel_with_suggestions(
         }
     }
 
+    let (del_auth, del_url) = {
+        let access_token = SiteSetting::get_or_default(&conn, "nextcloud_access_token", "");
+        let primary_url  = SiteSetting::get_or_default(&conn, "nextcloud_primary_calendar_url", "");
+        if !access_token.is_empty() && !primary_url.is_empty() {
+            (crate::caldav::CalDavAuth::Bearer(access_token), primary_url)
+        } else {
+            let url  = SiteSetting::get_or_default(&conn, "nextcloud_caldav_url", "");
+            let user = SiteSetting::get_or_default(&conn, "nextcloud_caldav_username", "");
+            let pass = SiteSetting::get_or_default(&conn, "nextcloud_caldav_password", "");
+            (crate::caldav::CalDavAuth::Basic { user, pass }, url)
+        }
+    };
     let es = email_service.get_ref().clone();
     let email = customer.email.clone();
     let name = customer.full_name();
     let start_time = appointment.start_time.clone();
-    
+    let cancelled_id = form.appointment_id;
+    drop(conn);
+
     let slots_html = form.slots.iter()
         .map(|s| format!("<p style='margin: 8px 0; padding: 8px 12px; background: #dff0f7; border-radius: 8px;'>📅 {}</p>", s))
         .collect::<Vec<_>>()
@@ -511,13 +525,19 @@ pub async fn api_cancel_with_suggestions(
         if let Ok(dt) = chrono::NaiveDateTime::parse_from_str(&start_time, "%Y-%m-%d %H:%M:%S") {
             let date_str = dt.format("%d.%m.%Y").to_string();
             let time_str = dt.format("%H:%M").to_string();
-            
+
             if slots_html.is_empty() {
-                // Send standard cancellation if no slots provided
                 es.send_appointment_cancellation(&email, &name, &date_str, &time_str);
             } else {
-                // Send combined cancellation + suggestions
                 es.send_admin_cancellation_with_suggestions(&email, &name, &date_str, &time_str, &slots_html);
+            }
+        }
+        if !del_url.is_empty() {
+            match &del_auth {
+                crate::caldav::CalDavAuth::Bearer(tok) =>
+                    crate::caldav::delete_event_bearer(&del_url, tok, cancelled_id).await,
+                crate::caldav::CalDavAuth::Basic { user, pass } =>
+                    crate::caldav::delete_event(&del_url, user, pass, cancelled_id).await,
             }
         }
     });
@@ -535,7 +555,7 @@ pub async fn api_test_caldav(
     if let Err(r) = require_admin(&req, &jwt_secret) { return r; }
 
     let (url, user, pass) = {
-        let conn = db.lock().unwrap();
+        let conn = db.lock().unwrap_or_else(|e| e.into_inner());
         (
             SiteSetting::get_or_default(&conn, "nextcloud_caldav_url", ""),
             SiteSetting::get_or_default(&conn, "nextcloud_caldav_username", ""),

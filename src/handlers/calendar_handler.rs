@@ -65,7 +65,7 @@ pub async fn customer_calendar_ics(
     db: web::Data<Mutex<Connection>>,
 ) -> HttpResponse {
     let token = path.into_inner();
-    let conn = db.lock().unwrap();
+    let conn = db.lock().unwrap_or_else(|e| e.into_inner());
 
     let customer = match Customer::find_by_calendar_token(&conn, &token) {
         Ok(Some(c)) => c,
@@ -119,7 +119,7 @@ pub async fn admin_calendar_ics(
     db: web::Data<Mutex<Connection>>,
 ) -> HttpResponse {
     let token = path.into_inner();
-    let conn = db.lock().unwrap();
+    let conn = db.lock().unwrap_or_else(|e| e.into_inner());
 
     // Validate the token belongs to an admin
     let admin = match Customer::find_by_calendar_token(&conn, &token) {

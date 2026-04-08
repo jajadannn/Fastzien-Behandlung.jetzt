@@ -7,7 +7,8 @@
       "Read(//c/tmp/**)",
       "Bash(unzip -q \"/c/Users/Fabian/Downloads/Faszienbehandlung.jetzt-Rust-Version-master.zip\")",
       "Bash(unzip -l \"/c/Users/Fabian/Downloads/Faszienbehandlung.jetzt-Rust-Version-master.zip\")",
-      "Bash(unzip -q /c/Users/Fabian/Downloads/Faszienbehandlung.jetzt-Rust-Version-master.zip)"
+      "Bash(unzip -q /c/Users/Fabian/Downloads/Faszienbehandlung.jetzt-Rust-Version-master.zip)",
+      "Bash(cargo check:*)"
     ]
   }
 }
