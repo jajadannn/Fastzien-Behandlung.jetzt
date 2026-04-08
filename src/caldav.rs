@@ -273,11 +273,11 @@ fn extract_calendar_urls(xml: &str, base_url: &str) -> Vec<String> {
         };
         if href.is_empty() { continue; }
 
-        // Build absolute URL
+        // Build absolute URL, strip trailing slash so split("/").last() gives the name
         let url = if href.starts_with("http") {
-            href
+            href.trim_end_matches('/').to_string()
         } else {
-            format!("{}{}", base_url, href)
+            format!("{}{}", base_url, href.trim_end_matches('/'))
         };
 
         if !urls.contains(&url) {
