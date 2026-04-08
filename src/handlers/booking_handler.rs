@@ -387,5 +387,8 @@ pub async fn api_available_slots(
         .map(|c| serde_json::json!({"time": c.time_str, "display": c.display}))
         .collect();
 
-    HttpResponse::Ok().json(serde_json::json!({"slots": slots}))
+    HttpResponse::Ok()
+        .append_header(("Cache-Control", "no-store, no-cache, must-revalidate"))
+        .append_header(("Pragma", "no-cache"))
+        .json(serde_json::json!({"slots": slots}))
 }

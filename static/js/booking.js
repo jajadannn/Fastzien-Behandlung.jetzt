@@ -78,7 +78,7 @@
     bookingOptions.style.display = 'none';
 
     try {
-      const res = await fetch('/api/appointments/available-slots?date=' + dateStr);
+      const res = await fetch('/api/appointments/available-slots?date=' + dateStr + '&_=' + Date.now());
       const data = await res.json();
 
       if (data.slots && data.slots.length > 0) {
