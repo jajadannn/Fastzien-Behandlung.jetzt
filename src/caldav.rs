@@ -143,19 +143,14 @@ fn last_sunday_of(year: i32, month: u32) -> u32 {
 
 // ── Multi-calendar helpers ────────────────────────────────────────────────────
 
-/// Discover all CalDAV calendar URLs for a user via PROPFIND.
-/// Returns a list of absolute calendar URLs, or empty on error.
+/// Discover all CalDAV calendar URLs for a Nextcloud user via OAuth Bearer token.
+///
+/// Strategy:
+///   1. GET /ocs/v1.php/cloud/user  → get the logged-in username
+///   2. PROPFIND /remote.php/dav/calendars/{username}/  Depth:1 → list calendars
+///   3. Filter results to real VCALENDAR collections (skip principal/inbox/outbox)
 pub async fn discover_calendars(base_url: &str, token: &str) -> Vec<String> {
     let base = base_url.trim_end_matches('/');
-    // Try the standard well-known path first, then the direct dav path
-    let propfind_body = r#"<?xml version="1.0" encoding="UTF-8"?>
-<D:propfind xmlns:D="DAV:" xmlns:C="urn:ietf:params:xml:ns:caldav">
-  <D:prop>
-    <D:resourcetype/>
-    <D:displayname/>
-    <C:calendar-home-set/>
-  </D:prop>
-</D:propfind>"#;
 
     let client = match reqwest::Client::builder()
         .timeout(std::time::Duration::from_secs(10))
@@ -165,14 +160,49 @@ pub async fn discover_calendars(base_url: &str, token: &str) -> Vec<String> {
         Err(e) => { log::warn!("CalDAV discover: client error: {}", e); return vec![]; }
     };
 
-    // Step 1: PROPFIND principal URL to find calendar-home-set
-    // Nextcloud: GET /remote.php/dav/ with Depth:0 reveals principal
-    let principal_url = format!("{}/remote.php/dav/", base);
+    // ── Step 1: get username from Nextcloud OCS API ──────────────────────────
+    let ocs_url = format!("{}/ocs/v1.php/cloud/user", base);
+    let ocs_resp = match client
+        .get(&ocs_url)
+        .header("Authorization", format!("Bearer {}", token))
+        .header("OCS-APIRequest", "true")
+        .header("Accept", "application/json")
+        .send()
+        .await
+    {
+        Ok(r) => r,
+        Err(e) => { log::warn!("CalDAV discover: OCS user request failed: {}", e); return vec![]; }
+    };
+
+    let ocs_json: serde_json::Value = match ocs_resp.json().await {
+        Ok(j) => j,
+        Err(e) => { log::warn!("CalDAV discover: OCS JSON parse failed: {}", e); return vec![]; }
+    };
+
+    let username = match ocs_json["ocs"]["data"]["id"].as_str() {
+        Some(u) => u.to_string(),
+        None => {
+            log::warn!("CalDAV discover: could not find username in OCS response: {}", ocs_json);
+            return vec![];
+        }
+    };
+    log::info!("CalDAV discover: Nextcloud username = {}", username);
+
+    // ── Step 2: PROPFIND calendar home ───────────────────────────────────────
+    let calendars_url = format!("{}/remote.php/dav/calendars/{}/", base, username);
+    let propfind_body = r#"<?xml version="1.0" encoding="UTF-8"?>
+<D:propfind xmlns:D="DAV:" xmlns:C="urn:ietf:params:xml:ns:caldav">
+  <D:prop>
+    <D:resourcetype/>
+    <D:displayname/>
+  </D:prop>
+</D:propfind>"#;
+
     let resp = match client
-        .request(reqwest::Method::from_bytes(b"PROPFIND").unwrap(), &principal_url)
+        .request(reqwest::Method::from_bytes(b"PROPFIND").unwrap(), &calendars_url)
         .header("Authorization", format!("Bearer {}", token))
         .header("Content-Type", "application/xml; charset=utf-8")
-        .header("Depth", "0")
+        .header("Depth", "1")
         .body(propfind_body)
         .send()
         .await
@@ -181,109 +211,78 @@ pub async fn discover_calendars(base_url: &str, token: &str) -> Vec<String> {
         Err(e) => { log::warn!("CalDAV discover: PROPFIND failed: {}", e); return vec![]; }
     };
 
-    let _status = resp.status();
+    let status = resp.status();
     let text = resp.text().await.unwrap_or_default();
+    log::debug!("CalDAV discover: PROPFIND status={} body_len={}", status, text.len());
 
-    // Extract calendar-home-set href
-    let home_set = extract_calendar_home_set(&text, base);
-    let calendars_url = if let Some(h) = home_set {
-        h
-    } else {
-        // Fallback: try to parse username from /remote.php/dav/principals/users/USERNAME/
-        // and build the standard calendars path
-        log::warn!("CalDAV discover: could not find calendar-home-set, falling back to principal search");
+    if !status.is_success() && status.as_u16() != 207 {
+        log::warn!("CalDAV discover: PROPFIND returned {}", status);
         return vec![];
-    };
-
-    // Step 2: PROPFIND the calendar home to list all calendars
-    let list_body = r#"<?xml version="1.0" encoding="UTF-8"?>
-<D:propfind xmlns:D="DAV:" xmlns:C="urn:ietf:params:xml:ns:caldav">
-  <D:prop>
-    <D:resourcetype/>
-    <D:displayname/>
-  </D:prop>
-</D:propfind>"#;
-
-    let resp2 = match client
-        .request(reqwest::Method::from_bytes(b"PROPFIND").unwrap(), &calendars_url)
-        .header("Authorization", format!("Bearer {}", token))
-        .header("Content-Type", "application/xml; charset=utf-8")
-        .header("Depth", "1")
-        .body(list_body)
-        .send()
-        .await
-    {
-        Ok(r) => r,
-        Err(e) => { log::warn!("CalDAV discover: PROPFIND calendars failed: {}", e); return vec![]; }
-    };
-
-    let text2 = resp2.text().await.unwrap_or_default();
-    log::debug!("CalDAV discover: calendar list response: {}", &text2[..text2.len().min(500)]);
-
-    extract_calendar_urls(&text2, base)
-}
-
-/// Parse the calendar-home-set href from a PROPFIND response.
-fn extract_calendar_home_set(xml: &str, base_url: &str) -> Option<String> {
-    // Look for <cal:calendar-home-set> or <C:calendar-home-set> containing an href
-    let lower = xml.to_lowercase();
-    let marker = "calendar-home-set";
-    let idx = lower.find(marker)?;
-    let after = &xml[idx..];
-    // Find the <D:href> inside
-    let href_start = after.find("<d:href>").or_else(|| after.find("<D:href>"))?;
-    let content = &after[href_start + 8..];
-    let href_end = content.find("</").unwrap_or(content.len());
-    let href = content[..href_end].trim().to_string();
-    if href.is_empty() { return None; }
-    if href.starts_with("http") {
-        Some(href)
-    } else {
-        Some(format!("{}{}", base_url, href))
     }
+
+    extract_calendar_urls(&text, base)
 }
 
-/// Parse calendar URLs from a PROPFIND depth:1 response.
-/// Only returns collections that have a `calendar` resourcetype.
+/// Parse calendar URLs from a PROPFIND Depth:1 response.
+/// Only returns entries that have `<cal:calendar/>` in their resourcetype.
 fn extract_calendar_urls(xml: &str, base_url: &str) -> Vec<String> {
     let mut urls = Vec::new();
-    let mut remaining = xml;
+    // Work on lowercase copy for case-insensitive matching, but extract from original
+    let lower = xml.to_lowercase();
+    let mut search_from = 0usize;
 
-    while let Some(resp_start) = remaining.to_lowercase().find("<d:response>").or_else(|| remaining.to_lowercase().find("<response>")) {
-        let tag_end = remaining[resp_start..].find('>').map(|i| resp_start + i + 1).unwrap_or(remaining.len());
-        let rest = &remaining[tag_end..];
-        let resp_end = rest.to_lowercase().find("</d:response>")
-            .or_else(|| rest.to_lowercase().find("</response>"))
-            .unwrap_or(rest.len());
-        let block = &rest[..resp_end];
-        remaining = &rest[resp_end..];
+    loop {
+        // Find the next <d:response> block
+        let block_start = match lower[search_from..].find("<d:response>") {
+            Some(i) => search_from + i,
+            None => break,
+        };
+        let inner_start = block_start + "<d:response>".len();
+        let block_end = match lower[inner_start..].find("</d:response>") {
+            Some(i) => inner_start + i,
+            None => break,
+        };
+        let block_lower = &lower[inner_start..block_end];
+        let block_orig  = &xml[inner_start..block_end];
+        search_from = block_end + "</d:response>".len();
 
-        // Must be a calendar resource
-        let lower_block = block.to_lowercase();
-        if !lower_block.contains("calendar") || lower_block.contains("principal") {
+        // Must contain <cal:calendar/> or <x1:calendar/> in resourcetype
+        // Skip the calendar home collection itself, inbox, outbox, notification, etc.
+        if !block_lower.contains(":calendar") && !block_lower.contains("\"calendar\"") {
             continue;
         }
-        // Must have resourcetype containing "calendar" (not just in displayname)
-        if !lower_block.contains(":calendar") && !lower_block.contains("<calendar") {
+        // Exclude known non-calendar collections
+        if block_lower.contains("principal")
+            || block_lower.contains("calendar-inbox")
+            || block_lower.contains("calendar-outbox")
+            || block_lower.contains("notification")
+            || block_lower.contains("schedule-inbox")
+            || block_lower.contains("schedule-outbox")
+        {
             continue;
         }
 
-        // Extract href
-        if let Some(href_start) = lower_block.find("<d:href>").or_else(|| lower_block.find("<href>")) {
-            let offset = if lower_block[href_start..].starts_with("<d:href>") { 8 } else { 6 };
-            let content = &block[href_start + offset..];
-            let href_end = content.find('<').unwrap_or(content.len());
-            let href = content[..href_end].trim();
-            if href.is_empty() { continue; }
-            let url = if href.starts_with("http") {
-                href.to_string()
-            } else {
-                format!("{}{}", base_url, href)
-            };
-            if !urls.contains(&url) {
-                log::info!("CalDAV discover: found calendar {}", url);
-                urls.push(url);
+        // Extract <d:href>
+        let href = match block_lower.find("<d:href>") {
+            Some(i) => {
+                let content = &block_orig[i + 8..];
+                let end = content.find('<').unwrap_or(content.len());
+                content[..end].trim().to_string()
             }
+            None => continue,
+        };
+        if href.is_empty() { continue; }
+
+        // Build absolute URL
+        let url = if href.starts_with("http") {
+            href
+        } else {
+            format!("{}{}", base_url, href)
+        };
+
+        if !urls.contains(&url) {
+            log::info!("CalDAV discover: found calendar {}", url);
+            urls.push(url);
         }
     }
 
