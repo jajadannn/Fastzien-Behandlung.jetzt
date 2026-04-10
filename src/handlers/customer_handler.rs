@@ -5,7 +5,7 @@ use tera::Tera;
 
 use crate::auth;
 use crate::models::customer::{Customer, ProfileUpdate, PasswordChange, EmailChange};
-use crate::models::appointment::Appointment;
+use crate::models::appointment::{Appointment, WaitlistEntry};
 use crate::models::payment::{Payment, CreditPackage};
 use crate::models::settings::SiteSetting;
 
@@ -364,5 +364,188 @@ pub async fn api_delete_account(
                 .json(serde_json::json!({"success": true}))
         }
         Err(e) => HttpResponse::InternalServerError().json(serde_json::json!({"error": format!("{}", e)})),
+    }
+}
+
+/// GET /api/customer/invoices/{payment_id} — printable HTML invoice
+pub async fn api_invoice(
+    req: HttpRequest,
+    path: web::Path<i64>,
+    db: web::Data<Mutex<Connection>>,
+    jwt_secret: web::Data<String>,
+) -> HttpResponse {
+    let claims = match auth::get_claims(&req, &jwt_secret) {
+        Some(c) => c,
+        None => return HttpResponse::Unauthorized().body("Nicht angemeldet"),
+    };
+
+    let payment_id = path.into_inner();
+    let conn = db.lock().unwrap_or_else(|e| e.into_inner());
+
+    let payment = match Payment::find_by_id(&conn, payment_id) {
+        Ok(Some(p)) => p,
+        _ => return HttpResponse::NotFound().body("Zahlung nicht gefunden"),
+    };
+
+    if payment.customer_id != claims.sub && !claims.is_admin {
+        return HttpResponse::Forbidden().body("Zugriff verweigert");
+    }
+
+    let customer = match Customer::find_by_id(&conn, payment.customer_id) {
+        Ok(Some(c)) => c,
+        _ => return HttpResponse::NotFound().body("Kunde nicht gefunden"),
+    };
+
+    let settings = SiteSetting::get_all(&conn);
+    let settings = settings.unwrap_or_default();
+    let address_street = settings.get("address_street").map(|s| s.as_str()).unwrap_or("Sulgauer Straße 24");
+    let address_zip = settings.get("address_zip").map(|s| s.as_str()).unwrap_or("78713");
+    let address_city = settings.get("address_city").map(|s| s.as_str()).unwrap_or("Sulgen");
+    let phone = settings.get("phone").map(|s| s.as_str()).unwrap_or("+49 152 34 00 72 25");
+
+    let appointment_info = payment.appointment_id
+        .and_then(|id| Appointment::find_by_id(&conn, id).ok().flatten())
+        .map(|a| {
+            if let Ok(dt) = chrono::NaiveDateTime::parse_from_str(&a.start_time, "%Y-%m-%d %H:%M:%S") {
+                format!("Faszienbehandlung am {} um {} Uhr", dt.format("%d.%m.%Y"), dt.format("%H:%M"))
+            } else {
+                "Faszienbehandlung".to_string()
+            }
+        })
+        .unwrap_or_else(|| "Faszienbehandlung".to_string());
+
+    let payment_type_label = match payment.payment_type.as_str() {
+        "pack" => "10er-Karte (Einzelsitzung)",
+        _ => "Einzelsitzung",
+    };
+
+    let invoice_date = payment.paid_at.as_deref()
+        .and_then(|s| chrono::NaiveDateTime::parse_from_str(s, "%Y-%m-%d %H:%M:%S").ok())
+        .or_else(|| chrono::NaiveDateTime::parse_from_str(&payment.created_at, "%Y-%m-%d %H:%M:%S").ok())
+        .map(|dt| dt.format("%d.%m.%Y").to_string())
+        .unwrap_or_else(|| "–".to_string());
+
+    let customer_address = if customer.street.is_empty() {
+        customer.city.clone()
+    } else {
+        format!("{}, {} {}", customer.street, customer.zip_code, customer.city)
+    };
+
+    let html = format!(r#"<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>Rechnung #{}</title>
+<style>
+  body {{ font-family: 'Segoe UI', sans-serif; max-width: 700px; margin: 40px auto; color: #1a2a33; }}
+  .header {{ display: flex; justify-content: space-between; border-bottom: 2px solid #70AECD; padding-bottom: 20px; margin-bottom: 30px; }}
+  .company h2 {{ color: #70AECD; margin: 0 0 4px; }}
+  .invoice-meta {{ text-align: right; }}
+  .invoice-meta h1 {{ color: #964279; margin: 0; font-size: 28px; }}
+  .addresses {{ display: flex; justify-content: space-between; margin-bottom: 30px; }}
+  .address-block h4 {{ color: #6a8fa0; font-size: 12px; text-transform: uppercase; margin: 0 0 6px; }}
+  table {{ width: 100%; border-collapse: collapse; margin-bottom: 20px; }}
+  th {{ background: #f0f7fb; padding: 10px 12px; text-align: left; font-size: 13px; color: #3d5a6b; }}
+  td {{ padding: 12px; border-bottom: 1px solid #e8f0f5; }}
+  .total-row td {{ font-weight: bold; font-size: 16px; background: #f0f7fb; }}
+  .footer {{ margin-top: 40px; font-size: 12px; color: #6a8fa0; border-top: 1px solid #e8f0f5; padding-top: 16px; }}
+  @media print {{ .no-print {{ display: none; }} }}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="company">
+    <h2>Faszienbehandlung Thilo Seifried</h2>
+    <p style="margin:0;color:#3d5a6b;">{}, {} {}<br>Tel: {}</p>
+  </div>
+  <div class="invoice-meta">
+    <h1>RECHNUNG</h1>
+    <p style="margin:4px 0;color:#3d5a6b;">Nr.: R-{:05}<br>Datum: {}</p>
+  </div>
+</div>
+
+<div class="addresses">
+  <div class="address-block">
+    <h4>Rechnungsempfänger</h4>
+    <strong>{}</strong><br>
+    {}<br>
+    {}
+  </div>
+</div>
+
+<table>
+  <thead><tr><th>Leistung</th><th>Art</th><th>Betrag</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>{}</td>
+      <td>{}</td>
+      <td>{:.2} €</td>
+    </tr>
+  </tbody>
+  <tfoot>
+    <tr class="total-row">
+      <td colspan="2">Gesamtbetrag*</td>
+      <td>{:.2} €</td>
+    </tr>
+  </tfoot>
+</table>
+
+<p style="font-size:13px;color:#3d5a6b;">* Gemäß § 4 Nr. 14 UStG handelt es sich bei Heilbehandlungen im Bereich der Humanmedizin um steuerbefreite Leistungen. Diese Rechnung enthält keine gesondert ausgewiesene Umsatzsteuer.</p>
+
+<div class="footer">
+  <p>Faszienbehandlung Thilo Seifried · {} · {} {} · {} | Kein Mitglied einer Berufsorganisation</p>
+</div>
+
+<p class="no-print" style="margin-top:30px;">
+  <button onclick="window.print()" style="background:#964279;color:white;border:none;padding:12px 28px;border-radius:8px;cursor:pointer;font-size:15px;">Drucken / Als PDF speichern</button>
+  <button onclick="window.close()" style="background:#e5e7eb;color:#374151;border:none;padding:12px 20px;border-radius:8px;cursor:pointer;font-size:15px;margin-left:10px;">Schließen</button>
+</p>
+</body>
+</html>"#,
+        payment.id,
+        address_street, address_zip, address_city, phone,
+        payment.id, invoice_date,
+        customer.full_name(),
+        customer_address,
+        customer.email,
+        appointment_info,
+        payment_type_label,
+        payment.amount,
+        payment.amount,
+        address_street, address_zip, address_city, phone,
+    );
+
+    HttpResponse::Ok()
+        .content_type("text/html; charset=utf-8")
+        .body(html)
+}
+
+/// GET /portal/waitlist — customer waitlist management page
+pub async fn waitlist_page(
+    req: HttpRequest,
+    tmpl: web::Data<Tera>,
+    db: web::Data<Mutex<Connection>>,
+    jwt_secret: web::Data<String>,
+) -> HttpResponse {
+    let claims = match require_auth(&req, &jwt_secret) {
+        Ok(c) => c,
+        Err(r) => return r,
+    };
+
+    let conn = db.lock().unwrap_or_else(|e| e.into_inner());
+    let customer = Customer::find_by_id(&conn, claims.sub).unwrap().unwrap();
+    if !customer.email_verified {
+        return email_not_verified_response(&tmpl, &customer.email, claims.is_admin);
+    }
+
+    let waitlist = WaitlistEntry::find_by_customer(&conn, claims.sub).unwrap_or_default();
+
+    let mut ctx = tera::Context::new();
+    ctx.insert("waitlist", &waitlist);
+    ctx.insert("is_admin", &claims.is_admin);
+
+    match tmpl.render("customer/waitlist.html", &ctx) {
+        Ok(body) => HttpResponse::Ok().content_type("text/html; charset=utf-8").body(body),
+        Err(e) => HttpResponse::InternalServerError().body(format!("Template error: {}", e)),
     }
 }

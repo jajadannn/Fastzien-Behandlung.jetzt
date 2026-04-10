@@ -57,6 +57,18 @@ fn create_tables(conn: &Connection) -> Result<()> {
             appointment_type TEXT NOT NULL DEFAULT 'single',
             is_home_visit INTEGER NOT NULL DEFAULT 0,
             notes TEXT NOT NULL DEFAULT '',
+            therapist_notes TEXT NOT NULL DEFAULT '',
+            reminder_sent INTEGER NOT NULL DEFAULT 0,
+            review_reminder_sent INTEGER NOT NULL DEFAULT 0,
+            created_at TEXT NOT NULL DEFAULT (datetime('now')),
+            FOREIGN KEY (customer_id) REFERENCES customers(id)
+        );
+
+        CREATE TABLE IF NOT EXISTS waitlist (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            customer_id INTEGER NOT NULL,
+            date TEXT NOT NULL,
+            notified INTEGER NOT NULL DEFAULT 0,
             created_at TEXT NOT NULL DEFAULT (datetime('now')),
             FOREIGN KEY (customer_id) REFERENCES customers(id)
         );
@@ -125,6 +137,10 @@ fn migrate_existing_db(conn: &Connection) -> Result<()> {
         "ALTER TABLE customers ADD COLUMN verification_token TEXT",
         "ALTER TABLE customers ADD COLUMN verification_token_expires TEXT",
         "ALTER TABLE customers ADD COLUMN calendar_token TEXT",
+        "ALTER TABLE appointments ADD COLUMN therapist_notes TEXT NOT NULL DEFAULT ''",
+        "ALTER TABLE appointments ADD COLUMN reminder_sent INTEGER NOT NULL DEFAULT 0",
+        "ALTER TABLE appointments ADD COLUMN review_reminder_sent INTEGER NOT NULL DEFAULT 0",
+        "CREATE TABLE IF NOT EXISTS waitlist (id INTEGER PRIMARY KEY AUTOINCREMENT, customer_id INTEGER NOT NULL, date TEXT NOT NULL, notified INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL DEFAULT (datetime('now')), FOREIGN KEY (customer_id) REFERENCES customers(id))",
     ];
     for sql in migrations {
         let _ = conn.execute_batch(sql); // ignore "duplicate column" error

@@ -85,7 +85,7 @@
         <h2>Zahlungshistorie</h2>
         <div class="table-wrap">
           <table class="portal-table">
-            <thead><tr><th>Datum</th><th>Betrag</th><th>Typ</th><th>Status</th></tr></thead>
+            <thead><tr><th>Datum</th><th>Betrag</th><th>Typ</th><th>Status</th><th>Rechnung</th></tr></thead>
             <tbody>
               {% for p in payments %}
               <tr>
@@ -93,6 +93,7 @@
                 <td>{{ p.amount }} €</td>
                 <td>{% if p.payment_type == "pack" %}10er-Karte{% else %}Einzelsitzung{% endif %}</td>
                 <td><span class="status-badge status-{{ p.status }}">{% if p.status == "pending" %}Offen{% else %}Bezahlt{% endif %}</span></td>
+                <td><a href="/api/customer/invoices/{{ p.id }}" target="_blank" style="font-size:13px;color:#964279;">PDF</a></td>
               </tr>
               {% endfor %}
             </tbody>

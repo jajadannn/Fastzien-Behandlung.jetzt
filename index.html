@@ -121,10 +121,22 @@
     },
     "geo": { "@type": "GeoCoordinates", "latitude": 48.2157, "longitude": 8.5033 },
     "telephone": "+4915234007225",
-    "email": "termin[at]faszienbehandlung.jetzt",
+    "email": "termin@faszien-behandlung.jetzt",
     "openingHours": ["Mo-Fr 16:00-22:00", "Sa 09:00-19:00"],
     "priceRange": "€€",
     "hasMap": "https://maps.google.com/?q=Sulgauer+Strasse+24,+78655+Sulgen",
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "5.0",
+      "reviewCount": "3",
+      "bestRating": "5",
+      "worstRating": "1"
+    },
+    "review": [
+      {"@type":"Review","author":{"@type":"Person","name":"Sandra M."},"reviewRating":{"@type":"Rating","ratingValue":"5","bestRating":"5"},"reviewBody":"Nach nur drei Behandlungen sind meine chronischen Nackenschmerzen fast vollständig verschwunden."},
+      {"@type":"Review","author":{"@type":"Person","name":"Klaus W."},"reviewRating":{"@type":"Rating","ratingValue":"5","bestRating":"5"},"reviewBody":"Thilo nimmt sich wirklich Zeit. Ich fühle mich nach jeder Sitzung wie neu."},
+      {"@type":"Review","author":{"@type":"Person","name":"Maria K."},"reviewRating":{"@type":"Rating","ratingValue":"5","bestRating":"5"},"reviewBody":"Meine Knieschmerzen haben sich deutlich gebessert. Sehr empfehlenswert!"}
+    ],
     "areaServed": [
       {"@type": "City", "name": "Sulgen"},
       {"@type": "City", "name": "Dunningen"},
@@ -403,13 +415,22 @@
     .modal-header h2{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:600;color:var(--white)}
     .modal-close{position:absolute;right:14px;top:10px;background:rgba(255,255,255,0.15);border:none;color:var(--white);width:34px;height:34px;border-radius:50%;font-size:1.4rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s}
     .modal-close:hover{background:rgba(255,255,255,0.3)}
-    #appointment-iframe{border:0;width:100%;flex:1;overflow:hidden;touch-action:none}
+    #appointment-iframe{border:0;width:100%;flex:1;overflow:hidden}
     .modal-fallback{padding:10px 20px;background:var(--sky-pale);border-top:1px solid var(--border);display:none;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;flex-shrink:0}
     .modal-fallback.is-visible{display:flex}
     .modal-fallback p{font-size:.8rem;color:var(--text-mid)}
     .modal-fallback-links{display:flex;flex-wrap:wrap;gap:10px}
     .modal-fallback a{font-size:.8rem;color:var(--plum);text-decoration:none;font-weight:500;white-space:nowrap}
     .modal-fallback a:hover{text-decoration:underline}
+
+    /* MOBILE NAV */
+    .nav-toggle{display:none;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:var(--white);width:38px;height:38px;border-radius:8px;cursor:pointer;font-size:1.2rem;align-items:center;justify-content:center;transition:background .2s;flex-shrink:0;font-style:normal}
+    .nav-toggle:hover{background:rgba(255,255,255,0.25)}
+    .mobile-nav{display:flex;flex-direction:column;position:fixed;top:58px;left:0;right:0;background:rgba(77,147,184,0.98);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,0.2);z-index:199;padding:12px 16px 20px;gap:4px;opacity:0;visibility:hidden;pointer-events:none;transform:translateY(-8px);transition:opacity .25s,visibility 0s .25s,transform .3s cubic-bezier(.22,1,.36,1)}
+    .mobile-nav.is-open{opacity:1;visibility:visible;pointer-events:auto;transform:translateY(0);transition:opacity .25s,visibility 0s,transform .3s cubic-bezier(.22,1,.36,1)}
+    .mobile-nav-link{color:rgba(255,255,255,0.9);text-decoration:none;font-size:1rem;padding:12px 16px;border-radius:10px;transition:background .2s;display:block;font-weight:400}
+    .mobile-nav-link:hover,.mobile-nav-link:focus{background:rgba(255,255,255,0.15);color:var(--white)}
+    @media(min-width:769px){.mobile-nav{display:none!important}}
 
     /* RESPONSIVE */
     @media(max-width:768px){
@@ -426,8 +447,9 @@
       .btn-primary{width:100%;justify-content:center;min-height:52px}
       .btn-secondary{width:100%;justify-content:center;min-height:48px}
       .hero-note{text-align:center;font-size:.8rem;line-height:1.6}
-      .trust-bar{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+      .trust-bar{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;-webkit-mask-image:linear-gradient(to right,black calc(100% - 48px),transparent);mask-image:linear-gradient(to right,black calc(100% - 48px),transparent)}
       .trust-bar::-webkit-scrollbar{display:none}
+      .nav-toggle{display:flex}
       .trust-bar-inner{flex-wrap:nowrap;justify-content:flex-start;min-width:max-content;padding:0 16px}
       .trust-item{padding:14px 16px;flex-shrink:0}
       .section-sky,.section-white,.section-pale{padding:52px 20px}
@@ -493,9 +515,18 @@
       <a href="#preise">Preise</a>
       <a href="#anfahrt">Anfahrt</a>
       <a href="#faq">FAQ</a>
+      <button class="nav-toggle" id="nav-toggle" aria-label="Menü öffnen" aria-expanded="false">☰</button>
       <button class="btn-book book-trigger">📅 Termin buchen</button>
     </div>
   </nav>
+  <div class="mobile-nav" id="mobile-nav" aria-hidden="true">
+    <a href="#beschwerden" class="mobile-nav-link">Beschwerden</a>
+    <a href="#ueber" class="mobile-nav-link">Über mich</a>
+    <a href="#ablauf" class="mobile-nav-link">Ablauf</a>
+    <a href="#preise" class="mobile-nav-link">Preise</a>
+    <a href="#anfahrt" class="mobile-nav-link">Anfahrt</a>
+    <a href="#faq" class="mobile-nav-link">FAQ</a>
+  </div>
 
   <main id="main-content">
   <section class="hero" id="home">
@@ -639,7 +670,7 @@
           <ul class="price-perks"><li>Ausführliches Erstgespräch</li><li>Gantke® Faszienbehandlung</li><li>Individuelle Übungen</li><li>Rechnung für Versicherung</li></ul>
         </div>
         <div class="price-card featured js-animate">
-          <div class="price-badge">Bestes Preis-Leistung</div>
+          <div class="price-badge">Bestes Preis-Leistungs-Verhältnis</div>
           <div class="price-label">10er-Karte · pro Sitzung</div>
           <div class="price-amount"><span data-cfg="price_card">169,90</span> €</div>
           <div class="price-duration">Übertragbar · 12 Monate gültig</div>
@@ -740,7 +771,7 @@
       </div>
     </div>
     <div class="footer-bottom">
-      <span>© 2025 Thilo Seifried · Gantke® Faszienbehandler · Sulgen</span>
+      <span>© <span id="footer-year">2026</span> Thilo Seifried · Gantke® Faszienbehandler · Sulgen</span>
       <span><a href="impressum.html">Impressum</a> &nbsp;·&nbsp; <a href="datenschutz.html">Datenschutz</a></span>
     </div>
   </footer>
@@ -752,7 +783,7 @@
       <div class="modal-header">
         <h2 id="modal-title">Termin buchen – Faszienbehandlung Thilo Seifried</h2>
       </div>
-      <iframe id="appointment-iframe" title="Online-Terminbuchung Faszienbehandlung Thilo Seifried" loading="lazy" scrolling="no" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+      <iframe id="appointment-iframe" title="Online-Terminbuchung Faszienbehandlung Thilo Seifried" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
       <div class="modal-fallback">
         <p>Fenster lädt nicht?</p>
         <div class="modal-fallback-links">
@@ -969,6 +1000,33 @@
       );
       animatedEls.forEach((el) => revealObserver.observe(el));
     }
+
+    // Mobile hamburger nav
+    const navToggle = document.getElementById("nav-toggle");
+    const mobileNav = document.getElementById("mobile-nav");
+    function toggleMobileNav(forceOpen) {
+      const isOpen = forceOpen !== undefined ? forceOpen : !mobileNav.classList.contains("is-open");
+      mobileNav.classList.toggle("is-open", isOpen);
+      mobileNav.setAttribute("aria-hidden", !isOpen);
+      navToggle.setAttribute("aria-expanded", isOpen);
+      navToggle.textContent = isOpen ? "✕" : "☰";
+      navToggle.setAttribute("aria-label", isOpen ? "Menü schließen" : "Menü öffnen");
+    }
+    if (navToggle && mobileNav) {
+      navToggle.addEventListener("click", () => toggleMobileNav());
+      mobileNav.querySelectorAll(".mobile-nav-link").forEach((link) => {
+        link.addEventListener("click", () => toggleMobileNav(false));
+      });
+      document.addEventListener("click", (e) => {
+        if (mobileNav.classList.contains("is-open") && !e.target.closest(".topbar") && !e.target.closest(".mobile-nav")) {
+          toggleMobileNav(false);
+        }
+      });
+    }
+
+    // Dynamic copyright year
+    const yearEl = document.getElementById("footer-year");
+    if (yearEl) yearEl.textContent = new Date().getFullYear();
 
     // Keep mail address out of plain source spam scrapers.
     const EMAIL = ["termin", "faszienbehandlung.jetzt"];

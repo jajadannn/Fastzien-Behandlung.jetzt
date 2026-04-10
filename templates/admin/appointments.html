@@ -16,6 +16,7 @@
       <a href="/admin/customers">Kunden</a>
       <a href="/admin/appointments" class="active">Termine</a>
       <a href="/admin/payments">Zahlungen</a>
+      <a href="/admin/stats">Statistiken</a>
       <a href="/admin/faq">FAQ</a>
       <a href="/admin/reviews">Bewertungen</a>
       <a href="/admin/settings">Einstellungen</a>
@@ -25,18 +26,65 @@
   </nav>
   <main class="admin-main">
     <div class="admin-container">
+
+      <!-- Create appointment form -->
+      <div style="background:white;border-radius:12px;padding:24px;margin-bottom:24px;box-shadow:0 1px 4px rgba(0,0,0,0.08);">
+        <h2 style="margin:0 0 16px;color:#1a2a33;">Termin manuell anlegen / Zeit blockieren</h2>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px;align-items:end;">
+          <div class="form-group" style="margin:0;">
+            <label>Datum & Uhrzeit</label>
+            <input type="datetime-local" id="new-apt-time" style="width:100%;">
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label>Kunde (leer = Blockierung)</label>
+            <select id="new-apt-customer" style="width:100%;padding:10px;border:1px solid #d0e4ee;border-radius:8px;">
+              <option value="">— Zeitblock (kein Kunde) —</option>
+              {% for apt in appointments %}
+              {% if apt.customer_id and apt.customer_name %}
+              <option value="{{ apt.customer_id }}">{{ apt.customer_name }}</option>
+              {% endif %}
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label>Notiz</label>
+            <input type="text" id="new-apt-notes" placeholder="z.B. Urlaub, Hausbesuch..." style="width:100%;">
+          </div>
+          <button class="btn-small" style="background:#70AECD;color:white;" onclick="createAppointment()">Anlegen</button>
+        </div>
+        <div id="create-apt-msg" style="margin-top:8px;display:none;"></div>
+      </div>
+
       <h1>Alle Termine ({{ appointments | length }})</h1>
       <div class="table-wrap">
         <table class="admin-table">
-          <thead><tr><th>Datum</th><th>Kunde</th><th>Typ</th><th>Ort</th><th>Status</th><th>Aktion</th></tr></thead>
+          <thead><tr><th>Datum</th><th>Kunde</th><th>Typ</th><th>Ort</th><th>Status</th><th>Therapeuten-Notiz</th><th>Aktion</th></tr></thead>
           <tbody>
             {% for apt in appointments %}
             <tr>
               <td>{{ apt.start_time | format_date(format="%d.%m.%Y %H:%M") }}</td>
-              <td><a href="/admin/customers/{{ apt.customer_id }}">{{ apt.customer_name | default(value="–") }}</a></td>
+              <td>
+                {% if apt.appointment_type == "blocked" %}
+                  <em style="color:#6a8fa0;">— Blockiert —</em>
+                {% else %}
+                  <a href="/admin/customers/{{ apt.customer_id }}">{{ apt.customer_name | default(value="–") }}</a>
+                {% endif %}
+              </td>
               <td>{{ apt.appointment_type }}</td>
               <td>{% if apt.is_home_visit %}🏠 Hausbesuch{% else %}🏥 Praxis{% endif %}</td>
               <td><span class="status-badge status-{{ apt.status }}">{{ apt.status }}</span></td>
+              <td>
+                {% if apt.status == "confirmed" %}
+                <div style="display:flex;gap:6px;align-items:center;">
+                  <input type="text" value="{{ apt.therapist_notes }}" id="tnote-{{ apt.id }}"
+                    placeholder="Interne Notiz…"
+                    style="font-size:12px;padding:4px 8px;border:1px solid #d0e4ee;border-radius:6px;width:160px;">
+                  <button onclick="saveTherapistNote({{ apt.id }})" class="btn-small" style="font-size:11px;padding:4px 8px;">💾</button>
+                </div>
+                {% else %}
+                <span style="color:#6a8fa0;font-size:12px;">{{ apt.therapist_notes }}</span>
+                {% endif %}
+              </td>
               <td>{% if apt.status == "confirmed" %}<button onclick="openCancelModal({{ apt.id }})" class="btn-small btn-danger">Stornieren</button>{% endif %}</td>
             </tr>
             {% endfor %}
@@ -45,12 +93,12 @@
       </div>
     </div>
   </main>
-  
+
   <div id="cancel-modal-overlay" class="admin-modal-overlay">
     <div class="admin-modal">
       <h2>Termin stornieren</h2>
       <p>Möchtest du dem Kunden alternative Termine vorschlagen? (Optional)</p>
-      
+
       <div class="portal-form">
         <input type="hidden" id="cancel-appointment-id">
         <div class="form-group">
@@ -61,7 +109,7 @@
           <label>Vorschlag 2 (Optional)</label>
           <input type="datetime-local" id="cancel-suggest-2">
         </div>
-        
+
         <div class="modal-actions">
           <button class="btn-small" onclick="closeCancelModal()" style="background:#e5e7eb; color:#374151;">Abbrechen</button>
           <button class="btn-small btn-danger" onclick="confirmCancelWithSuggestions()" id="btn-cancel-confirm">
@@ -73,5 +121,49 @@
     </div>
   </div>
   <script src="/static/js/admin.js?v=6"></script>
+  <script>
+    async function createAppointment() {
+      const startTime = document.getElementById('new-apt-time').value;
+      const customerId = document.getElementById('new-apt-customer').value;
+      const notes = document.getElementById('new-apt-notes').value;
+      const msg = document.getElementById('create-apt-msg');
+
+      if (!startTime) { alert('Bitte Datum und Uhrzeit angeben'); return; }
+
+      const body = { start_time: startTime, notes: notes || null };
+      if (customerId) body.customer_id = parseInt(customerId);
+
+      const res = await fetch('/api/admin/appointments/create', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      msg.style.display = 'block';
+      if (data.success) {
+        msg.style.color = '#27ae60';
+        msg.textContent = '✓ Termin angelegt (ID: ' + data.appointment_id + ')';
+        setTimeout(() => location.reload(), 1500);
+      } else {
+        msg.style.color = '#e74c3c';
+        msg.textContent = data.error || 'Fehler beim Anlegen';
+      }
+    }
+
+    async function saveTherapistNote(id) {
+      const notes = document.getElementById('tnote-' + id).value;
+      const res = await fetch('/api/admin/appointments/' + id + '/therapist-notes', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ notes }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        const btn = event.target;
+        btn.textContent = '✓';
+        setTimeout(() => btn.textContent = '💾', 1500);
+      }
+    }
+  </script>
 </body>
 </html>

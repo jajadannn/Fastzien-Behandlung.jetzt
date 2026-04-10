@@ -283,6 +283,101 @@ impl EmailService {
         }
     }
 
+    /// 24h reminder sent to customer before appointment.
+    pub fn send_appointment_reminder(&self, to_email: &str, name: &str, date: &str, time: &str, is_home_visit: bool) {
+        let location = if is_home_visit {
+            "Hausbesuch – Thilo kommt zu dir".to_string()
+        } else {
+            "Praxis · Sulgauer Straße 24, 78713 Sulgen".to_string()
+        };
+        let subject = format!("Erinnerung: Dein Termin morgen um {}", time);
+        let body = format!(r#"
+            <div style="font-family: 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; background: #f7fbfd; border-radius: 16px; overflow: hidden;">
+                <div style="background: linear-gradient(135deg, #70AECD, #4d93b8); padding: 32px; text-align: center;">
+                    <h1 style="color: white; font-size: 22px; margin: 0;">Erinnerung: Termin morgen</h1>
+                </div>
+                <div style="padding: 32px;">
+                    <p style="color: #1a2a33; font-size: 16px;">Hallo {},</p>
+                    <p style="color: #3d5a6b; font-size: 15px; line-height: 1.7;">
+                        Dein Termin bei Faszienbehandlung Thilo Seifried ist morgen:
+                    </p>
+                    <div style="background: white; border: 1px solid rgba(112,174,205,0.2); border-radius: 12px; padding: 20px; margin: 20px 0;">
+                        <p style="margin: 4px 0; color: #1a2a33;"><strong>📅 Datum:</strong> {}</p>
+                        <p style="margin: 4px 0; color: #1a2a33;"><strong>🕐 Uhrzeit:</strong> {}</p>
+                        <p style="margin: 4px 0; color: #1a2a33;"><strong>📍 Ort:</strong> {}</p>
+                        <p style="margin: 4px 0; color: #1a2a33;"><strong>⏱ Dauer:</strong> ca. 90 Minuten</p>
+                    </div>
+                    <p style="color: #6a8fa0; font-size: 13px;">
+                        Bitte trinke am Behandlungstag ausreichend Wasser (mind. 1,5 Liter) und trage bequeme Kleidung.
+                    </p>
+                </div>
+            </div>
+        "#, name, date, time, location);
+
+        if let Err(e) = self.send_html(to_email, name, &subject, &body) {
+            error!("Failed to send appointment reminder: {}", e);
+        }
+    }
+
+    /// Review reminder sent ~2h after appointment end.
+    pub fn send_review_reminder(&self, to_email: &str, name: &str, date: &str) {
+        let subject = "Wie war deine Behandlung? Wir freuen uns über dein Feedback";
+        let body = format!(r#"
+            <div style="font-family: 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; background: #f7fbfd; border-radius: 16px; overflow: hidden;">
+                <div style="background: linear-gradient(135deg, #70AECD, #4d93b8); padding: 32px; text-align: center;">
+                    <h1 style="color: white; font-size: 22px; margin: 0;">Wie war deine Behandlung?</h1>
+                </div>
+                <div style="padding: 32px;">
+                    <p style="color: #1a2a33; font-size: 16px;">Hallo {},</p>
+                    <p style="color: #3d5a6b; font-size: 15px; line-height: 1.7;">
+                        Du warst heute am {} bei uns – wir hoffen, du fühlst dich gut und entspannt!
+                    </p>
+                    <p style="color: #3d5a6b; font-size: 15px; line-height: 1.7;">
+                        Dein Feedback hilft uns sehr und anderen Interessierten bei der Entscheidung. Eine kurze Bewertung dauert nur 1 Minute:
+                    </p>
+                    <div style="text-align: center; margin: 32px 0;">
+                        <a href="https://g.page/r/faszienbehandlung/review" style="display: inline-block; background: #964279; color: white; padding: 14px 36px; border-radius: 50px; text-decoration: none; font-weight: 600; font-size: 15px;">⭐ Bewertung schreiben</a>
+                    </div>
+                    <p style="color: #6a8fa0; font-size: 13px; text-align: center;">
+                        Vielen Dank – wir freuen uns auf deinen nächsten Besuch!
+                    </p>
+                </div>
+            </div>
+        "#, name, date);
+
+        if let Err(e) = self.send_html(to_email, name, subject, &body) {
+            error!("Failed to send review reminder: {}", e);
+        }
+    }
+
+    /// Notify waitlisted customer that a slot opened up.
+    pub fn send_waitlist_notification(&self, to_email: &str, name: &str, date: &str) {
+        let subject = format!("Ein Termin am {} ist frei geworden!", date);
+        let body = format!(r#"
+            <div style="font-family: 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; background: #f7fbfd; border-radius: 16px; overflow: hidden;">
+                <div style="background: linear-gradient(135deg, #70AECD, #4d93b8); padding: 32px; text-align: center;">
+                    <h1 style="color: white; font-size: 22px; margin: 0;">Ein Termin ist frei!</h1>
+                </div>
+                <div style="padding: 32px;">
+                    <p style="color: #1a2a33; font-size: 16px;">Hallo {},</p>
+                    <p style="color: #3d5a6b; font-size: 15px; line-height: 1.7;">
+                        Du stehst auf der Warteliste für den <strong>{}</strong> – und es ist gerade ein Termin freigeworden!
+                    </p>
+                    <p style="color: #3d5a6b; font-size: 15px; line-height: 1.7;">
+                        Bitte schnell sein – Termine werden nach dem Erstgebucht-Prinzip vergeben:
+                    </p>
+                    <div style="text-align: center; margin: 32px 0;">
+                        <a href="https://faszienbehandlung.jetzt/portal/book" style="display: inline-block; background: #964279; color: white; padding: 14px 36px; border-radius: 50px; text-decoration: none; font-weight: 600; font-size: 15px;">Jetzt Termin buchen</a>
+                    </div>
+                </div>
+            </div>
+        "#, name, date);
+
+        if let Err(e) = self.send_html(to_email, name, &subject, &body) {
+            error!("Failed to send waitlist notification: {}", e);
+        }
+    }
+
     pub fn send_appointment_suggestion(&self, to_email: &str, name: &str, slots_html: &str) {
         let subject = "Terminvorschläge – Faszienbehandlung Thilo Seifried";
         let body = format!(r#"

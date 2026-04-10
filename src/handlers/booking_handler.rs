@@ -6,7 +6,7 @@ use chrono::{NaiveDateTime, NaiveDate, NaiveTime, Duration, Datelike, Weekday};
 use crate::auth;
 use crate::config::Config;
 use crate::email::EmailService;
-use crate::models::appointment::{Appointment, BookingForm};
+use crate::models::appointment::{Appointment, BookingForm, RescheduleForm, WaitlistEntry};
 use crate::models::payment::{Payment, CreditPackage};
 use crate::models::customer::Customer;
 use crate::models::settings::SiteSetting;
@@ -250,6 +250,14 @@ pub async fn api_cancel(
             (crate::caldav::CalDavAuth::Basic { user, pass }, url)
         }
     };
+
+    // Notify waitlist for the cancelled date
+    let cancelled_date = appointment.start_time[..10].to_string();
+    let waitlist = WaitlistEntry::find_by_date(&conn, &cancelled_date).unwrap_or_default();
+    for entry in &waitlist {
+        let _ = WaitlistEntry::mark_notified(&conn, entry.id);
+    }
+
     let es = email_service.get_ref().clone();
     let email = customer.email.clone();
     let name = customer.full_name();
@@ -258,11 +266,15 @@ pub async fn api_cancel(
 
     tokio::spawn(async move {
         if let Ok(dt) = NaiveDateTime::parse_from_str(&start_time, "%Y-%m-%d %H:%M:%S") {
-            es.send_appointment_cancellation(
-                &email, &name,
-                &dt.format("%d.%m.%Y").to_string(),
-                &dt.format("%H:%M").to_string(),
-            );
+            let date_str = dt.format("%d.%m.%Y").to_string();
+            let time_str = dt.format("%H:%M").to_string();
+            es.send_appointment_cancellation(&email, &name, &date_str, &time_str);
+            // Notify waitlisted customers
+            for entry in &waitlist {
+                if let (Some(w_email), Some(w_name)) = (&entry.customer_email, &entry.customer_name) {
+                    es.send_waitlist_notification(w_email, w_name, &date_str);
+                }
+            }
         }
         if !del_url.is_empty() {
             match &del_auth {
@@ -391,4 +403,229 @@ pub async fn api_available_slots(
         .append_header(("Cache-Control", "no-store, no-cache, must-revalidate"))
         .append_header(("Pragma", "no-cache"))
         .json(serde_json::json!({"slots": slots}))
+}
+
+/// POST /api/appointments/{id}/reschedule — cancel existing and rebook in one step
+pub async fn api_reschedule(
+    req: HttpRequest,
+    path: web::Path<i64>,
+    form: web::Json<RescheduleForm>,
+    db: web::Data<Mutex<Connection>>,
+    jwt_secret: web::Data<String>,
+    email_service: web::Data<EmailService>,
+    config: web::Data<Config>,
+) -> HttpResponse {
+    let claims = match auth::get_claims(&req, &jwt_secret) {
+        Some(c) => c,
+        None => return HttpResponse::Unauthorized().json(serde_json::json!({"error": "Nicht angemeldet"})),
+    };
+
+    let appointment_id = path.into_inner();
+
+    let date = match NaiveDate::parse_from_str(&form.date, "%Y-%m-%d") {
+        Ok(d) => d,
+        Err(_) => return HttpResponse::BadRequest().json(serde_json::json!({"error": "Ungültiges Datum"})),
+    };
+    let time = match NaiveTime::parse_from_str(&form.time, "%H:%M") {
+        Ok(t) => t,
+        Err(_) => return HttpResponse::BadRequest().json(serde_json::json!({"error": "Ungültige Uhrzeit"})),
+    };
+
+    let now = chrono::Utc::now().naive_utc();
+
+    // Phase 1: Load settings + validate old appointment
+    let (old_appointment, caldav_auth, calendar_urls, primary_url, duration_min) = {
+        let conn = db.lock().unwrap_or_else(|e| e.into_inner());
+
+        let old = match Appointment::find_by_id(&conn, appointment_id) {
+            Ok(Some(a)) => a,
+            _ => return HttpResponse::NotFound().json(serde_json::json!({"error": "Termin nicht gefunden"})),
+        };
+
+        if old.customer_id != claims.sub && !claims.is_admin {
+            return HttpResponse::Forbidden().json(serde_json::json!({"error": "Zugriff verweigert"}));
+        }
+        if old.status != "confirmed" {
+            return HttpResponse::BadRequest().json(serde_json::json!({"error": "Nur bestätigte Termine können verschoben werden"}));
+        }
+
+        // 24h cancellation policy
+        let cancellation_hours: i64 = SiteSetting::get_or_default(&conn, "cancellation_hours", "24").parse().unwrap_or(24);
+        if let Ok(old_start) = NaiveDateTime::parse_from_str(&old.start_time, "%Y-%m-%d %H:%M:%S") {
+            if now > old_start - Duration::hours(cancellation_hours) && !claims.is_admin {
+                return HttpResponse::BadRequest().json(serde_json::json!({
+                    "error": format!("Verschieben nur bis {} Stunden vor dem Termin möglich", cancellation_hours)
+                }));
+            }
+        }
+
+        let duration_min: i64 = SiteSetting::get_or_default(&conn, "appointment_duration_min", "90").parse().unwrap_or(90);
+        let access_token = SiteSetting::get_or_default(&conn, "nextcloud_access_token", "");
+        let all_urls_str = SiteSetting::get_or_default(&conn, "nextcloud_all_calendar_urls", "");
+        let primary_url = SiteSetting::get_or_default(&conn, "nextcloud_primary_calendar_url", "");
+
+        let (auth, urls) = if !access_token.is_empty() && !all_urls_str.is_empty() {
+            let urls = all_urls_str.split(',').map(|s| s.trim().to_string()).filter(|s| !s.is_empty()).collect();
+            (crate::caldav::CalDavAuth::Bearer(access_token), urls)
+        } else {
+            let url = SiteSetting::get_or_default(&conn, "nextcloud_caldav_url", "");
+            let user = SiteSetting::get_or_default(&conn, "nextcloud_caldav_username", "");
+            let pass = SiteSetting::get_or_default(&conn, "nextcloud_caldav_password", "");
+            let urls = if url.is_empty() { vec![] } else { vec![url] };
+            (crate::caldav::CalDavAuth::Basic { user, pass }, urls)
+        };
+
+        (old, auth, urls, primary_url, duration_min)
+    };
+
+    let new_start = NaiveDateTime::new(date, time);
+    let new_end = new_start + Duration::minutes(duration_min);
+    let new_start_str = new_start.format("%Y-%m-%d %H:%M:%S").to_string();
+    let new_end_str = new_end.format("%Y-%m-%d %H:%M:%S").to_string();
+
+    if new_start <= now {
+        return HttpResponse::BadRequest().json(serde_json::json!({"error": "Neuer Termin muss in der Zukunft liegen"}));
+    }
+    if new_start - now < Duration::hours(24) {
+        return HttpResponse::BadRequest().json(serde_json::json!({"error": "Termine können frühestens 24 Stunden im Voraus gebucht werden"}));
+    }
+
+    // Phase 2: CalDAV conflict check for new slot
+    if !calendar_urls.is_empty() {
+        let auth = match &caldav_auth {
+            crate::caldav::CalDavAuth::Bearer(_) => {
+                if let Some(tok) = crate::handlers::oauth_handler::ensure_valid_token(&db).await {
+                    crate::caldav::CalDavAuth::Bearer(tok)
+                } else { caldav_auth.clone() }
+            }
+            other => other.clone(),
+        };
+        let busy = crate::caldav::fetch_busy_periods_multi(&calendar_urls, &auth, &date).await;
+        if crate::caldav::has_conflict(&busy, &new_start, &new_end) {
+            return HttpResponse::Conflict().json(serde_json::json!({"error": "Der neue Zeitraum ist durch einen anderen Termin belegt"}));
+        }
+    }
+
+    // Phase 3: cancel old + create new under lock
+    let (new_id, customer) = {
+        let conn = db.lock().unwrap_or_else(|e| e.into_inner());
+
+        // Check new slot in DB
+        match Appointment::is_slot_available(&conn, &new_start_str, &new_end_str) {
+            Ok(false) => return HttpResponse::Conflict().json(serde_json::json!({"error": "Dieser Zeitraum ist bereits belegt"})),
+            Err(e) => return HttpResponse::InternalServerError().json(serde_json::json!({"error": format!("{}", e)})),
+            _ => {}
+        }
+
+        let _ = Appointment::cancel(&conn, appointment_id);
+        // Reset pending payment for old appointment
+        let _ = conn.execute(
+            "UPDATE payments SET status = 'cancelled' WHERE appointment_id = ?1 AND status = 'pending'",
+            rusqlite::params![appointment_id],
+        );
+
+        let customer = Customer::find_by_id(&conn, old_appointment.customer_id).unwrap().unwrap();
+
+        // Create new appointment with same type/visit/notes
+        let new_id = Appointment::create(
+            &conn, old_appointment.customer_id, &new_start_str, &new_end_str,
+            &old_appointment.appointment_type, old_appointment.is_home_visit, &old_appointment.notes
+        ).unwrap();
+
+        // Create new payment
+        let price_single: f64 = SiteSetting::get_or_default(&conn, "price_single", "195").replace(',', ".").parse().unwrap_or(195.0);
+        let home_surcharge: f64 = SiteSetting::get_or_default(&conn, "home_visit_surcharge", "15").replace(',', ".").parse().unwrap_or(15.0);
+        if old_appointment.appointment_type == "pack" {
+            let active_credits = crate::models::payment::CreditPackage::find_active_by_customer(&conn, old_appointment.customer_id).unwrap_or_default();
+            if let Some(credit) = active_credits.first() {
+                let amount = credit.price_per_session + if old_appointment.is_home_visit { home_surcharge } else { 0.0 };
+                let _ = Payment::create(&conn, old_appointment.customer_id, Some(new_id), amount, "pack");
+            }
+        } else {
+            let amount = price_single + if old_appointment.is_home_visit { home_surcharge } else { 0.0 };
+            let _ = Payment::create(&conn, old_appointment.customer_id, Some(new_id), amount, "single");
+        }
+
+        (new_id, customer)
+    };
+
+    let date_str = date.format("%d.%m.%Y").to_string();
+    let time_str = time.format("%H:%M").to_string();
+    let admin_email = config.admin_email.clone();
+    let es = email_service.get_ref().clone();
+    let cust_email = customer.email.clone();
+    let cust_name = customer.full_name();
+    let cust_phone = customer.phone.clone();
+    let cust_addr = customer.full_address();
+    let notes_owned = old_appointment.notes.clone();
+    let is_home_visit = old_appointment.is_home_visit;
+    let push_url = primary_url.clone();
+    let push_auth = caldav_auth.clone();
+    let old_id = appointment_id;
+    let del_url = primary_url.clone();
+    let del_auth = caldav_auth.clone();
+
+    tokio::spawn(async move {
+        es.send_appointment_confirmation(&cust_email, &cust_name, &date_str, &time_str, is_home_visit);
+        es.send_admin_booking_notification(&admin_email, &cust_name, &cust_phone, &cust_addr, &date_str, &time_str, &notes_owned, is_home_visit);
+        // Delete old CalDAV event
+        if !del_url.is_empty() {
+            match &del_auth {
+                crate::caldav::CalDavAuth::Bearer(tok) => crate::caldav::delete_event_bearer(&del_url, tok, old_id).await,
+                crate::caldav::CalDavAuth::Basic { user, pass } => crate::caldav::delete_event(&del_url, user, pass, old_id).await,
+            }
+        }
+        // Push new CalDAV event
+        if !push_url.is_empty() {
+            match &push_auth {
+                crate::caldav::CalDavAuth::Bearer(tok) =>
+                    crate::caldav::push_event_bearer(&push_url, tok, new_id, &new_start, &new_end, &cust_name, &cust_phone, &cust_addr, &notes_owned, is_home_visit).await,
+                crate::caldav::CalDavAuth::Basic { user, pass } =>
+                    crate::caldav::push_event(&push_url, user, pass, new_id, &new_start, &new_end, &cust_name, &cust_phone, &cust_addr, &notes_owned, is_home_visit).await,
+            }
+        }
+    });
+
+    HttpResponse::Ok().json(serde_json::json!({"success": true, "new_appointment_id": new_id}))
+}
+
+#[derive(serde::Deserialize)]
+pub struct WaitlistForm {
+    pub date: String,
+}
+
+/// POST /api/appointments/waitlist/add
+pub async fn api_waitlist_add(
+    req: HttpRequest,
+    form: web::Json<WaitlistForm>,
+    db: web::Data<Mutex<Connection>>,
+    jwt_secret: web::Data<String>,
+) -> HttpResponse {
+    let claims = match auth::get_claims(&req, &jwt_secret) {
+        Some(c) => c,
+        None => return HttpResponse::Unauthorized().json(serde_json::json!({"error": "Nicht angemeldet"})),
+    };
+    let conn = db.lock().unwrap_or_else(|e| e.into_inner());
+    match WaitlistEntry::add(&conn, claims.sub, &form.date) {
+        Ok(_) => HttpResponse::Ok().json(serde_json::json!({"success": true})),
+        Err(e) => HttpResponse::InternalServerError().json(serde_json::json!({"error": format!("{}", e)})),
+    }
+}
+
+/// POST /api/appointments/waitlist/remove
+pub async fn api_waitlist_remove(
+    req: HttpRequest,
+    form: web::Json<WaitlistForm>,
+    db: web::Data<Mutex<Connection>>,
+    jwt_secret: web::Data<String>,
+) -> HttpResponse {
+    let claims = match auth::get_claims(&req, &jwt_secret) {
+        Some(c) => c,
+        None => return HttpResponse::Unauthorized().json(serde_json::json!({"error": "Nicht angemeldet"})),
+    };
+    let conn = db.lock().unwrap_or_else(|e| e.into_inner());
+    match WaitlistEntry::remove(&conn, claims.sub, &form.date) {
+        Ok(_) => HttpResponse::Ok().json(serde_json::json!({"success": true})),
+        Err(e) => HttpResponse::InternalServerError().json(serde_json::json!({"error": format!("{}", e)})),
+    }
 }

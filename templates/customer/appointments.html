@@ -36,6 +36,9 @@
         <p>Übersicht aller deiner Termine</p>
       </div>
 
+      <div id="error-msg" class="portal-error" style="display:none"></div>
+      <div id="success-msg" class="portal-success" style="display:none"></div>
+
       {% if appointments | length == 0 %}
       <div class="empty-state">
         <div class="empty-icon">📅</div>
@@ -64,16 +67,124 @@
           {% if apt.status == "confirmed" %}
           <div class="apt-actions">
             <button class="btn-cancel" onclick="cancelAppointment({{ apt.id }})">Stornieren</button>
+            <button class="btn-small" style="background:#70AECD;color:white;border:none;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;" onclick="openReschedule({{ apt.id }})">Verschieben</button>
           </div>
           {% endif %}
         </div>
         {% endfor %}
       </div>
       {% endif %}
+
+      <!-- Rechnung-Links für bezahlte Termine -->
+      <div style="margin-top:32px;">
+        <h3 style="color:#3d5a6b;">Rechnungen</h3>
+        <p style="color:#6a8fa0;font-size:14px;">Rechnungen für abgeschlossene Zahlungen als PDF speichern.</p>
+        <a href="/portal/credits" class="btn-small" style="background:#f0f7fb;color:#3d5a6b;border:1px solid #d0e4ee;padding:8px 16px;border-radius:8px;text-decoration:none;display:inline-block;">Zu Zahlungen & Rechnungen →</a>
+      </div>
+
+      <!-- Warteliste -->
+      <div style="margin-top:32px;padding:20px;background:white;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+        <h3 style="color:#3d5a6b;margin:0 0 8px;">Warteliste</h3>
+        <p style="color:#6a8fa0;font-size:14px;margin:0 0 12px;">Kein freier Termin? Trage dich auf die Warteliste ein und wir benachrichtigen dich wenn ein Platz frei wird.</p>
+        <div style="display:flex;gap:12px;align-items:end;">
+          <div class="form-group" style="margin:0;">
+            <label style="font-size:13px;color:#3d5a6b;">Datum</label>
+            <input type="date" id="waitlist-date" min="{{ '' }}" style="padding:8px 12px;border:1px solid #d0e4ee;border-radius:8px;">
+          </div>
+          <button onclick="addToWaitlist()" class="btn-small" style="background:#964279;color:white;border:none;">Auf Warteliste</button>
+        </div>
+        <div id="waitlist-msg" style="margin-top:8px;font-size:13px;display:none;"></div>
+      </div>
     </div>
   </main>
 
+  <!-- Reschedule modal -->
+  <div id="reschedule-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;display:none;align-items:center;justify-content:center;">
+    <div style="background:white;border-radius:16px;padding:32px;max-width:400px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,0.2);">
+      <h3 style="margin:0 0 16px;color:#1a2a33;">Termin verschieben</h3>
+      <input type="hidden" id="reschedule-id">
+      <div class="form-group">
+        <label>Neues Datum</label>
+        <input type="date" id="reschedule-date">
+      </div>
+      <div class="form-group">
+        <label>Neue Uhrzeit</label>
+        <input type="time" id="reschedule-time" step="1800">
+      </div>
+      <div id="reschedule-msg" style="font-size:13px;color:#e74c3c;display:none;margin-bottom:12px;"></div>
+      <div style="display:flex;gap:12px;">
+        <button onclick="closeReschedule()" style="flex:1;padding:10px;background:#e5e7eb;color:#374151;border:none;border-radius:8px;cursor:pointer;">Abbrechen</button>
+        <button onclick="confirmReschedule()" style="flex:1;padding:10px;background:#70AECD;color:white;border:none;border-radius:8px;cursor:pointer;font-weight:600;">Bestätigen</button>
+      </div>
+    </div>
+  </div>
+
   <script src="/static/js/customer.js?v=6"></script>
+  <script>
+    // Set min date for waitlist to tomorrow
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    document.getElementById('waitlist-date').min = tomorrow.toISOString().split('T')[0];
+
+    function openReschedule(id) {
+      document.getElementById('reschedule-id').value = id;
+      document.getElementById('reschedule-date').value = '';
+      document.getElementById('reschedule-time').value = '';
+      document.getElementById('reschedule-msg').style.display = 'none';
+      const overlay = document.getElementById('reschedule-overlay');
+      overlay.style.display = 'flex';
+    }
+
+    function closeReschedule() {
+      document.getElementById('reschedule-overlay').style.display = 'none';
+    }
+
+    async function confirmReschedule() {
+      const id = document.getElementById('reschedule-id').value;
+      const date = document.getElementById('reschedule-date').value;
+      const time = document.getElementById('reschedule-time').value;
+      const msg = document.getElementById('reschedule-msg');
+
+      if (!date || !time) { msg.textContent = 'Bitte Datum und Uhrzeit angeben.'; msg.style.display='block'; return; }
+
+      const res = await fetch('/api/appointments/' + id + '/reschedule', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ date, time }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        closeReschedule();
+        document.getElementById('success-msg').textContent = '✓ Termin erfolgreich verschoben!';
+        document.getElementById('success-msg').style.display = 'block';
+        setTimeout(() => location.reload(), 1500);
+      } else {
+        msg.textContent = data.error || 'Fehler beim Verschieben.';
+        msg.style.display = 'block';
+      }
+    }
+
+    async function addToWaitlist() {
+      const date = document.getElementById('waitlist-date').value;
+      const msg = document.getElementById('waitlist-msg');
+      if (!date) { msg.textContent = 'Bitte ein Datum wählen.'; msg.style.color='#e74c3c'; msg.style.display='block'; return; }
+
+      const res = await fetch('/api/appointments/waitlist/add', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ date }),
+      });
+      const data = await res.json();
+      msg.style.display = 'block';
+      if (data.success) {
+        msg.style.color = '#27ae60';
+        msg.textContent = '✓ Du stehst auf der Warteliste für ' + date + '. Wir melden uns!';
+      } else {
+        msg.style.color = '#e74c3c';
+        msg.textContent = data.error || 'Fehler';
+      }
+    }
+  </script>
 </body>
 
 </html>

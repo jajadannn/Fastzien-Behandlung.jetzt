@@ -48,6 +48,17 @@ impl Payment {
         Ok(conn.last_insert_rowid())
     }
 
+    pub fn find_by_id(conn: &Connection, id: i64) -> Result<Option<Self>> {
+        let mut stmt = conn.prepare(
+            "SELECT id, customer_id, appointment_id, amount, payment_type, status, notes, paid_at, created_at FROM payments WHERE id = ?1"
+        )?;
+        let mut rows = stmt.query(params![id])?;
+        match rows.next()? {
+            Some(row) => Ok(Some(Self::from_row(row)?)),
+            None => Ok(None),
+        }
+    }
+
     pub fn find_by_customer(conn: &Connection, customer_id: i64) -> Result<Vec<Self>> {
         let mut stmt = conn.prepare(
             "SELECT id, customer_id, appointment_id, amount, payment_type, status, notes, paid_at, created_at FROM payments WHERE customer_id = ?1 ORDER BY created_at DESC"

@@ -69,6 +69,47 @@ async fn main() -> std::io::Result<()> {
     let jwt_secret = web::Data::new(config.jwt_secret.clone());
     let config_data = web::Data::new(config.clone());
 
+    // Background task: send reminders + review prompts every hour
+    {
+        let db_bg = db_data.clone();
+        let es_bg = email_data.clone();
+        tokio::spawn(async move {
+            loop {
+                tokio::time::sleep(std::time::Duration::from_secs(3600)).await;
+                let appointments = {
+                    let conn = db_bg.lock().unwrap_or_else(|e| e.into_inner());
+                    crate::models::appointment::Appointment::find_needing_reminders(&conn).unwrap_or_default()
+                };
+                for apt in appointments {
+                    if let Ok(dt) = chrono::NaiveDateTime::parse_from_str(&apt.start_time, "%Y-%m-%d %H:%M:%S") {
+                        let date_s = dt.format("%d.%m.%Y").to_string();
+                        let time_s = dt.format("%H:%M").to_string();
+                        if let (Some(email), Some(name)) = (&apt.customer_email, &apt.customer_name) {
+                            es_bg.send_appointment_reminder(email, name, &date_s, &time_s, apt.is_home_visit);
+                        }
+                        let conn = db_bg.lock().unwrap_or_else(|e| e.into_inner());
+                        let _ = crate::models::appointment::Appointment::mark_reminder_sent(&conn, apt.id);
+                    }
+                }
+                // Review reminders
+                let review_apts = {
+                    let conn = db_bg.lock().unwrap_or_else(|e| e.into_inner());
+                    crate::models::appointment::Appointment::find_needing_review_reminders(&conn).unwrap_or_default()
+                };
+                for apt in review_apts {
+                    if let Ok(dt) = chrono::NaiveDateTime::parse_from_str(&apt.start_time, "%Y-%m-%d %H:%M:%S") {
+                        let date_s = dt.format("%d.%m.%Y").to_string();
+                        if let (Some(email), Some(name)) = (&apt.customer_email, &apt.customer_name) {
+                            es_bg.send_review_reminder(email, name, &date_s);
+                        }
+                        let conn = db_bg.lock().unwrap_or_else(|e| e.into_inner());
+                        let _ = crate::models::appointment::Appointment::mark_review_reminder_sent(&conn, apt.id);
+                    }
+                }
+            }
+        });
+    }
+
     log::info!("Starting server at http://{}", bind_addr);
 
     HttpServer::new(move || {
@@ -109,10 +150,15 @@ async fn main() -> std::io::Result<()> {
             .route("/api/customer/resend-verification", web::post().to(handlers::auth_handler::api_resend_verification))
             .route("/api/customer/export-data", web::get().to(handlers::customer_handler::api_export_data))
             .route("/api/customer/delete-account", web::delete().to(handlers::customer_handler::api_delete_account))
+            .route("/api/customer/invoices/{payment_id}", web::get().to(handlers::customer_handler::api_invoice))
+            .route("/portal/waitlist", web::get().to(handlers::customer_handler::waitlist_page))
             // Booking API
             .route("/api/appointments/book", web::post().to(handlers::booking_handler::api_book))
             .route("/api/appointments/{id}/cancel", web::post().to(handlers::booking_handler::api_cancel))
+            .route("/api/appointments/{id}/reschedule", web::post().to(handlers::booking_handler::api_reschedule))
             .route("/api/appointments/available-slots", web::get().to(handlers::booking_handler::api_available_slots))
+            .route("/api/appointments/waitlist/add", web::post().to(handlers::booking_handler::api_waitlist_add))
+            .route("/api/appointments/waitlist/remove", web::post().to(handlers::booking_handler::api_waitlist_remove))
             // Calendar exports (token-based, Nextcloud/iOS/Google compatible)
             .route("/api/calendar/{token}/termine.ics", web::get().to(handlers::calendar_handler::customer_calendar_ics))
             .route("/api/admin/calendar/{token}/alle-termine.ics", web::get().to(handlers::calendar_handler::admin_calendar_ics))
@@ -134,7 +180,10 @@ async fn main() -> std::io::Result<()> {
             .route("/api/admin/settings", web::post().to(handlers::admin_handler::api_save_settings))
             .route("/api/admin/appointments/suggest", web::post().to(handlers::admin_handler::api_suggest_appointment))
             .route("/api/admin/appointments/cancel-suggest", web::post().to(handlers::admin_handler::api_cancel_with_suggestions))
+            .route("/api/admin/appointments/create", web::post().to(handlers::admin_handler::api_create_appointment))
+            .route("/api/admin/appointments/{id}/therapist-notes", web::post().to(handlers::admin_handler::api_update_therapist_notes))
             .route("/api/admin/test-caldav", web::get().to(handlers::admin_handler::api_test_caldav))
+            .route("/admin/stats", web::get().to(handlers::admin_handler::stats_page))
             // Nextcloud OAuth2
             .route("/admin/nextcloud/connect", web::get().to(handlers::oauth_handler::nextcloud_connect))
             .route("/admin/nextcloud/callback", web::get().to(handlers::oauth_handler::nextcloud_callback))

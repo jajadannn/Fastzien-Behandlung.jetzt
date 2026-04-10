@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Warteliste – Faszienbehandlung</title>
+  <link rel="icon" href="/favicon.v1.ico">
+  <link rel="preload" href="/fonts/cormorant-garamond-normal-latin.v1.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/dm-sans-latin.v1.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/static/css/main.css">
+  <link rel="stylesheet" href="/static/css/customer.css">
+</head>
+<body>
+  <nav class="portal-nav">
+    <a href="/" class="portal-logo">
+      <img src="/Logo.png" alt="Faszienbehandlung" height="32">
+      <span>Kundenportal</span>
+    </a>
+    <div class="portal-nav-links">
+      <a href="/portal">Dashboard</a>
+      <a href="/portal/book">Buchen</a>
+      <a href="/portal/appointments">Termine</a>
+      <a href="/portal/credits">Guthaben</a>
+      <a href="/portal/profile">Profil</a>
+      {% if is_admin %}<a href="/admin" class="nav-admin">⚙️ Admin</a>{% endif %}
+      <a href="/logout" class="nav-logout" style="text-decoration: none;">Abmelden</a>
+    </div>
+  </nav>
+
+  <main class="portal-main">
+    <div class="portal-container">
+      <div class="portal-welcome">
+        <h1>Warteliste</h1>
+        <p>Du wirst per E-Mail benachrichtigt wenn ein Termin frei wird.</p>
+      </div>
+
+      {% if waitlist | length == 0 %}
+      <div class="empty-state">
+        <div class="empty-icon">📋</div>
+        <h3>Keine Einträge</h3>
+        <p>Du stehst auf keiner Warteliste.</p>
+        <a href="/portal/appointments" class="auth-btn" style="display:inline-block;text-decoration:none;text-align:center;">Zur Terminseite</a>
+      </div>
+      {% else %}
+      <div class="appointment-list">
+        {% for entry in waitlist %}
+        <div class="appointment-card">
+          <div class="apt-details">
+            <div class="apt-time">📅 {{ entry.date }}</div>
+            <div class="apt-type">{% if entry.notified %}Benachrichtigt{% else %}Warte auf freien Termin{% endif %}</div>
+          </div>
+          <div class="apt-actions">
+            <button class="btn-cancel" onclick="removeFromWaitlist('{{ entry.date }}', this)">Entfernen</button>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+  </main>
+
+  <script>
+    async function removeFromWaitlist(date, btn) {
+      const res = await fetch('/api/appointments/waitlist/remove', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ date }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        btn.closest('.appointment-card').remove();
+      }
+    }
+  </script>
+</body>
+</html>

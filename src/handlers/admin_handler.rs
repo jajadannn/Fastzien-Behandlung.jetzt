@@ -8,7 +8,7 @@ use reqwest;
 use crate::auth;
 use crate::email::EmailService;
 use crate::models::customer::Customer;
-use crate::models::appointment::Appointment;
+use crate::models::appointment::{Appointment, WaitlistEntry};
 use crate::models::payment::{Payment, CreditPackage};
 use crate::models::faq::{Faq, FaqForm};
 use crate::models::review::{Review, ReviewForm};
@@ -509,6 +509,15 @@ pub async fn api_cancel_with_suggestions(
             (crate::caldav::CalDavAuth::Basic { user, pass }, url)
         }
     };
+    // Notify waitlist for the cancelled date
+    let cancelled_date = appointment.start_time[..10].to_string();
+    let waitlist = WaitlistEntry::find_by_date(&conn, &cancelled_date).unwrap_or_default();
+
+    // Mark waitlist entries as notified before drop
+    for entry in &waitlist {
+        let _ = WaitlistEntry::mark_notified(&conn, entry.id);
+    }
+
     let es = email_service.get_ref().clone();
     let email = customer.email.clone();
     let name = customer.full_name();
@@ -530,6 +539,12 @@ pub async fn api_cancel_with_suggestions(
                 es.send_appointment_cancellation(&email, &name, &date_str, &time_str);
             } else {
                 es.send_admin_cancellation_with_suggestions(&email, &name, &date_str, &time_str, &slots_html);
+            }
+            // Waitlist notifications
+            for entry in &waitlist {
+                if let (Some(w_email), Some(w_name)) = (&entry.customer_email, &entry.customer_name) {
+                    es.send_waitlist_notification(w_email, w_name, &date_str);
+                }
             }
         }
         if !del_url.is_empty() {
@@ -637,5 +652,219 @@ pub async fn api_test_caldav(
             "success": false,
             "error": format!("Fehler: {}", e)
         })),
+    }
+}
+
+// ============ Admin: create appointment manually ============
+
+#[derive(Deserialize)]
+pub struct AdminCreateAppointmentForm {
+    pub start_time: String,  // "YYYY-MM-DDTHH:MM"
+    pub customer_id: Option<i64>,  // None = blocked slot
+    pub is_home_visit: Option<bool>,
+    pub notes: Option<String>,
+    pub appointment_type: Option<String>, // "single", "pack", "blocked"
+}
+
+pub async fn api_create_appointment(
+    req: HttpRequest,
+    form: web::Json<AdminCreateAppointmentForm>,
+    db: web::Data<Mutex<Connection>>,
+    jwt_secret: web::Data<String>,
+    email_service: web::Data<EmailService>,
+    config: web::Data<crate::config::Config>,
+) -> HttpResponse {
+    if let Err(r) = require_admin(&req, &jwt_secret) { return r; }
+
+    let start = match chrono::NaiveDateTime::parse_from_str(&form.start_time, "%Y-%m-%dT%H:%M") {
+        Ok(dt) => dt,
+        Err(_) => return HttpResponse::BadRequest().json(serde_json::json!({"error": "Ungültiges Datum/Uhrzeit"})),
+    };
+
+    let conn = db.lock().unwrap_or_else(|e| e.into_inner());
+    let duration_min: i64 = SiteSetting::get_or_default(&conn, "appointment_duration_min", "90").parse().unwrap_or(90);
+    let end = start + chrono::Duration::minutes(duration_min);
+
+    let start_str = start.format("%Y-%m-%d %H:%M:%S").to_string();
+    let end_str = end.format("%Y-%m-%d %H:%M:%S").to_string();
+
+    let is_blocked = form.appointment_type.as_deref() == Some("blocked") || form.customer_id.is_none();
+    let appointment_type = if is_blocked { "blocked" } else {
+        form.appointment_type.as_deref().unwrap_or("single")
+    };
+
+    // For blocked slots, use admin (customer_id = 1) as placeholder
+    let customer_id = if is_blocked {
+        // find admin id
+        conn.query_row("SELECT id FROM customers WHERE is_admin = 1 LIMIT 1", [], |r| r.get(0)).unwrap_or(1)
+    } else {
+        form.customer_id.unwrap()
+    };
+
+    let is_home_visit = form.is_home_visit.unwrap_or(false);
+    let notes = form.notes.as_deref().unwrap_or("");
+
+    let appointment_id = match Appointment::create(&conn, customer_id, &start_str, &end_str, appointment_type, is_home_visit, notes) {
+        Ok(id) => id,
+        Err(e) => return HttpResponse::InternalServerError().json(serde_json::json!({"error": format!("{}", e)})),
+    };
+
+    // For real appointments (not blocked), create payment and send email
+    if !is_blocked {
+        let price_single: f64 = SiteSetting::get_or_default(&conn, "price_single", "195").replace(',', ".").parse().unwrap_or(195.0);
+        let home_surcharge: f64 = SiteSetting::get_or_default(&conn, "home_visit_surcharge", "15").replace(',', ".").parse().unwrap_or(15.0);
+        let active_credits = CreditPackage::find_active_by_customer(&conn, customer_id).unwrap_or_default();
+        if !active_credits.is_empty() {
+            let credit = &active_credits[0];
+            let _ = CreditPackage::use_session(&conn, credit.id);
+            let amount = credit.price_per_session + if is_home_visit { home_surcharge } else { 0.0 };
+            let _ = Payment::create(&conn, customer_id, Some(appointment_id), amount, "pack");
+        } else {
+            let amount = price_single + if is_home_visit { home_surcharge } else { 0.0 };
+            let _ = Payment::create(&conn, customer_id, Some(appointment_id), amount, "single");
+        }
+
+        if let Ok(Some(customer)) = Customer::find_by_id(&conn, customer_id) {
+            let date_str = start.format("%d.%m.%Y").to_string();
+            let time_str = start.format("%H:%M").to_string();
+            let es = email_service.get_ref().clone();
+            let cust_email = customer.email.clone();
+            let cust_name = customer.full_name();
+            let admin_email = config.admin_email.clone();
+            let cust_phone = customer.phone.clone();
+            let cust_addr = customer.full_address();
+            let notes_owned = notes.to_string();
+            drop(conn);
+            tokio::spawn(async move {
+                es.send_appointment_confirmation(&cust_email, &cust_name, &date_str, &time_str, is_home_visit);
+                es.send_admin_booking_notification(&admin_email, &cust_name, &cust_phone, &cust_addr, &date_str, &time_str, &notes_owned, is_home_visit);
+            });
+        }
+    }
+
+    HttpResponse::Ok().json(serde_json::json!({"success": true, "appointment_id": appointment_id}))
+}
+
+// ============ Admin: therapist notes ============
+
+#[derive(Deserialize)]
+pub struct TherapistNotesForm {
+    pub notes: String,
+}
+
+pub async fn api_update_therapist_notes(
+    req: HttpRequest,
+    path: web::Path<i64>,
+    form: web::Json<TherapistNotesForm>,
+    db: web::Data<Mutex<Connection>>,
+    jwt_secret: web::Data<String>,
+) -> HttpResponse {
+    if let Err(r) = require_admin(&req, &jwt_secret) { return r; }
+
+    let appointment_id = path.into_inner();
+    let conn = db.lock().unwrap_or_else(|e| e.into_inner());
+    match Appointment::update_therapist_notes(&conn, appointment_id, &form.notes) {
+        Ok(_) => HttpResponse::Ok().json(serde_json::json!({"success": true})),
+        Err(e) => HttpResponse::InternalServerError().json(serde_json::json!({"error": format!("{}", e)})),
+    }
+}
+
+// ============ Admin: statistics page ============
+
+pub async fn stats_page(
+    req: HttpRequest,
+    tmpl: web::Data<Tera>,
+    db: web::Data<Mutex<Connection>>,
+    jwt_secret: web::Data<String>,
+) -> HttpResponse {
+    if let Err(r) = require_admin(&req, &jwt_secret) { return r; }
+
+    let conn = db.lock().unwrap_or_else(|e| e.into_inner());
+
+    // Monthly revenue + booking count for last 6 months
+    let months_data: Vec<serde_json::Value> = {
+        let mut stmt = conn.prepare(
+            "SELECT strftime('%Y-%m', a.start_time) as month, COUNT(*) as count, COALESCE(SUM(p.amount), 0) as revenue FROM appointments a LEFT JOIN payments p ON p.appointment_id = a.id AND p.status != 'cancelled' WHERE a.status != 'cancelled' AND a.appointment_type != 'blocked' AND a.start_time >= datetime('now', '-6 months') GROUP BY month ORDER BY month ASC"
+        ).unwrap();
+        stmt.query_map([], |row| {
+            Ok(serde_json::json!({
+                "month": row.get::<_, String>(0)?,
+                "count": row.get::<_, i64>(1)?,
+                "revenue": row.get::<_, f64>(2)?,
+            }))
+        }).unwrap().filter_map(|r| r.ok()).collect()
+    };
+
+    // Total stats
+    let total_revenue: f64 = conn.query_row(
+        "SELECT COALESCE(SUM(amount), 0) FROM payments WHERE status = 'paid'", [], |r| r.get(0)
+    ).unwrap_or(0.0);
+
+    let total_appointments: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM appointments WHERE status != 'cancelled' AND appointment_type != 'blocked'", [], |r| r.get(0)
+    ).unwrap_or(0);
+
+    let pending_revenue: f64 = conn.query_row(
+        "SELECT COALESCE(SUM(amount), 0) FROM payments WHERE status = 'pending'", [], |r| r.get(0)
+    ).unwrap_or(0.0);
+
+    // This month
+    let this_month_revenue: f64 = conn.query_row(
+        "SELECT COALESCE(SUM(p.amount), 0) FROM payments p JOIN appointments a ON p.appointment_id = a.id WHERE p.status = 'paid' AND strftime('%Y-%m', a.start_time) = strftime('%Y-%m', 'now')", [], |r| r.get(0)
+    ).unwrap_or(0.0);
+
+    let this_month_count: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM appointments WHERE status != 'cancelled' AND appointment_type != 'blocked' AND strftime('%Y-%m', start_time) = strftime('%Y-%m', 'now')", [], |r| r.get(0)
+    ).unwrap_or(0);
+
+    // Popular booking hours
+    let popular_hours: Vec<serde_json::Value> = {
+        let mut stmt = conn.prepare(
+            "SELECT strftime('%H', start_time) as hour, COUNT(*) as count FROM appointments WHERE status != 'cancelled' AND appointment_type != 'blocked' GROUP BY hour ORDER BY count DESC LIMIT 5"
+        ).unwrap();
+        stmt.query_map([], |row| {
+            Ok(serde_json::json!({
+                "hour": row.get::<_, String>(0)?,
+                "count": row.get::<_, i64>(1)?,
+            }))
+        }).unwrap().filter_map(|r| r.ok()).collect()
+    };
+
+    // Home visit vs practice
+    let home_visit_count: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM appointments WHERE is_home_visit = 1 AND status != 'cancelled' AND appointment_type != 'blocked'", [], |r| r.get(0)
+    ).unwrap_or(0);
+
+    let practice_count: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM appointments WHERE is_home_visit = 0 AND status != 'cancelled' AND appointment_type != 'blocked'", [], |r| r.get(0)
+    ).unwrap_or(0);
+
+    // Cancellation rate
+    let cancelled_count: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM appointments WHERE status = 'cancelled' AND appointment_type != 'blocked'", [], |r| r.get(0)
+    ).unwrap_or(0);
+
+    let total_all: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM appointments WHERE appointment_type != 'blocked'", [], |r| r.get(0)
+    ).unwrap_or(1);
+
+    let cancel_rate = if total_all > 0 { (cancelled_count as f64 / total_all as f64 * 100.0) as i64 } else { 0 };
+
+    let mut ctx = tera::Context::new();
+    ctx.insert("months_data", &months_data);
+    ctx.insert("total_revenue", &total_revenue);
+    ctx.insert("total_appointments", &total_appointments);
+    ctx.insert("pending_revenue", &pending_revenue);
+    ctx.insert("this_month_revenue", &this_month_revenue);
+    ctx.insert("this_month_count", &this_month_count);
+    ctx.insert("popular_hours", &popular_hours);
+    ctx.insert("home_visit_count", &home_visit_count);
+    ctx.insert("practice_count", &practice_count);
+    ctx.insert("cancel_rate", &cancel_rate);
+    ctx.insert("is_admin", &true);
+
+    match tmpl.render("admin/stats.html", &ctx) {
+        Ok(body) => HttpResponse::Ok().content_type("text/html; charset=utf-8").body(body),
+        Err(e) => HttpResponse::InternalServerError().body(format!("Template error: {}", e)),
     }
 }
