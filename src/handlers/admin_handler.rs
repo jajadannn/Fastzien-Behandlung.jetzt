@@ -681,21 +681,60 @@ pub async fn api_create_appointment(
         Err(_) => return HttpResponse::BadRequest().json(serde_json::json!({"error": "Ungültiges Datum/Uhrzeit"})),
     };
 
-    let conn = db.lock().unwrap_or_else(|e| e.into_inner());
-    let duration_min: i64 = SiteSetting::get_or_default(&conn, "appointment_duration_min", "90").parse().unwrap_or(90);
-    let end = start + chrono::Duration::minutes(duration_min);
+    // --- Phase 1: read settings under lock ---
+    let (caldav_auth, calendar_urls, primary_url, duration_min) = {
+        let conn = db.lock().unwrap_or_else(|e| e.into_inner());
+        let duration_min: i64 = SiteSetting::get_or_default(&conn, "appointment_duration_min", "90").parse().unwrap_or(90);
 
+        let access_token = SiteSetting::get_or_default(&conn, "nextcloud_access_token", "");
+        let all_urls_str = SiteSetting::get_or_default(&conn, "nextcloud_all_calendar_urls", "");
+        let primary_url = SiteSetting::get_or_default(&conn, "nextcloud_primary_calendar_url", "");
+
+        if !access_token.is_empty() && !all_urls_str.is_empty() {
+            let urls = all_urls_str.split(',').map(|s| s.trim().to_string()).filter(|s| !s.is_empty()).collect::<Vec<_>>();
+            (crate::caldav::CalDavAuth::Bearer(access_token), urls, primary_url, duration_min)
+        } else {
+            let url  = SiteSetting::get_or_default(&conn, "nextcloud_caldav_url", "");
+            let user = SiteSetting::get_or_default(&conn, "nextcloud_caldav_username", "");
+            let pass = SiteSetting::get_or_default(&conn, "nextcloud_caldav_password", "");
+            let primary = url.clone();
+            let urls = if url.is_empty() { vec![] } else { vec![url] };
+            (crate::caldav::CalDavAuth::Basic { user, pass }, urls, primary, duration_min)
+        }
+    }; // lock released
+
+    let end = start + chrono::Duration::minutes(duration_min);
     let start_str = start.format("%Y-%m-%d %H:%M:%S").to_string();
-    let end_str = end.format("%Y-%m-%d %H:%M:%S").to_string();
+    let end_str   = end.format("%Y-%m-%d %H:%M:%S").to_string();
+    let date = start.date();
 
     let is_blocked = form.appointment_type.as_deref() == Some("blocked") || form.customer_id.is_none();
     let appointment_type = if is_blocked { "blocked" } else {
         form.appointment_type.as_deref().unwrap_or("single")
     };
 
-    // For blocked slots, use admin (customer_id = 1) as placeholder
+    // --- Phase 2: check ALL CalDAV calendars for conflicts (async, outside lock) ---
+    if !calendar_urls.is_empty() {
+        let auth = match &caldav_auth {
+            crate::caldav::CalDavAuth::Bearer(_) => {
+                if let Some(tok) = crate::handlers::oauth_handler::ensure_valid_token(&db).await {
+                    crate::caldav::CalDavAuth::Bearer(tok)
+                } else { caldav_auth.clone() }
+            }
+            other => other.clone(),
+        };
+        let busy = crate::caldav::fetch_busy_periods_multi(&calendar_urls, &auth, &date).await;
+        if crate::caldav::has_conflict(&busy, &start, &end) {
+            return HttpResponse::Conflict().json(serde_json::json!({
+                "error": "Dieser Zeitraum ist in einem deiner Nextcloud-Kalender belegt"
+            }));
+        }
+    }
+
+    // --- Phase 3: create appointment under lock ---
+    let conn = db.lock().unwrap_or_else(|e| e.into_inner());
+
     let customer_id = if is_blocked {
-        // find admin id
         conn.query_row("SELECT id FROM customers WHERE is_admin = 1 LIMIT 1", [], |r| r.get(0)).unwrap_or(1)
     } else {
         form.customer_id.unwrap()
@@ -709,7 +748,7 @@ pub async fn api_create_appointment(
         Err(e) => return HttpResponse::InternalServerError().json(serde_json::json!({"error": format!("{}", e)})),
     };
 
-    // For real appointments (not blocked), create payment and send email
+    // For real appointments (not blocked): payment + push to CalDAV + send email
     if !is_blocked {
         let price_single: f64 = SiteSetting::get_or_default(&conn, "price_single", "195").replace(',', ".").parse().unwrap_or(195.0);
         let home_surcharge: f64 = SiteSetting::get_or_default(&conn, "home_visit_surcharge", "15").replace(',', ".").parse().unwrap_or(15.0);
@@ -725,20 +764,31 @@ pub async fn api_create_appointment(
         }
 
         if let Ok(Some(customer)) = Customer::find_by_id(&conn, customer_id) {
-            let date_str = start.format("%d.%m.%Y").to_string();
-            let time_str = start.format("%H:%M").to_string();
-            let es = email_service.get_ref().clone();
+            let date_str   = start.format("%d.%m.%Y").to_string();
+            let time_str   = start.format("%H:%M").to_string();
+            let es         = email_service.get_ref().clone();
             let cust_email = customer.email.clone();
-            let cust_name = customer.full_name();
-            let admin_email = config.admin_email.clone();
+            let cust_name  = customer.full_name();
             let cust_phone = customer.phone.clone();
-            let cust_addr = customer.full_address();
+            let cust_addr  = customer.full_address();
+            let admin_email = config.admin_email.clone();
             let notes_owned = notes.to_string();
+            let push_url   = primary_url.clone();
+            let push_auth  = caldav_auth.clone();
             drop(conn);
             tokio::spawn(async move {
                 es.send_appointment_confirmation(&cust_email, &cust_name, &date_str, &time_str, is_home_visit);
                 es.send_admin_booking_notification(&admin_email, &cust_name, &cust_phone, &cust_addr, &date_str, &time_str, &notes_owned, is_home_visit);
+                if !push_url.is_empty() {
+                    match &push_auth {
+                        crate::caldav::CalDavAuth::Bearer(tok) =>
+                            crate::caldav::push_event_bearer(&push_url, tok, appointment_id, &start, &end, &cust_name, &cust_phone, &cust_addr, &notes_owned, is_home_visit).await,
+                        crate::caldav::CalDavAuth::Basic { user, pass } =>
+                            crate::caldav::push_event(&push_url, user, pass, appointment_id, &start, &end, &cust_name, &cust_phone, &cust_addr, &notes_owned, is_home_visit).await,
+                    }
+                }
             });
+            return HttpResponse::Ok().json(serde_json::json!({"success": true, "appointment_id": appointment_id}));
         }
     }
 
