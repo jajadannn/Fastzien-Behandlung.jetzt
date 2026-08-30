@@ -86,7 +86,7 @@
         data.slots.forEach(function(slot) {
           const btn = document.createElement('button');
           btn.className = 'slot-btn';
-          btn.textContent = '🕐 ' + slot.display;
+          btn.textContent = slot.display;
           btn.dataset.time = slot.time;
           btn.addEventListener('click', function() {
             document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('selected'));

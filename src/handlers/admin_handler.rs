@@ -432,7 +432,7 @@ pub async fn api_suggest_appointment(
     };
 
     let slots_html = form.slots.iter()
-        .map(|s| format!("<p style='margin: 8px 0; padding: 8px 12px; background: #dff0f7; border-radius: 8px;'>📅 {}</p>", s))
+        .map(|s| format!("<p style='margin: 8px 0; padding: 10px 14px; background: #dff0f7; border-radius: 8px; color: #1a2a33; font-size: 15px; font-weight: 500;'>{}</p>", s))
         .collect::<Vec<_>>()
         .join("");
 
@@ -526,7 +526,7 @@ pub async fn api_cancel_with_suggestions(
     drop(conn);
 
     let slots_html = form.slots.iter()
-        .map(|s| format!("<p style='margin: 8px 0; padding: 8px 12px; background: #dff0f7; border-radius: 8px;'>📅 {}</p>", s))
+        .map(|s| format!("<p style='margin: 8px 0; padding: 10px 14px; background: #dff0f7; border-radius: 8px; color: #1a2a33; font-size: 15px; font-weight: 500;'>{}</p>", s))
         .collect::<Vec<_>>()
         .join("");
 

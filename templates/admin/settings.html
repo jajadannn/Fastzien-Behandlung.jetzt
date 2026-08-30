@@ -5,10 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Einstellungen – Admin</title>
   <link rel="icon" href="/favicon.v1.ico">
-  <link rel="stylesheet" href="/static/css/main.css">
-  <link rel="stylesheet" href="/static/css/admin.css">
+  <link rel="stylesheet" href="/static/css/main.css?v=1">
+  <link rel="stylesheet" href="/static/css/admin.css?v=1">
 </head>
 <body>
+  {% include "_icon_sprite.html" %}
   <nav class="admin-nav">
     <a href="/" class="admin-logo"><img src="/Logo.png" alt="" height="30"><span>Admin</span></a>
     <div class="admin-nav-links">
@@ -20,7 +21,7 @@
       <a href="/admin/faq">FAQ</a>
       <a href="/admin/reviews">Bewertungen</a>
       <a href="/admin/settings" class="active">Einstellungen</a>
-      <a href="/" class="nav-site">🌐</a>
+      <a href="/" class="nav-site"><svg class="icon"><use href="#icon-globe" xlink:href="#icon-globe"/></svg></a>
       <a href="/logout" class="nav-logout" style="text-decoration: none;">Abmelden</a>
     </div>
   </nav>
@@ -73,7 +74,7 @@
         {% if settings.nextcloud_access_token %}
         <!-- ── Verbunden ───────────────────────────────────────────── -->
         <div style="padding:14px 18px; background:#f0fdf4; border:1px solid #86efac; border-radius:10px; margin-bottom:16px;">
-          <strong style="color:#166534;">✅ Verbunden mit Nextcloud</strong>
+          <strong style="color:#166534; display:inline-flex; align-items:center; gap:6px;"><svg class="icon" style="width:16px;height:16px"><use href="#icon-verified" xlink:href="#icon-verified"/></svg> Verbunden mit Nextcloud</strong>
           {% if settings.nextcloud_base_url %}<br><span style="font-size:.85rem; color:#555;">{{ settings.nextcloud_base_url }}</span>{% endif %}
           {% if settings.nextcloud_all_calendar_urls %}
           <br><span style="font-size:.85rem; color:#555;">Kalender erkannt: {{ settings.nextcloud_all_calendar_urls | split(pat=",") | length }}</span>
@@ -96,8 +97,8 @@
 
         <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-top:8px;">
           <button type="button" onclick="location.href='/admin/nextcloud/disconnect'"
-            style="padding:9px 20px; background:#ef4444; color:#fff; border:none; border-radius:50px; font-family:inherit; font-size:.9rem; font-weight:600; cursor:pointer;">
-            🔌 Verbindung trennen
+            style="display:inline-flex; align-items:center; gap:8px; padding:9px 20px; background:#ef4444; color:#fff; border:none; border-radius:50px; font-family:inherit; font-size:.9rem; font-weight:600; cursor:pointer;">
+            <svg class="icon" style="width:16px;height:16px"><use href="#icon-plug" xlink:href="#icon-plug"/></svg> Verbindung trennen
           </button>
         </div>
 
@@ -123,8 +124,8 @@
         </div>
         <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
           <button type="button" onclick="connectNextcloud()"
-            style="padding:10px 22px; background:var(--sky); color:#fff; border:none; border-radius:50px; font-family:inherit; font-size:.9rem; font-weight:600; cursor:pointer; transition:background .2s;">
-            🔗 Mit Nextcloud verbinden
+            style="display:inline-flex; align-items:center; gap:8px; padding:10px 22px; background:var(--sky); color:#fff; border:none; border-radius:50px; font-family:inherit; font-size:.9rem; font-weight:600; cursor:pointer; transition:background .2s;">
+            <svg class="icon" style="width:16px;height:16px"><use href="#icon-link" xlink:href="#icon-link"/></svg> Mit Nextcloud verbinden
           </button>
           <span id="connect-hint" style="font-size:.85rem; color:var(--text-light);">Einstellungen zuerst speichern, dann verbinden.</span>
         </div>
@@ -142,7 +143,7 @@
             </div>
             <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
               <button type="button" id="test-caldav-btn" onclick="testCaldav()" style="padding:9px 20px; background:#64748b; color:#fff; border:none; border-radius:50px; font-family:inherit; font-size:.9rem; font-weight:600; cursor:pointer;">
-                🔌 Verbindung testen
+                Verbindung testen
               </button>
               <span id="caldav-result" style="font-size:.9rem;"></span>
             </div>
@@ -150,7 +151,7 @@
         </details>
         {% endif %}
 
-        <button type="submit" class="auth-btn" style="margin-top:24px">💾 Einstellungen speichern</button>
+        <button type="submit" class="auth-btn" style="margin-top:24px"><svg class="icon"><use href="#icon-save" xlink:href="#icon-save"/></svg> Einstellungen speichern</button>
       </form>
     </div>
   </main>
@@ -160,13 +161,13 @@
       const p = new URLSearchParams(location.search);
       const msg = document.getElementById('msg');
       if (p.get('caldav_connected') === '1') {
-        msg.textContent = '✅ Nextcloud erfolgreich verbunden! Kalender wurden automatisch erkannt.';
+        msg.textContent = '✓ Nextcloud erfolgreich verbunden! Kalender wurden automatisch erkannt.';
         msg.style.display = 'block';
       } else if (p.get('caldav_disconnected') === '1') {
-        msg.textContent = '🔌 Nextcloud-Verbindung getrennt.';
+        msg.textContent = 'Nextcloud-Verbindung getrennt.';
         msg.style.display = 'block';
       } else if (p.get('error')) {
-        msg.textContent = '❌ Fehler: ' + p.get('error').replace(/_/g, ' ');
+        msg.textContent = '✕ Fehler: ' + p.get('error').replace(/_/g, ' ');
         msg.className = 'portal-error';
         msg.style.display = 'block';
       }
@@ -201,25 +202,25 @@
       const btn = document.getElementById('test-caldav-btn');
       const result = document.getElementById('caldav-result');
       btn.disabled = true;
-      btn.textContent = '⏳ Teste…';
+      btn.textContent = 'Teste…';
       result.textContent = '';
       result.style.color = '';
       try {
         const res = await fetch('/api/admin/test-caldav');
         const d = await res.json();
         if (d.success) {
-          result.textContent = '✅ ' + d.message;
+          result.textContent = '✓ ' + d.message;
           result.style.color = '#166534';
         } else {
-          result.textContent = '❌ ' + d.error;
+          result.textContent = '✕ ' + d.error;
           result.style.color = '#991b1b';
         }
       } catch (e) {
-        result.textContent = '❌ Netzwerkfehler';
+        result.textContent = '✕ Netzwerkfehler';
         result.style.color = '#991b1b';
       } finally {
         btn.disabled = false;
-        btn.textContent = '🔌 Verbindung testen';
+        btn.textContent = 'Verbindung testen';
       }
     }
   </script>

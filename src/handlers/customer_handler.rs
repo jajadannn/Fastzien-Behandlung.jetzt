@@ -27,6 +27,19 @@ fn email_not_verified_response(tmpl: &Tera, email: &str, is_admin: bool) -> Http
     }
 }
 
+/// Renders the profile page with a completion prompt when the customer registered
+/// with only email + password and hasn't filled in name/address/phone yet.
+fn profile_incomplete_response(tmpl: &Tera, customer: &Customer, is_admin: bool) -> HttpResponse {
+    let mut ctx = tera::Context::new();
+    ctx.insert("customer", customer);
+    ctx.insert("is_admin", &is_admin);
+    ctx.insert("profile_incomplete", &true);
+    match tmpl.render("customer/profile.html", &ctx) {
+        Ok(body) => HttpResponse::Ok().content_type("text/html; charset=utf-8").body(body),
+        Err(e) => HttpResponse::InternalServerError().body(format!("Template error: {}", e)),
+    }
+}
+
 pub async fn dashboard(
     req: HttpRequest,
     tmpl: web::Data<Tera>,
@@ -43,6 +56,9 @@ pub async fn dashboard(
 
     if !customer.email_verified {
         return email_not_verified_response(&tmpl, &customer.email, claims.is_admin);
+    }
+    if customer.first_name.is_empty() {
+        return profile_incomplete_response(&tmpl, &customer, claims.is_admin);
     }
 
     let upcoming = Appointment::find_upcoming_by_customer(&conn, claims.sub).unwrap_or_default();
@@ -91,6 +107,9 @@ pub async fn appointments_page(
     if !customer.email_verified {
         return email_not_verified_response(&tmpl, &customer.email, claims.is_admin);
     }
+    if customer.first_name.is_empty() {
+        return profile_incomplete_response(&tmpl, &customer, claims.is_admin);
+    }
 
     let appointments = Appointment::find_by_customer(&conn, claims.sub).unwrap_or_default();
     let settings = SiteSetting::get_all(&conn).unwrap_or_default();
@@ -121,6 +140,9 @@ pub async fn book_page(
     let customer = Customer::find_by_id(&conn, claims.sub).unwrap().unwrap();
     if !customer.email_verified {
         return email_not_verified_response(&tmpl, &customer.email, claims.is_admin);
+    }
+    if customer.first_name.is_empty() {
+        return profile_incomplete_response(&tmpl, &customer, claims.is_admin);
     }
 
     let remaining_credits = CreditPackage::remaining_sessions(&conn, claims.sub).unwrap_or(0);
@@ -157,6 +179,7 @@ pub async fn profile_page(
     let mut ctx = tera::Context::new();
     ctx.insert("customer", &customer);
     ctx.insert("is_admin", &claims.is_admin);
+    ctx.insert("profile_incomplete", &customer.first_name.is_empty());
 
     match tmpl.render("customer/profile.html", &ctx) {
         Ok(body) => HttpResponse::Ok().content_type("text/html; charset=utf-8").body(body),
@@ -179,6 +202,9 @@ pub async fn credits_page(
     let customer = Customer::find_by_id(&conn, claims.sub).unwrap().unwrap();
     if !customer.email_verified {
         return email_not_verified_response(&tmpl, &customer.email, claims.is_admin);
+    }
+    if customer.first_name.is_empty() {
+        return profile_incomplete_response(&tmpl, &customer, claims.is_admin);
     }
 
     let payments = Payment::find_by_customer(&conn, claims.sub).unwrap_or_default();
@@ -536,6 +562,9 @@ pub async fn waitlist_page(
     let customer = Customer::find_by_id(&conn, claims.sub).unwrap().unwrap();
     if !customer.email_verified {
         return email_not_verified_response(&tmpl, &customer.email, claims.is_admin);
+    }
+    if customer.first_name.is_empty() {
+        return profile_incomplete_response(&tmpl, &customer, claims.is_admin);
     }
 
     let waitlist = WaitlistEntry::find_by_customer(&conn, claims.sub).unwrap_or_default();

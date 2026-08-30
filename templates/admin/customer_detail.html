@@ -5,10 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Kundendetails – Admin</title>
   <link rel="icon" href="/favicon.v1.ico">
-  <link rel="stylesheet" href="/static/css/main.css">
-  <link rel="stylesheet" href="/static/css/admin.css">
+  <link rel="stylesheet" href="/static/css/main.css?v=1">
+  <link rel="stylesheet" href="/static/css/admin.css?v=1">
 </head>
 <body>
+  {% include "_icon_sprite.html" %}
   <nav class="admin-nav">
     <a href="/" class="admin-logo"><img src="/Logo.png" alt="" height="30"><span>Admin</span></a>
     <div class="admin-nav-links">
@@ -20,7 +21,7 @@
       <a href="/admin/faq">FAQ</a>
       <a href="/admin/reviews">Bewertungen</a>
       <a href="/admin/settings">Einstellungen</a>
-      <a href="/" class="nav-site">🌐</a>
+      <a href="/" class="nav-site"><svg class="icon"><use href="#icon-globe" xlink:href="#icon-globe"/></svg></a>
       <a href="/logout" class="nav-logout" style="text-decoration: none;">Abmelden</a>
     </div>
   </nav>
@@ -32,16 +33,16 @@
       <div class="detail-grid">
         <div class="detail-card">
           <h3>Kontaktdaten</h3>
-          <div class="detail-row"><span>📧</span><span>{{ customer.email }}</span></div>
-          <div class="detail-row"><span>📞</span><span>{{ customer.phone | default(value="–") }}</span></div>
-          <div class="detail-row"><span>📍</span><span>{{ customer.street | default(value="–") }}, {{ customer.zip_code }} {{ customer.city }}</span></div>
-          <div class="detail-row"><span>📅</span><span>Kunde seit {{ customer.created_at }}</span></div>
+          <div class="detail-row"><span><svg class="icon"><use href="#icon-mail" xlink:href="#icon-mail"/></svg></span><span>{{ customer.email }}</span></div>
+          <div class="detail-row"><span><svg class="icon"><use href="#icon-phone" xlink:href="#icon-phone"/></svg></span><span>{{ customer.phone | default(value="–") }}</span></div>
+          <div class="detail-row"><span><svg class="icon"><use href="#icon-pin" xlink:href="#icon-pin"/></svg></span><span>{{ customer.street | default(value="–") }}, {{ customer.zip_code }} {{ customer.city }}</span></div>
+          <div class="detail-row"><span><svg class="icon"><use href="#icon-calendar" xlink:href="#icon-calendar"/></svg></span><span>Kunde seit {{ customer.created_at }}</span></div>
         </div>
         <div class="detail-card">
           <h3>Finanzen</h3>
-          <div class="detail-row"><span>💰 Offen</span><span class="{% if pending_amount > 0 %}text-warning{% endif %}">{{ pending_amount | round(method="common", precision=2) }} €</span></div>
-          <div class="detail-row"><span>✅ Bezahlt</span><span>{{ paid_amount | round(method="common", precision=2) }} €</span></div>
-          <div class="detail-row"><span>🎟️ Guthaben</span><span>{{ remaining_credits }} Sitzungen</span></div>
+          <div class="detail-row"><span class="icon-label"><svg class="icon"><use href="#icon-money" xlink:href="#icon-money"/></svg> Offen</span><span class="{% if pending_amount > 0 %}text-warning{% endif %}">{{ pending_amount | round(method="common", precision=2) }} €</span></div>
+          <div class="detail-row"><span class="icon-label"><svg class="icon"><use href="#icon-verified" xlink:href="#icon-verified"/></svg> Bezahlt</span><span>{{ paid_amount | round(method="common", precision=2) }} €</span></div>
+          <div class="detail-row"><span class="icon-label"><svg class="icon"><use href="#icon-ticket" xlink:href="#icon-ticket"/></svg> Guthaben</span><span>{{ remaining_credits }} Sitzungen</span></div>
         </div>
       </div>
 
@@ -54,7 +55,7 @@
               <button onclick="addSuggestSlot()" class="btn-small btn-add">+ Weiterer Termin</button>
             </div>
           </div>
-          <button onclick="sendSuggestion({{ customer.id }})" class="auth-btn" style="margin-top:12px">📧 Vorschläge per E-Mail senden</button>
+          <button onclick="sendSuggestion({{ customer.id }})" class="auth-btn" style="margin-top:12px"><svg class="icon"><use href="#icon-mail" xlink:href="#icon-mail"/></svg> Vorschläge per E-Mail senden</button>
         </div>
       </div>
 
@@ -68,7 +69,7 @@
               {% for apt in appointments %}
               <tr>
                 <td>{{ apt.start_time | format_date(format="%d.%m.%Y %H:%M") }}</td>
-                <td>{% if apt.is_home_visit %}🏠{% else %}🏥{% endif %} {{ apt.appointment_type }}</td>
+                <td><span class="icon-label">{% if apt.is_home_visit %}<svg class="icon"><use href="#icon-home" xlink:href="#icon-home"/></svg>{% else %}<svg class="icon"><use href="#icon-clinic" xlink:href="#icon-clinic"/></svg>{% endif %} {{ apt.appointment_type }}</span></td>
                 <td><span class="status-badge status-{{ apt.status }}">{{ apt.status }}</span></td>
                 <td>{% if apt.status == "confirmed" %}<button onclick="openCancelModal({{ apt.id }})" class="btn-small btn-danger">Stornieren</button>{% endif %}</td>
               </tr>

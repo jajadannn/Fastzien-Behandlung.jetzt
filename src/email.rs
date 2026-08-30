@@ -6,6 +6,73 @@ use lettre::{
 use log::{info, error};
 use crate::config::Config;
 
+const SKY_FROM: &str = "#70AECD";
+const SKY_TO: &str = "#4d93b8";
+const PLUM_FROM: &str = "#964279";
+const PLUM_TO: &str = "#7a3661";
+const LOGO_URL: &str = "https://faszienbehandlung.jetzt/Logo.png";
+
+/// Wraps a block of body HTML in the shared branded shell: a hidden preheader (the
+/// one-line summary inbox apps show before the subject is opened), a gradient header
+/// with a flat background-color fallback (Outlook desktop ignores linear-gradient)
+/// carrying the logo and a serif heading, a white body area, and a footer with
+/// business contact details.
+fn shell(top: &str, bottom: &str, heading: &str, preheader: &str, body: &str) -> String {
+    format!(
+        r#"<div style="display:none;max-height:0;overflow:hidden;opacity:0;mso-hide:all;font-size:1px;line-height:1px;color:#f7fbfd;">{preheader}</div>
+<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #f7fbfd;">
+    <div style="background-color: {bottom}; background-image: linear-gradient(135deg, {top}, {bottom}); border-radius: 20px 20px 0 0; padding: 30px 32px 32px; text-align: center;">
+        <img src="{logo}" width="100" height="41" alt="Faszienbehandlung Thilo Seifried" style="display:block;width:100px;height:41px;margin:0 auto 20px;border:0;">
+        <h1 style="font-family: Georgia, 'Times New Roman', serif; color: #ffffff; font-size: 27px; margin: 0; font-weight: 600; letter-spacing: -0.01em; line-height: 1.25;">{heading}</h1>
+    </div>
+    <div style="background-color:#ffffff; padding: 36px 32px 8px;">
+        {body}
+    </div>
+    <div style="background-color:#ffffff; border-radius: 0 0 20px 20px; padding: 0 32px 30px;">
+        <div style="border-top: 1px solid rgba(112,174,205,0.18); padding-top: 18px; text-align: center;">
+            <p style="color: #6a8fa0; font-size: 12px; margin: 0 0 4px; line-height: 1.6;">Faszienbehandlung Thilo Seifried &middot; Sulgauer Stra&szlig;e 24, 78713 Sulgen</p>
+            <p style="color: #6a8fa0; font-size: 12px; margin: 0; line-height: 1.6;">Tel. +49 152 34 00 72 25 &middot; termin@faszienbehandlung.jetzt</p>
+        </div>
+    </div>
+</div>"#,
+        top = top, bottom = bottom, heading = heading, preheader = preheader, body = body, logo = LOGO_URL
+    )
+}
+
+/// One label/value row for an info_card table. Value may contain inline HTML (e.g. a styled span).
+fn info_row(label: &str, value: &str) -> String {
+    format!(
+        r#"<tr>
+            <td style="padding:8px 0;color:#6a8fa0;font-size:13px;font-weight:600;letter-spacing:0.01em;white-space:nowrap;vertical-align:top;">{label}</td>
+            <td style="padding:8px 0 8px 18px;color:#1a2a33;font-size:15px;">{value}</td>
+        </tr>"#,
+        label = label, value = value
+    )
+}
+
+/// Card wrapper for a set of info_row()s: a flat top accent (never a colored side
+/// border) marks it as the surface's one structured data block. Table-based for
+/// cross-client layout safety.
+fn info_card(rows: &str) -> String {
+    format!(
+        r#"<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff;border:1px solid rgba(112,174,205,0.22);border-top:3px solid {sky_to};border-radius:12px;margin:22px 0;">
+            <tr><td style="padding:6px 20px;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0">{rows}</table>
+            </td></tr>
+        </table>"#,
+        sky_to = SKY_TO, rows = rows
+    )
+}
+
+fn cta_button(url: &str, label: &str) -> String {
+    format!(
+        r#"<div style="text-align: center; margin: 34px 0 8px;">
+            <a href="{url}" style="display: inline-block; background-color: #964279; color: #ffffff; padding: 15px 40px; border-radius: 50px; text-decoration: none; font-weight: 600; font-size: 15px; letter-spacing: 0.01em;">{label}</a>
+        </div>"#,
+        url = url, label = label
+    )
+}
+
 #[derive(Clone)]
 pub struct EmailService {
     smtp_host: String,
@@ -62,28 +129,23 @@ impl EmailService {
 
     #[allow(dead_code)]
     pub fn send_welcome(&self, to_email: &str, first_name: &str) {
+        let display = if first_name.is_empty() { "Neuer Kunde" } else { first_name };
         let subject = "Willkommen bei Faszienbehandlung Thilo Seifried";
-        let body = format!(r#"
-            <div style="font-family: 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; background: #f7fbfd; border-radius: 16px; overflow: hidden;">
-                <div style="background: linear-gradient(135deg, #70AECD, #4d93b8); padding: 32px; text-align: center;">
-                    <h1 style="color: white; font-size: 24px; margin: 0;">Willkommen, {}!</h1>
-                </div>
-                <div style="padding: 32px;">
-                    <p style="color: #1a2a33; font-size: 16px; line-height: 1.7;">
-                        Vielen Dank für deine Registrierung bei Faszienbehandlung Thilo Seifried.
-                    </p>
-                    <p style="color: #3d5a6b; font-size: 15px; line-height: 1.7;">
-                        Du kannst jetzt ganz einfach online Termine buchen, verwalten und deine Behandlungshistorie einsehen.
-                    </p>
-                    <div style="text-align: center; margin: 32px 0;">
-                        <a href="https://faszien-behandlung.jetzt/portal" style="display: inline-block; background: #964279; color: white; padding: 14px 36px; border-radius: 50px; text-decoration: none; font-weight: 600; font-size: 15px;">Zum Kundenportal</a>
-                    </div>
-                    <p style="color: #6a8fa0; font-size: 13px; text-align: center;">
-                        Bei Fragen erreichst du uns unter +49 152 34 00 72 25
-                    </p>
-                </div>
-            </div>
-        "#, if first_name.is_empty() { "Neuer Kunde" } else { first_name });
+        let intro = format!(
+            r#"<p style="color: #1a2a33; font-size: 16px; line-height: 1.7; margin: 0 0 16px;">
+                Vielen Dank f&uuml;r deine Registrierung bei Faszienbehandlung Thilo Seifried.
+            </p>
+            <p style="color: #3d5a6b; font-size: 15px; line-height: 1.7; margin: 0;">
+                Du kannst jetzt ganz einfach online Termine buchen, verwalten und deine Behandlungshistorie einsehen.
+            </p>
+            {}"#,
+            cta_button("https://faszienbehandlung.jetzt/portal", "Zum Kundenportal")
+        );
+        let body = shell(
+            SKY_FROM, SKY_TO, &format!("Willkommen, {}!", display),
+            "Dein Kundenportal ist bereit &ndash; buche jetzt deinen ersten Termin.",
+            &intro,
+        );
 
         if let Err(e) = self.send_html(to_email, first_name, subject, &body) {
             error!("Failed to send welcome email: {}", e);
@@ -91,30 +153,32 @@ impl EmailService {
     }
 
     pub fn send_appointment_confirmation(&self, to_email: &str, name: &str, date: &str, time: &str, is_home_visit: bool) {
-        let visit_note = if is_home_visit { "<p style='color: #964279;'>🏠 Hausbesuch – Fahrtpauschale: +15 €</p>" } else { "" };
-        let subject = format!("Terminbestätigung – {}", date);
-        let body = format!(r#"
-            <div style="font-family: 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; background: #f7fbfd; border-radius: 16px; overflow: hidden;">
-                <div style="background: linear-gradient(135deg, #70AECD, #4d93b8); padding: 32px; text-align: center;">
-                    <h1 style="color: white; font-size: 22px; margin: 0;">Termin bestätigt ✓</h1>
-                </div>
-                <div style="padding: 32px;">
-                    <p style="color: #1a2a33; font-size: 16px;">Hallo {},</p>
-                    <p style="color: #3d5a6b; font-size: 15px; line-height: 1.7;">
-                        Dein Termin für die Gantke® Faszienbehandlung wurde bestätigt:
-                    </p>
-                    <div style="background: white; border: 1px solid rgba(112,174,205,0.2); border-radius: 12px; padding: 20px; margin: 20px 0;">
-                        <p style="margin: 4px 0; color: #1a2a33;"><strong>📅 Datum:</strong> {}</p>
-                        <p style="margin: 4px 0; color: #1a2a33;"><strong>🕐 Uhrzeit:</strong> {}</p>
-                        <p style="margin: 4px 0; color: #1a2a33;"><strong>⏱ Dauer:</strong> ca. 90 Minuten</p>
-                        {}
-                    </div>
-                    <p style="color: #6a8fa0; font-size: 13px;">
-                        Stornierung bis 24 Stunden vor dem Termin möglich über dein Kundenportal.
-                    </p>
-                </div>
-            </div>
-        "#, name, date, time, visit_note);
+        let mut rows = String::new();
+        rows.push_str(&info_row("Datum", date));
+        rows.push_str(&info_row("Uhrzeit", time));
+        rows.push_str(&info_row("Dauer", "ca. 90 Minuten"));
+        if is_home_visit {
+            rows.push_str(&info_row(
+                "Hinweis",
+                r#"<span style="color:#964279;font-weight:600;">Hausbesuch &ndash; Fahrtpauschale: +15&nbsp;&euro;</span>"#,
+            ));
+        }
+        let subject = format!("Terminbest\u{e4}tigung \u{2013} {}", date);
+        let preheader = format!("Dein Termin am {} um {} Uhr ist best\u{e4}tigt.", date, time);
+        let body = shell(
+            SKY_FROM, SKY_TO, "Termin best\u{e4}tigt \u{2713}", &preheader,
+            &format!(
+                r#"<p style="color: #1a2a33; font-size: 16px; margin: 0 0 12px;">Hallo {},</p>
+                <p style="color: #3d5a6b; font-size: 15px; line-height: 1.7; margin: 0;">
+                    Dein Termin f&uuml;r die Gantke&reg; Faszienbehandlung wurde best&auml;tigt:
+                </p>
+                {}
+                <p style="color: #6a8fa0; font-size: 13px; margin: 0;">
+                    Stornierung bis 24 Stunden vor dem Termin m&ouml;glich &uuml;ber dein Kundenportal.
+                </p>"#,
+                name, info_card(&rows)
+            ),
+        );
 
         if let Err(e) = self.send_html(to_email, name, &subject, &body) {
             error!("Failed to send appointment confirmation: {}", e);
@@ -122,23 +186,20 @@ impl EmailService {
     }
 
     pub fn send_appointment_cancellation(&self, to_email: &str, name: &str, date: &str, time: &str) {
-        let subject = format!("Termin storniert – {}", date);
-        let body = format!(r#"
-            <div style="font-family: 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; background: #f7fbfd; border-radius: 16px; overflow: hidden;">
-                <div style="background: linear-gradient(135deg, #964279, #7a3661); padding: 32px; text-align: center;">
-                    <h1 style="color: white; font-size: 22px; margin: 0;">Termin storniert</h1>
-                </div>
-                <div style="padding: 32px;">
-                    <p style="color: #1a2a33; font-size: 16px;">Hallo {},</p>
-                    <p style="color: #3d5a6b; font-size: 15px; line-height: 1.7;">
-                        Dein Termin am {} um {} wurde erfolgreich storniert.
-                    </p>
-                    <div style="text-align: center; margin: 32px 0;">
-                        <a href="https://faszien-behandlung.jetzt/portal/book" style="display: inline-block; background: #964279; color: white; padding: 14px 36px; border-radius: 50px; text-decoration: none; font-weight: 600;">Neuen Termin buchen</a>
-                    </div>
-                </div>
-            </div>
-        "#, name, date, time);
+        let subject = format!("Termin storniert \u{2013} {}", date);
+        let preheader = format!("Dein Termin am {} wurde storniert.", date);
+        let body = shell(
+            PLUM_FROM, PLUM_TO, "Termin storniert", &preheader,
+            &format!(
+                r#"<p style="color: #1a2a33; font-size: 16px; margin: 0 0 12px;">Hallo {},</p>
+                <p style="color: #3d5a6b; font-size: 15px; line-height: 1.7; margin: 0;">
+                    Dein Termin am {} um {} wurde erfolgreich storniert.
+                </p>
+                {}"#,
+                name, date, time,
+                cta_button("https://faszienbehandlung.jetzt/portal/book", "Neuen Termin buchen")
+            ),
+        );
 
         if let Err(e) = self.send_html(to_email, name, &subject, &body) {
             error!("Failed to send cancellation email: {}", e);
@@ -147,56 +208,46 @@ impl EmailService {
 
     pub fn send_admin_cancellation_with_suggestions(&self, to_email: &str, name: &str, date: &str, time: &str, slots_html: &str) {
         let subject = format!("Wichtige Information zu deinem Termin am {}", date);
-        let body = format!(r#"
-            <div style="font-family: 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; background: #f7fbfd; border-radius: 16px; overflow: hidden;">
-                <div style="background: linear-gradient(135deg, #964279, #7a3661); padding: 32px; text-align: center;">
-                    <h1 style="color: white; font-size: 22px; margin: 0;">Terminänderung nötig</h1>
-                </div>
-                <div style="padding: 32px;">
-                    <p style="color: #1a2a33; font-size: 16px;">Hallo {},</p>
-                    <p style="color: #3d5a6b; font-size: 15px; line-height: 1.7;">
-                        Leider muss ich unseren Termin am <strong>{} um {}</strong> kurzfristig absagen.
-                    </p>
-                    <p style="color: #3d5a6b; font-size: 15px; line-height: 1.7;">
-                        Hier sind zwei alternative Termine, die für mich besser passen würden. Bitte lass mich wissen, ob einer davon für dich in Frage kommt, oder ob wir einen anderen Termin finden sollen:
-                    </p>
-                    <div style="margin: 24px 0;">
-                        {}
-                    </div>
-                    <div style="text-align: center; margin: 32px 0;">
-                        <a href="https://faszien-behandlung.jetzt/portal/book" style="display: inline-block; background: #964279; color: white; padding: 14px 36px; border-radius: 50px; text-decoration: none; font-weight: 600;">Alternativen Termin buchen</a>
-                    </div>
-                </div>
-            </div>
-        "#, name, date, time, slots_html);
+        let body = shell(
+            PLUM_FROM, PLUM_TO, "Termin\u{e4}nderung n\u{f6}tig",
+            "Ich muss unseren Termin leider verschieben \u{2013} hier zwei Alternativen.",
+            &format!(
+                r#"<p style="color: #1a2a33; font-size: 16px; margin: 0 0 12px;">Hallo {},</p>
+                <p style="color: #3d5a6b; font-size: 15px; line-height: 1.7; margin: 0 0 12px;">
+                    Leider muss ich unseren Termin am <strong>{} um {}</strong> kurzfristig absagen.
+                </p>
+                <p style="color: #3d5a6b; font-size: 15px; line-height: 1.7; margin: 0;">
+                    Hier sind zwei alternative Termine, die f&uuml;r mich besser passen w&uuml;rden. Bitte lass mich wissen, ob einer davon f&uuml;r dich in Frage kommt, oder ob wir einen anderen Termin finden sollen:
+                </p>
+                <div style="margin: 20px 0;">{}</div>
+                {}"#,
+                name, date, time, slots_html,
+                cta_button("https://faszienbehandlung.jetzt/portal/book", "Alternativen Termin buchen")
+            ),
+        );
 
         if let Err(e) = self.send_html(to_email, name, &subject, &body) {
             error!("Failed to send cancellation with suggestions email: {}", e);
         }
     }
 
-
     pub fn send_password_reset(&self, to_email: &str, name: &str, reset_url: &str) {
-        let subject = "Passwort zurücksetzen – Faszienbehandlung";
-        let body = format!(r#"
-            <div style="font-family: 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; background: #f7fbfd; border-radius: 16px; overflow: hidden;">
-                <div style="background: linear-gradient(135deg, #70AECD, #4d93b8); padding: 32px; text-align: center;">
-                    <h1 style="color: white; font-size: 22px; margin: 0;">Passwort zurücksetzen</h1>
-                </div>
-                <div style="padding: 32px;">
-                    <p style="color: #1a2a33; font-size: 16px;">Hallo {},</p>
-                    <p style="color: #3d5a6b; font-size: 15px; line-height: 1.7;">
-                        Klicke auf den folgenden Link, um dein Passwort zurückzusetzen. Der Link ist 1 Stunde gültig.
-                    </p>
-                    <div style="text-align: center; margin: 32px 0;">
-                        <a href="{}" style="display: inline-block; background: #964279; color: white; padding: 14px 36px; border-radius: 50px; text-decoration: none; font-weight: 600;">Passwort zurücksetzen</a>
-                    </div>
-                    <p style="color: #6a8fa0; font-size: 13px;">
-                        Falls du diese Anfrage nicht gestellt hast, ignoriere diese E-Mail.
-                    </p>
-                </div>
-            </div>
-        "#, name, reset_url);
+        let subject = "Passwort zur\u{fc}cksetzen \u{2013} Faszienbehandlung";
+        let body = shell(
+            SKY_FROM, SKY_TO, "Passwort zur\u{fc}cksetzen",
+            "Setze dein Passwort mit einem Klick zur\u{fc}ck.",
+            &format!(
+                r#"<p style="color: #1a2a33; font-size: 16px; margin: 0 0 12px;">Hallo {},</p>
+                <p style="color: #3d5a6b; font-size: 15px; line-height: 1.7; margin: 0;">
+                    Klicke auf den folgenden Link, um dein Passwort zur&uuml;ckzusetzen. Der Link ist 1 Stunde g&uuml;ltig.
+                </p>
+                {}
+                <p style="color: #6a8fa0; font-size: 13px; margin: 0;">
+                    Falls du diese Anfrage nicht gestellt hast, ignoriere diese E-Mail.
+                </p>"#,
+                name, cta_button(reset_url, "Passwort zur\u{fc}cksetzen")
+            ),
+        );
 
         if let Err(e) = self.send_html(to_email, name, subject, &body) {
             error!("Failed to send password reset email: {}", e);
@@ -206,29 +257,25 @@ impl EmailService {
     /// Sent to customer after registration so they can confirm their e-mail address.
     pub fn send_email_verification(&self, to_email: &str, name: &str, verify_url: &str) {
         let display = if name.is_empty() { "Neuer Kunde" } else { name };
-        let subject = "E-Mail bestätigen – Faszienbehandlung Thilo Seifried";
-        let body = format!(r#"
-            <div style="font-family: 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; background: #f7fbfd; border-radius: 16px; overflow: hidden;">
-                <div style="background: linear-gradient(135deg, #70AECD, #4d93b8); padding: 32px; text-align: center;">
-                    <h1 style="color: white; font-size: 24px; margin: 0;">Willkommen, {}!</h1>
-                </div>
-                <div style="padding: 32px;">
-                    <p style="color: #1a2a33; font-size: 16px; line-height: 1.7;">
-                        Vielen Dank für deine Registrierung bei Faszienbehandlung Thilo Seifried.
-                    </p>
-                    <p style="color: #3d5a6b; font-size: 15px; line-height: 1.7;">
-                        Bitte bestätige deine E-Mail-Adresse mit einem Klick auf den Button. Der Link ist <strong>24 Stunden</strong> gültig.
-                    </p>
-                    <div style="text-align: center; margin: 32px 0;">
-                        <a href="{}" style="display: inline-block; background: #964279; color: white; padding: 14px 36px; border-radius: 50px; text-decoration: none; font-weight: 600; font-size: 15px;">E-Mail-Adresse bestätigen</a>
-                    </div>
-                    <p style="color: #6a8fa0; font-size: 13px; text-align: center;">
-                        Falls du diese Registrierung nicht vorgenommen hast, ignoriere diese E-Mail.<br>
-                        Bei Fragen erreichst du uns unter +49 152 34 00 72 25
-                    </p>
-                </div>
-            </div>
-        "#, display, verify_url);
+        let subject = "E-Mail best\u{e4}tigen \u{2013} Faszienbehandlung Thilo Seifried";
+        let body = shell(
+            SKY_FROM, SKY_TO, &format!("Willkommen, {}!", display),
+            "Bitte best\u{e4}tige deine E-Mail-Adresse, um dein Konto zu aktivieren.",
+            &format!(
+                r#"<p style="color: #1a2a33; font-size: 16px; line-height: 1.7; margin: 0 0 16px;">
+                    Vielen Dank f&uuml;r deine Registrierung bei Faszienbehandlung Thilo Seifried.
+                </p>
+                <p style="color: #3d5a6b; font-size: 15px; line-height: 1.7; margin: 0;">
+                    Bitte best&auml;tige deine E-Mail-Adresse mit einem Klick auf den Button. Der Link ist <strong>24 Stunden</strong> g&uuml;ltig.
+                </p>
+                {}
+                <p style="color: #6a8fa0; font-size: 13px; text-align: center; line-height: 1.6; margin: 0;">
+                    Falls du diese Registrierung nicht vorgenommen hast, ignoriere diese E-Mail.<br>
+                    Bei Fragen erreichst du uns unter +49 152 34 00 72 25
+                </p>"#,
+                cta_button(verify_url, "E-Mail-Adresse best\u{e4}tigen")
+            ),
+        );
 
         if let Err(e) = self.send_html(to_email, name, subject, &body) {
             error!("Failed to send email verification: {}", e);
@@ -249,34 +296,28 @@ impl EmailService {
         is_home_visit: bool,
     ) {
         let visit_label = if is_home_visit { "Hausbesuch" } else { "Praxis" };
-        let notes_block = if notes.is_empty() {
-            String::new()
-        } else {
-            format!("<p style='margin: 4px 0; color: #1a2a33;'><strong>📝 Notiz:</strong> {}</p>", notes)
-        };
+        let mut rows = String::new();
+        rows.push_str(&info_row("Kunde", customer_name));
+        rows.push_str(&info_row("Telefon", customer_phone));
+        rows.push_str(&info_row("Adresse", customer_address));
+        rows.push_str(&info_row("Datum", date_str));
+        rows.push_str(&info_row("Uhrzeit", time_str));
+        rows.push_str(&info_row("Art", visit_label));
+        if !notes.is_empty() {
+            rows.push_str(&info_row("Notiz", notes));
+        }
         let subject = format!("Neue Buchung: {} am {}", customer_name, date_str);
-        let body = format!(r#"
-            <div style="font-family: 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; background: #f7fbfd; border-radius: 16px; overflow: hidden;">
-                <div style="background: linear-gradient(135deg, #70AECD, #4d93b8); padding: 32px; text-align: center;">
-                    <h1 style="color: white; font-size: 22px; margin: 0;">Neue Terminbuchung</h1>
-                </div>
-                <div style="padding: 32px;">
-                    <p style="color: #3d5a6b; font-size: 15px;">Ein Kunde hat soeben einen Termin gebucht:</p>
-                    <div style="background: white; border: 1px solid rgba(112,174,205,0.2); border-radius: 12px; padding: 20px; margin: 20px 0;">
-                        <p style="margin: 4px 0; color: #1a2a33;"><strong>👤 Kunde:</strong> {}</p>
-                        <p style="margin: 4px 0; color: #1a2a33;"><strong>📞 Telefon:</strong> {}</p>
-                        <p style="margin: 4px 0; color: #1a2a33;"><strong>🏠 Adresse:</strong> {}</p>
-                        <p style="margin: 4px 0; color: #1a2a33;"><strong>📅 Datum:</strong> {}</p>
-                        <p style="margin: 4px 0; color: #1a2a33;"><strong>🕐 Uhrzeit:</strong> {}</p>
-                        <p style="margin: 4px 0; color: #1a2a33;"><strong>📍 Art:</strong> {}</p>
-                        {}
-                    </div>
-                    <div style="text-align: center; margin: 32px 0;">
-                        <a href="https://faszienbehandlung.jetzt/admin" style="display: inline-block; background: #964279; color: white; padding: 14px 36px; border-radius: 50px; text-decoration: none; font-weight: 600;">Admin-Bereich öffnen</a>
-                    </div>
-                </div>
-            </div>
-        "#, customer_name, customer_phone, customer_address, date_str, time_str, visit_label, notes_block);
+        let preheader = format!("{} hat einen Termin am {} gebucht.", customer_name, date_str);
+        let body = shell(
+            SKY_FROM, SKY_TO, "Neue Terminbuchung", &preheader,
+            &format!(
+                r#"<p style="color: #3d5a6b; font-size: 15px; margin: 0;">Ein Kunde hat soeben einen Termin gebucht:</p>
+                {}
+                {}"#,
+                info_card(&rows),
+                cta_button("https://faszienbehandlung.jetzt/admin", "Admin-Bereich \u{f6}ffnen")
+            ),
+        );
 
         if let Err(e) = self.send_html(admin_email, "", &subject, &body) {
             error!("Failed to send admin booking notification: {}", e);
@@ -286,33 +327,31 @@ impl EmailService {
     /// 24h reminder sent to customer before appointment.
     pub fn send_appointment_reminder(&self, to_email: &str, name: &str, date: &str, time: &str, is_home_visit: bool) {
         let location = if is_home_visit {
-            "Hausbesuch – Thilo kommt zu dir".to_string()
+            "Hausbesuch \u{2013} Thilo kommt zu dir".to_string()
         } else {
-            "Praxis · Sulgauer Straße 24, 78713 Sulgen".to_string()
+            "Praxis \u{b7} Sulgauer Stra\u{df}e 24, 78713 Sulgen".to_string()
         };
+        let mut rows = String::new();
+        rows.push_str(&info_row("Datum", date));
+        rows.push_str(&info_row("Uhrzeit", time));
+        rows.push_str(&info_row("Ort", &location));
+        rows.push_str(&info_row("Dauer", "ca. 90 Minuten"));
         let subject = format!("Erinnerung: Dein Termin morgen um {}", time);
-        let body = format!(r#"
-            <div style="font-family: 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; background: #f7fbfd; border-radius: 16px; overflow: hidden;">
-                <div style="background: linear-gradient(135deg, #70AECD, #4d93b8); padding: 32px; text-align: center;">
-                    <h1 style="color: white; font-size: 22px; margin: 0;">Erinnerung: Termin morgen</h1>
-                </div>
-                <div style="padding: 32px;">
-                    <p style="color: #1a2a33; font-size: 16px;">Hallo {},</p>
-                    <p style="color: #3d5a6b; font-size: 15px; line-height: 1.7;">
-                        Dein Termin bei Faszienbehandlung Thilo Seifried ist morgen:
-                    </p>
-                    <div style="background: white; border: 1px solid rgba(112,174,205,0.2); border-radius: 12px; padding: 20px; margin: 20px 0;">
-                        <p style="margin: 4px 0; color: #1a2a33;"><strong>📅 Datum:</strong> {}</p>
-                        <p style="margin: 4px 0; color: #1a2a33;"><strong>🕐 Uhrzeit:</strong> {}</p>
-                        <p style="margin: 4px 0; color: #1a2a33;"><strong>📍 Ort:</strong> {}</p>
-                        <p style="margin: 4px 0; color: #1a2a33;"><strong>⏱ Dauer:</strong> ca. 90 Minuten</p>
-                    </div>
-                    <p style="color: #6a8fa0; font-size: 13px;">
-                        Bitte trinke am Behandlungstag ausreichend Wasser (mind. 1,5 Liter) und trage bequeme Kleidung.
-                    </p>
-                </div>
-            </div>
-        "#, name, date, time, location);
+        let preheader = format!("Dein Termin ist morgen um {} Uhr.", time);
+        let body = shell(
+            SKY_FROM, SKY_TO, "Erinnerung: Termin morgen", &preheader,
+            &format!(
+                r#"<p style="color: #1a2a33; font-size: 16px; margin: 0 0 12px;">Hallo {},</p>
+                <p style="color: #3d5a6b; font-size: 15px; line-height: 1.7; margin: 0;">
+                    Dein Termin bei Faszienbehandlung Thilo Seifried ist morgen:
+                </p>
+                {}
+                <p style="color: #6a8fa0; font-size: 13px; margin: 0;">
+                    Bitte trinke am Behandlungstag ausreichend Wasser (mind. 1,5 Liter) und trage bequeme Kleidung.
+                </p>"#,
+                name, info_card(&rows)
+            ),
+        );
 
         if let Err(e) = self.send_html(to_email, name, &subject, &body) {
             error!("Failed to send appointment reminder: {}", e);
@@ -321,29 +360,26 @@ impl EmailService {
 
     /// Review reminder sent ~2h after appointment end.
     pub fn send_review_reminder(&self, to_email: &str, name: &str, date: &str) {
-        let subject = "Wie war deine Behandlung? Wir freuen uns über dein Feedback";
-        let body = format!(r#"
-            <div style="font-family: 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; background: #f7fbfd; border-radius: 16px; overflow: hidden;">
-                <div style="background: linear-gradient(135deg, #70AECD, #4d93b8); padding: 32px; text-align: center;">
-                    <h1 style="color: white; font-size: 22px; margin: 0;">Wie war deine Behandlung?</h1>
-                </div>
-                <div style="padding: 32px;">
-                    <p style="color: #1a2a33; font-size: 16px;">Hallo {},</p>
-                    <p style="color: #3d5a6b; font-size: 15px; line-height: 1.7;">
-                        Du warst heute am {} bei uns – wir hoffen, du fühlst dich gut und entspannt!
-                    </p>
-                    <p style="color: #3d5a6b; font-size: 15px; line-height: 1.7;">
-                        Dein Feedback hilft uns sehr und anderen Interessierten bei der Entscheidung. Eine kurze Bewertung dauert nur 1 Minute:
-                    </p>
-                    <div style="text-align: center; margin: 32px 0;">
-                        <a href="https://g.page/r/faszienbehandlung/review" style="display: inline-block; background: #964279; color: white; padding: 14px 36px; border-radius: 50px; text-decoration: none; font-weight: 600; font-size: 15px;">⭐ Bewertung schreiben</a>
-                    </div>
-                    <p style="color: #6a8fa0; font-size: 13px; text-align: center;">
-                        Vielen Dank – wir freuen uns auf deinen nächsten Besuch!
-                    </p>
-                </div>
-            </div>
-        "#, name, date);
+        let subject = "Wie war deine Behandlung? Wir freuen uns \u{fc}ber dein Feedback";
+        let body = shell(
+            SKY_FROM, SKY_TO, "Wie war deine Behandlung?",
+            "Wir freuen uns \u{fc}ber dein Feedback \u{2013} dauert nur 1 Minute.",
+            &format!(
+                r#"<p style="color: #1a2a33; font-size: 16px; margin: 0 0 12px;">Hallo {},</p>
+                <p style="color: #3d5a6b; font-size: 15px; line-height: 1.7; margin: 0 0 12px;">
+                    Du warst heute am {} bei uns &ndash; wir hoffen, du f&uuml;hlst dich gut und entspannt!
+                </p>
+                <p style="color: #3d5a6b; font-size: 15px; line-height: 1.7; margin: 0;">
+                    Dein Feedback hilft uns sehr und anderen Interessierten bei der Entscheidung. Eine kurze Bewertung dauert nur 1 Minute:
+                </p>
+                {}
+                <p style="color: #6a8fa0; font-size: 13px; text-align: center; margin: 0;">
+                    Vielen Dank &ndash; wir freuen uns auf deinen n&auml;chsten Besuch!
+                </p>"#,
+                name, date,
+                cta_button("https://g.page/r/faszienbehandlung/review", "Bewertung schreiben")
+            ),
+        );
 
         if let Err(e) = self.send_html(to_email, name, subject, &body) {
             error!("Failed to send review reminder: {}", e);
@@ -353,25 +389,22 @@ impl EmailService {
     /// Notify waitlisted customer that a slot opened up.
     pub fn send_waitlist_notification(&self, to_email: &str, name: &str, date: &str) {
         let subject = format!("Ein Termin am {} ist frei geworden!", date);
-        let body = format!(r#"
-            <div style="font-family: 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; background: #f7fbfd; border-radius: 16px; overflow: hidden;">
-                <div style="background: linear-gradient(135deg, #70AECD, #4d93b8); padding: 32px; text-align: center;">
-                    <h1 style="color: white; font-size: 22px; margin: 0;">Ein Termin ist frei!</h1>
-                </div>
-                <div style="padding: 32px;">
-                    <p style="color: #1a2a33; font-size: 16px;">Hallo {},</p>
-                    <p style="color: #3d5a6b; font-size: 15px; line-height: 1.7;">
-                        Du stehst auf der Warteliste für den <strong>{}</strong> – und es ist gerade ein Termin freigeworden!
-                    </p>
-                    <p style="color: #3d5a6b; font-size: 15px; line-height: 1.7;">
-                        Bitte schnell sein – Termine werden nach dem Erstgebucht-Prinzip vergeben:
-                    </p>
-                    <div style="text-align: center; margin: 32px 0;">
-                        <a href="https://faszienbehandlung.jetzt/portal/book" style="display: inline-block; background: #964279; color: white; padding: 14px 36px; border-radius: 50px; text-decoration: none; font-weight: 600; font-size: 15px;">Jetzt Termin buchen</a>
-                    </div>
-                </div>
-            </div>
-        "#, name, date);
+        let preheader = format!("Ein Termin am {} ist gerade frei geworden.", date);
+        let body = shell(
+            SKY_FROM, SKY_TO, "Ein Termin ist frei!", &preheader,
+            &format!(
+                r#"<p style="color: #1a2a33; font-size: 16px; margin: 0 0 12px;">Hallo {},</p>
+                <p style="color: #3d5a6b; font-size: 15px; line-height: 1.7; margin: 0 0 12px;">
+                    Du stehst auf der Warteliste f&uuml;r den <strong>{}</strong> &ndash; und es ist gerade ein Termin freigeworden!
+                </p>
+                <p style="color: #3d5a6b; font-size: 15px; line-height: 1.7; margin: 0;">
+                    Bitte schnell sein &ndash; Termine werden nach dem Erstgebucht-Prinzip vergeben:
+                </p>
+                {}"#,
+                name, date,
+                cta_button("https://faszienbehandlung.jetzt/portal/book", "Jetzt Termin buchen")
+            ),
+        );
 
         if let Err(e) = self.send_html(to_email, name, &subject, &body) {
             error!("Failed to send waitlist notification: {}", e);
@@ -379,26 +412,21 @@ impl EmailService {
     }
 
     pub fn send_appointment_suggestion(&self, to_email: &str, name: &str, slots_html: &str) {
-        let subject = "Terminvorschläge – Faszienbehandlung Thilo Seifried";
-        let body = format!(r#"
-            <div style="font-family: 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; background: #f7fbfd; border-radius: 16px; overflow: hidden;">
-                <div style="background: linear-gradient(135deg, #70AECD, #4d93b8); padding: 32px; text-align: center;">
-                    <h1 style="color: white; font-size: 22px; margin: 0;">Terminvorschläge für dich</h1>
-                </div>
-                <div style="padding: 32px;">
-                    <p style="color: #1a2a33; font-size: 16px;">Hallo {},</p>
-                    <p style="color: #3d5a6b; font-size: 15px; line-height: 1.7;">
-                        Ich habe folgende Termine für dich reserviert. Bitte buche einen davon über dein Kundenportal:
-                    </p>
-                    <div style="background: white; border: 1px solid rgba(112,174,205,0.2); border-radius: 12px; padding: 20px; margin: 20px 0;">
-                        {}
-                    </div>
-                    <div style="text-align: center; margin: 32px 0;">
-                        <a href="https://faszien-behandlung.jetzt/portal/book" style="display: inline-block; background: #964279; color: white; padding: 14px 36px; border-radius: 50px; text-decoration: none; font-weight: 600;">Termin buchen</a>
-                    </div>
-                </div>
-            </div>
-        "#, name, slots_html);
+        let subject = "Terminvorschl\u{e4}ge \u{2013} Faszienbehandlung Thilo Seifried";
+        let body = shell(
+            SKY_FROM, SKY_TO, "Terminvorschl\u{e4}ge f\u{fc}r dich",
+            "Ich habe neue Terminvorschl\u{e4}ge f\u{fc}r dich reserviert.",
+            &format!(
+                r#"<p style="color: #1a2a33; font-size: 16px; margin: 0 0 12px;">Hallo {},</p>
+                <p style="color: #3d5a6b; font-size: 15px; line-height: 1.7; margin: 0;">
+                    Ich habe folgende Termine f&uuml;r dich reserviert. Bitte buche einen davon &uuml;ber dein Kundenportal:
+                </p>
+                <div style="margin: 20px 0;">{}</div>
+                {}"#,
+                name, slots_html,
+                cta_button("https://faszienbehandlung.jetzt/portal/book", "Termin buchen")
+            ),
+        );
 
         if let Err(e) = self.send_html(to_email, name, subject, &body) {
             error!("Failed to send appointment suggestion: {}", e);

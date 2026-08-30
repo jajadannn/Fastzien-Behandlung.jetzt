@@ -8,11 +8,12 @@
   <link rel="icon" href="/favicon.v1.ico">
   <link rel="preload" href="/fonts/cormorant-garamond-normal-latin.v1.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/fonts/dm-sans-latin.v1.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/static/css/main.css">
-  <link rel="stylesheet" href="/static/css/customer.css">
+  <link rel="stylesheet" href="/static/css/main.css?v=1">
+  <link rel="stylesheet" href="/static/css/customer.css?v=1">
 </head>
 
 <body>
+  {% include "_icon_sprite.html" %}
   <nav class="portal-nav">
     <a href="/" class="portal-logo">
       <img src="/Logo.png" alt="Faszienbehandlung" height="32">
@@ -24,7 +25,7 @@
       <a href="/portal/appointments" class="active">Termine</a>
       <a href="/portal/credits">Guthaben</a>
       <a href="/portal/profile">Profil</a>
-      {% if is_admin %}<a href="/admin" class="nav-admin">⚙️ Admin</a>{% endif %}
+      {% if is_admin %}<a href="/admin" class="nav-admin"><svg class="icon"><use href="#icon-settings" xlink:href="#icon-settings"/></svg> Admin</a>{% endif %}
       <a href="/logout" class="nav-logout" style="text-decoration: none;">Abmelden</a>
     </div>
   </nav>
@@ -41,7 +42,7 @@
 
       {% if appointments | length == 0 %}
       <div class="empty-state">
-        <div class="empty-icon">📅</div>
+        <div class="empty-icon"><svg class="icon"><use href="#icon-calendar" xlink:href="#icon-calendar"/></svg></div>
         <h3>Noch keine Termine</h3>
         <p>Buche jetzt deinen ersten Termin</p>
         <a href="/portal/book" class="auth-btn"
@@ -57,12 +58,12 @@
             == "completed" %}Abgeschlossen{% endif %}
           </div>
           <div class="apt-details">
-            <div class="apt-time">📅 {{ apt.start_time | format_date(format="%d.%m.%Y %H:%M") }}</div>
+            <div class="apt-time"><svg class="icon"><use href="#icon-calendar" xlink:href="#icon-calendar"/></svg> {{ apt.start_time | format_date(format="%d.%m.%Y %H:%M") }}</div>
             <div class="apt-type">
-              {% if apt.is_home_visit %}🏠 Hausbesuch{% else %}🏥 Praxis{% endif %}
+              {% if apt.is_home_visit %}<svg class="icon"><use href="#icon-home" xlink:href="#icon-home"/></svg> Hausbesuch{% else %}<svg class="icon"><use href="#icon-clinic" xlink:href="#icon-clinic"/></svg> Praxis{% endif %}
               · {% if apt.appointment_type == "pack" %}10er-Karte{% else %}Einzelsitzung{% endif %}
             </div>
-            {% if apt.notes %}<div class="apt-notes">📝 {{ apt.notes }}</div>{% endif %}
+            {% if apt.notes %}<div class="apt-notes"><svg class="icon"><use href="#icon-edit" xlink:href="#icon-edit"/></svg> {{ apt.notes }}</div>{% endif %}
           </div>
           {% if apt.status == "confirmed" %}
           <div class="apt-actions">
@@ -86,12 +87,12 @@
       <div style="margin-top:32px;padding:20px;background:white;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
         <h3 style="color:#3d5a6b;margin:0 0 8px;">Warteliste</h3>
         <p style="color:#6a8fa0;font-size:14px;margin:0 0 12px;">Kein freier Termin? Trage dich auf die Warteliste ein und wir benachrichtigen dich wenn ein Platz frei wird.</p>
-        <div style="display:flex;gap:12px;align-items:end;">
-          <div class="form-group" style="margin:0;">
+        <div class="waitlist-row">
+          <div class="form-group" style="margin:0;min-width:0;">
             <label style="font-size:13px;color:#3d5a6b;">Datum</label>
-            <input type="date" id="waitlist-date" min="{{ '' }}" style="padding:8px 12px;border:1px solid #d0e4ee;border-radius:8px;">
+            <input type="date" id="waitlist-date" min="{{ '' }}" style="padding:8px 12px;border:1px solid #d0e4ee;border-radius:8px;margin-bottom:5px;width:calc(100% - 26px);">
+            <button onclick="addToWaitlist()" class="btn-small waitlist-btn" style="background:#964279;color:white;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;white-space:nowrap;">Auf Warteliste</button>
           </div>
-          <button onclick="addToWaitlist()" class="btn-small" style="background:#964279;color:white;border:none;">Auf Warteliste</button>
         </div>
         <div id="waitlist-msg" style="margin-top:8px;font-size:13px;display:none;"></div>
       </div>

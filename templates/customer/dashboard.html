@@ -7,10 +7,11 @@
   <link rel="icon" href="/favicon.v1.ico">
   <link rel="preload" href="/fonts/cormorant-garamond-normal-latin.v1.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/fonts/dm-sans-latin.v1.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/static/css/main.css">
-  <link rel="stylesheet" href="/static/css/customer.css">
+  <link rel="stylesheet" href="/static/css/main.css?v=1">
+  <link rel="stylesheet" href="/static/css/customer.css?v=1">
 </head>
 <body>
+  {% include "_icon_sprite.html" %}
   <nav class="portal-nav">
     <a href="/" class="portal-logo">
       <img src="/Logo.png" alt="Faszienbehandlung" height="32">
@@ -22,7 +23,7 @@
       <a href="/portal/appointments">Termine</a>
       <a href="/portal/credits">Guthaben</a>
       <a href="/portal/profile">Profil</a>
-      {% if is_admin %}<a href="/admin" class="nav-admin">⚙️ Admin</a>{% endif %}
+      {% if is_admin %}<a href="/admin" class="nav-admin"><svg class="icon"><use href="#icon-settings" xlink:href="#icon-settings"/></svg> Admin</a>{% endif %}
       <a href="/logout" class="nav-logout" style="text-decoration: none;">Abmelden</a>
     </div>
   </nav>
@@ -37,7 +38,7 @@
       <!-- Summary cards -->
       <div class="dashboard-grid">
         <a href="/portal/book" class="dash-card dash-card-primary">
-          <div class="dash-card-icon">📅</div>
+          <div class="dash-card-icon"><svg class="icon"><use href="#icon-calendar" xlink:href="#icon-calendar"/></svg></div>
           <div class="dash-card-content">
             <h3>Termin buchen</h3>
             <p>Neuen Termin vereinbaren</p>
@@ -46,7 +47,7 @@
         </a>
 
         <div class="dash-card">
-          <div class="dash-card-icon">📋</div>
+          <div class="dash-card-icon"><svg class="icon"><use href="#icon-clipboard" xlink:href="#icon-clipboard"/></svg></div>
           <div class="dash-card-content">
             <h3>{{ upcoming_appointments | length }}</h3>
             <p>Kommende Termine</p>
@@ -54,7 +55,7 @@
         </div>
 
         <div class="dash-card {% if pending_amount > 0 %}dash-card-warning{% endif %}">
-          <div class="dash-card-icon">💳</div>
+          <div class="dash-card-icon"><svg class="icon"><use href="#icon-card" xlink:href="#icon-card"/></svg></div>
           <div class="dash-card-content">
             <h3>{{ pending_amount | round(method="common", precision=2) }} €</h3>
             <p>Offener Betrag</p>
@@ -62,7 +63,7 @@
         </div>
 
         <div class="dash-card">
-          <div class="dash-card-icon">🎟️</div>
+          <div class="dash-card-icon"><svg class="icon"><use href="#icon-ticket" xlink:href="#icon-ticket"/></svg></div>
           <div class="dash-card-content">
             <h3>{{ remaining_credits }}</h3>
             <p>Verbleibende Sitzungen</p>
@@ -74,20 +75,20 @@
       {% if next_appointment %}
       <div class="portal-section" style="margin-bottom: 16px;">
         <h2>Nächster Termin</h2>
-        <div class="appointment-card" style="border-left: 4px solid var(--sky); background: var(--sky-pale);">
+        <div class="appointment-card" style="background: var(--sky-pale);">
           <div class="apt-date-badge" style="background: var(--sky); color: white;">
             <span class="apt-day">{{ next_appointment.start_time | format_date(format="%d.%m.") }}</span>
           </div>
           <div class="apt-details">
             <div class="apt-time" style="font-weight: 600; color: var(--sky-dark);">
-              🕐 {{ next_appointment.start_time | format_date(format="%H:%M") }} – {{ next_appointment.end_time | format_date(format="%H:%M") }} Uhr
+              <svg class="icon"><use href="#icon-clock" xlink:href="#icon-clock"/></svg> {{ next_appointment.start_time | format_date(format="%H:%M") }} – {{ next_appointment.end_time | format_date(format="%H:%M") }} Uhr
             </div>
             <div class="apt-type">
-              {% if next_appointment.is_home_visit %}🏠 Hausbesuch{% else %}📍 Praxis Sulgen{% endif %}
+              {% if next_appointment.is_home_visit %}<svg class="icon"><use href="#icon-home" xlink:href="#icon-home"/></svg> Hausbesuch{% else %}<svg class="icon"><use href="#icon-clinic" xlink:href="#icon-clinic"/></svg> Praxis Sulgen{% endif %}
               &nbsp;·&nbsp; {{ next_appointment.start_time | format_date(format="%d.%m.%Y") }}
             </div>
             {% if next_appointment.notes != "" %}
-            <div style="margin-top: 6px; font-size: 13px; color: var(--text-mid);">📝 {{ next_appointment.notes }}</div>
+            <div style="margin-top: 6px; font-size: 13px; color: var(--text-mid); display: flex; align-items: center; gap: 6px;"><svg class="icon" style="width:13px;height:13px;flex-shrink:0"><use href="#icon-edit" xlink:href="#icon-edit"/></svg> {{ next_appointment.notes }}</div>
             {% endif %}
           </div>
           <div class="apt-actions">
@@ -109,8 +110,8 @@
               <span class="apt-day">{{ apt.start_time | format_date(format="%d.%m.") }}</span>
             </div>
             <div class="apt-details">
-              <div class="apt-time">🕐 {{ apt.start_time | format_date(format="%H:%M") }} – {{ apt.end_time | format_date(format="%H:%M") }} Uhr</div>
-              <div class="apt-type">{% if apt.is_home_visit %}🏠 Hausbesuch{% else %}📍 Praxis{% endif %}</div>
+              <div class="apt-time"><svg class="icon"><use href="#icon-clock" xlink:href="#icon-clock"/></svg> {{ apt.start_time | format_date(format="%H:%M") }} – {{ apt.end_time | format_date(format="%H:%M") }} Uhr</div>
+              <div class="apt-type">{% if apt.is_home_visit %}<svg class="icon"><use href="#icon-home" xlink:href="#icon-home"/></svg> Hausbesuch{% else %}<svg class="icon"><use href="#icon-clinic" xlink:href="#icon-clinic"/></svg> Praxis{% endif %}</div>
             </div>
             <div class="apt-actions">
               <button class="btn-cancel" onclick="cancelAppointment({{ apt.id }})">Stornieren</button>
@@ -131,12 +132,12 @@
         </p>
         <div style="display: flex; gap: 12px; flex-wrap: wrap;">
           <a href="webcal://faszienbehandlung.jetzt/api/calendar/{{ customer.calendar_token }}/termine.ics"
-             style="display:inline-block; padding: 9px 20px; background: var(--sky-pale); border: 1px solid var(--border); border-radius: 50px; font-size: 13px; font-weight: 500; color: var(--sky-dark); text-decoration: none;">
-            📅 Kalender abonnieren
+             style="display:inline-flex; align-items:center; gap:8px; padding: 9px 20px; background: var(--sky-pale); border: 1px solid var(--border); border-radius: 50px; font-size: 13px; font-weight: 500; color: var(--sky-dark); text-decoration: none;">
+            <svg class="icon" style="width:15px;height:15px"><use href="#icon-calendar" xlink:href="#icon-calendar"/></svg> Kalender abonnieren
           </a>
           <a href="/api/calendar/{{ customer.calendar_token }}/termine.ics"
-             style="display:inline-block; padding: 9px 20px; background: var(--sky-pale); border: 1px solid var(--border); border-radius: 50px; font-size: 13px; font-weight: 500; color: var(--sky-dark); text-decoration: none;">
-            ⬇️ .ics herunterladen
+             style="display:inline-flex; align-items:center; gap:8px; padding: 9px 20px; background: var(--sky-pale); border: 1px solid var(--border); border-radius: 50px; font-size: 13px; font-weight: 500; color: var(--sky-dark); text-decoration: none;">
+            <svg class="icon" style="width:15px;height:15px"><use href="#icon-download" xlink:href="#icon-download"/></svg> .ics herunterladen
           </a>
         </div>
       </div>

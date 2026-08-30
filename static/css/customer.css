@@ -53,7 +53,11 @@
 }
 .nav-admin {
   color: var(--plum-light) !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
+.nav-admin svg { width: 14px; height: 14px; }
 .nav-logout {
   color: rgba(255,255,255,0.4) !important;
 }
@@ -73,18 +77,24 @@
   margin-bottom: 32px;
 }
 .portal-welcome h1 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   font-family: 'Cormorant Garamond', serif;
   font-size: 2.2rem;
   font-weight: 600;
   color: var(--text);
   margin-bottom: 6px;
 }
+.portal-welcome h1 svg { width: 30px; height: 30px; flex-shrink: 0; }
 .portal-welcome p {
   color: var(--text-mid);
   font-size: .95rem;
 }
 .credits-badge {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   background: var(--sky-pale);
   border: 1px solid rgba(112,174,205,0.3);
   color: var(--sky-dark);
@@ -94,6 +104,7 @@
   font-weight: 500;
   margin-top: 10px;
 }
+.credits-badge svg { width: 15px; height: 15px; flex-shrink: 0; }
 
 /* Dashboard Grid */
 .dashboard-grid {
@@ -130,6 +141,7 @@
   font-size: 2rem;
   flex-shrink: 0;
 }
+.dash-card-icon svg { width: 32px; height: 32px; }
 .dash-card-content h3 {
   font-family: 'Cormorant Garamond', serif;
   font-size: 1.5rem;
@@ -190,9 +202,12 @@
   color: var(--sky-dark);
 }
 .apt-details { flex: 1; }
-.apt-time { font-weight: 500; color: var(--text); font-size: .9rem; margin-bottom: 4px; }
-.apt-type { font-size: .82rem; color: var(--text-mid); }
-.apt-notes { font-size: .8rem; color: var(--text-light); margin-top: 4px; font-style: italic; }
+.apt-time { display: flex; align-items: center; gap: 6px; font-weight: 500; color: var(--text); font-size: .9rem; margin-bottom: 4px; }
+.apt-time svg { width: 14px; height: 14px; flex-shrink: 0; }
+.apt-type { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: .82rem; color: var(--text-mid); }
+.apt-type svg { width: 14px; height: 14px; flex-shrink: 0; }
+.apt-notes { display: flex; align-items: center; gap: 6px; font-size: .8rem; color: var(--text-light); margin-top: 4px; font-style: italic; }
+.apt-notes svg { width: 13px; height: 13px; flex-shrink: 0; }
 .apt-status-badge {
   display: inline-block;
   padding: 4px 12px;
@@ -227,7 +242,8 @@
   padding: 60px 24px;
   color: var(--text-mid);
 }
-.empty-icon { font-size: 3rem; margin-bottom: 16px; }
+.empty-icon { display: flex; justify-content: center; margin-bottom: 16px; }
+.empty-icon svg { width: 48px; height: 48px; color: var(--text-light); }
 .empty-state h3 { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; margin-bottom: 8px; color: var(--text); }
 .empty-state p { margin-bottom: 20px; }
 
@@ -451,6 +467,8 @@
   margin-bottom: 18px;
 }
 
+.waitlist-row { display: flex; gap: 12px; align-items: end; }
+
 @media (max-width: 768px) {
   .portal-nav { padding: 8px 16px; }
   .portal-nav-links a, .portal-nav-links button { padding: 5px 10px; font-size: .76rem; }
@@ -460,6 +478,8 @@
   .portal-welcome h1 { font-size: 1.8rem; }
   .profile-section { padding: 20px; }
   .form-row { grid-template-columns: 1fr; }
+  .waitlist-row { flex-direction: column; align-items: stretch; }
+  .waitlist-row .waitlist-btn { width: 100%; }
 }
 @media (max-width: 440px) {
   .dashboard-grid { grid-template-columns: 1fr; }

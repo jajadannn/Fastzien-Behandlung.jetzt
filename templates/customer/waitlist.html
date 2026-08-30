@@ -7,10 +7,11 @@
   <link rel="icon" href="/favicon.v1.ico">
   <link rel="preload" href="/fonts/cormorant-garamond-normal-latin.v1.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/fonts/dm-sans-latin.v1.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/static/css/main.css">
-  <link rel="stylesheet" href="/static/css/customer.css">
+  <link rel="stylesheet" href="/static/css/main.css?v=1">
+  <link rel="stylesheet" href="/static/css/customer.css?v=1">
 </head>
 <body>
+  {% include "_icon_sprite.html" %}
   <nav class="portal-nav">
     <a href="/" class="portal-logo">
       <img src="/Logo.png" alt="Faszienbehandlung" height="32">
@@ -22,7 +23,7 @@
       <a href="/portal/appointments">Termine</a>
       <a href="/portal/credits">Guthaben</a>
       <a href="/portal/profile">Profil</a>
-      {% if is_admin %}<a href="/admin" class="nav-admin">⚙️ Admin</a>{% endif %}
+      {% if is_admin %}<a href="/admin" class="nav-admin"><svg class="icon"><use href="#icon-settings" xlink:href="#icon-settings"/></svg> Admin</a>{% endif %}
       <a href="/logout" class="nav-logout" style="text-decoration: none;">Abmelden</a>
     </div>
   </nav>
@@ -36,7 +37,7 @@
 
       {% if waitlist | length == 0 %}
       <div class="empty-state">
-        <div class="empty-icon">📋</div>
+        <div class="empty-icon"><svg class="icon"><use href="#icon-clipboard" xlink:href="#icon-clipboard"/></svg></div>
         <h3>Keine Einträge</h3>
         <p>Du stehst auf keiner Warteliste.</p>
         <a href="/portal/appointments" class="auth-btn" style="display:inline-block;text-decoration:none;text-align:center;">Zur Terminseite</a>
@@ -46,7 +47,7 @@
         {% for entry in waitlist %}
         <div class="appointment-card">
           <div class="apt-details">
-            <div class="apt-time">📅 {{ entry.date }}</div>
+            <div class="apt-time"><svg class="icon"><use href="#icon-calendar" xlink:href="#icon-calendar"/></svg> {{ entry.date }}</div>
             <div class="apt-type">{% if entry.notified %}Benachrichtigt{% else %}Warte auf freien Termin{% endif %}</div>
           </div>
           <div class="apt-actions">

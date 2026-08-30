@@ -7,10 +7,11 @@
   <link rel="icon" href="/favicon.v1.ico">
   <link rel="preload" href="/fonts/cormorant-garamond-normal-latin.v1.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/fonts/dm-sans-latin.v1.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/static/css/main.css">
-  <link rel="stylesheet" href="/static/css/customer.css">
+  <link rel="stylesheet" href="/static/css/main.css?v=1">
+  <link rel="stylesheet" href="/static/css/customer.css?v=1">
 </head>
 <body>
+  {% include "_icon_sprite.html" %}
   <nav class="portal-nav">
     <a href="/" class="portal-logo">
       <img src="/Logo.png" alt="Faszienbehandlung" height="32">
@@ -22,7 +23,7 @@
       <a href="/portal/appointments">Termine</a>
       <a href="/portal/credits">Guthaben</a>
       <a href="/portal/profile" class="active">Profil</a>
-      {% if is_admin %}<a href="/admin" class="nav-admin">⚙️ Admin</a>{% endif %}
+      {% if is_admin %}<a href="/admin" class="nav-admin"><svg class="icon"><use href="#icon-settings" xlink:href="#icon-settings"/></svg> Admin</a>{% endif %}
       <a href="/logout" class="nav-logout" style="text-decoration: none;">Abmelden</a>
     </div>
   </nav>
@@ -36,19 +37,24 @@
 
       <div id="msg" class="portal-success" style="display:none"></div>
       <div id="err" class="portal-error" style="display:none"></div>
+      {% if profile_incomplete %}
+      <div class="portal-error" style="display:block; margin-bottom: 20px;">
+        Bitte vervollständige dein Profil, um alle Funktionen des Kundenportals (Terminbuchung, Warteliste, Guthaben) zu nutzen.
+      </div>
+      {% endif %}
 
       <div class="profile-section">
         <h2>Persönliche Daten</h2>
         <form id="profile-form" class="portal-form">
           <div class="form-row">
-            <div class="form-group"><label>Vorname</label><input type="text" id="first_name" value="{{ customer.first_name }}"></div>
-            <div class="form-group"><label>Nachname</label><input type="text" id="last_name" value="{{ customer.last_name }}"></div>
+            <div class="form-group"><label>Vorname *</label><input type="text" id="first_name" required value="{{ customer.first_name }}"></div>
+            <div class="form-group"><label>Nachname *</label><input type="text" id="last_name" required value="{{ customer.last_name }}"></div>
           </div>
           <div class="form-group"><label>Telefon</label><input type="tel" id="phone" value="{{ customer.phone }}"></div>
-          <div class="form-group"><label>Straße</label><input type="text" id="street" value="{{ customer.street }}"></div>
+          <div class="form-group"><label>Straße *</label><input type="text" id="street" required value="{{ customer.street }}"></div>
           <div class="form-row">
-            <div class="form-group"><label>PLZ</label><input type="text" id="zip_code" value="{{ customer.zip_code }}"></div>
-            <div class="form-group"><label>Ort</label><input type="text" id="city" value="{{ customer.city }}"></div>
+            <div class="form-group"><label>PLZ *</label><input type="text" id="zip_code" required value="{{ customer.zip_code }}"></div>
+            <div class="form-group"><label>Ort *</label><input type="text" id="city" required value="{{ customer.city }}"></div>
           </div>
           <button type="submit" class="auth-btn">Speichern</button>
         </form>
@@ -75,27 +81,27 @@
 
       <div class="profile-section">
         <h2>Datenschutz & Meine Daten</h2>
-        <p style="color: var(--text-mid); font-size: 14px; margin-bottom: 16px;">
+        <p style="color: var(--text-mid); font-size: 15px; margin-bottom: 16px;">
           Gemäß DSGVO haben Sie das Recht auf Auskunft, Datenübertragbarkeit und Löschung Ihrer gespeicherten Daten.
           Weitere Informationen finden Sie in unseren <a href="/datenschutz" target="_blank" rel="noopener" style="color: var(--sky-dark);">Datenschutzhinweisen</a>.
         </p>
 
         <div style="display: flex; flex-direction: column; gap: 12px;">
           <div>
-            <a href="/api/customer/export-data" class="auth-btn" style="display:inline-block; text-align:center; text-decoration:none; background: var(--sky); padding: 10px 20px; font-size: 14px;">
-              📥 Meine Daten exportieren (JSON)
+            <a href="/api/customer/export-data" class="auth-btn" style="display:inline-flex; text-align:center; text-decoration:none; background: var(--sky); padding: 10px 20px; font-size: 15px;">
+              <svg class="icon"><use href="#icon-download" xlink:href="#icon-download"/></svg> Meine Daten exportieren (JSON)
             </a>
-            <p style="font-size: 12px; color: var(--text-light); margin-top: 6px;">Lädt eine Kopie aller über Sie gespeicherten Daten herunter (Art. 20 DSGVO).</p>
+            <p style="font-size: 11px; color: var(--text-light); margin-top: 6px;">Lädt eine Kopie aller über Sie gespeicherten Daten herunter (Art. 20 DSGVO).</p>
           </div>
 
-          <div style="margin-top: 8px; padding: 16px; background: #fff8f0; border: 1px solid #f5d9b8; border-left: 4px solid #e8963a; border-radius: 12px;">
-            <p style="font-size: 14px; font-weight: 600; color: #7a3a10; margin-bottom: 6px;">Konto unwiderruflich löschen</p>
-            <p style="font-size: 13px; color: #7a5a30; margin-bottom: 12px;">
+          <div style="margin-top: 8px; padding: 16px; background: #fff8f0; border: 1px solid #f5d9b8; border-radius: 12px;">
+            <p style="font-size: 19px; font-weight: 600; color: #7a3a10; margin-bottom: 6px;">Konto unwiderruflich löschen</p>
+            <p style="font-size: 15px; color: #7a5a30; margin-bottom: 12px;">
               Ihr Konto sowie alle damit verbundenen Termine werden gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.
               Bestehende Zahlungsverpflichtungen bleiben davon unberührt.
             </p>
-            <button id="delete-account-btn" class="auth-btn" style="background: #c0392b; border-color: #c0392b; font-size: 14px; padding: 9px 18px;">
-              🗑️ Konto löschen
+            <button id="delete-account-btn" class="auth-btn" style="background: #c0392b; border-color: #c0392b; font-size: 15px; padding: 9px 18px;">
+              <svg class="icon"><use href="#icon-trash" xlink:href="#icon-trash"/></svg> Konto löschen
             </button>
           </div>
         </div>

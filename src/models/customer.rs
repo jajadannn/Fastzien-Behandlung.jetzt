@@ -25,12 +25,12 @@ pub struct Customer {
 pub struct RegisterForm {
     pub email: String,
     pub password: String,
-    pub first_name: String,
-    pub last_name: String,
+    pub first_name: Option<String>,
+    pub last_name: Option<String>,
     pub phone: Option<String>,
-    pub street: String,
-    pub postal_code: String,
-    pub city: String,
+    pub street: Option<String>,
+    pub postal_code: Option<String>,
+    pub city: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]

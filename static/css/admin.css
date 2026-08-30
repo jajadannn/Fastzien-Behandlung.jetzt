@@ -56,7 +56,8 @@
   color: var(--sky-light);
   font-weight: 500;
 }
-.nav-site { color: var(--sky-light) !important; }
+.nav-site { color: var(--sky-light) !important; display: inline-flex; align-items: center; gap: 6px; }
+.nav-site svg { width: 15px; height: 15px; }
 .admin-main {
   min-height: calc(100vh - 48px);
   padding: 28px 24px 60px;
@@ -106,6 +107,7 @@
 }
 .stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.06); }
 .stat-icon { font-size: 2rem; }
+.stat-icon svg { width: 32px; height: 32px; }
 .stat-value {
   font-family: 'Cormorant Garamond', serif;
   font-size: 1.8rem;
@@ -240,6 +242,8 @@
   font-size: .88rem;
   color: var(--text-mid);
 }
+.detail-row svg { width: 15px; height: 15px; flex-shrink: 0; }
+.detail-row .icon-label { gap: 8px; }
 
 /* Suggest form */
 .suggest-form {

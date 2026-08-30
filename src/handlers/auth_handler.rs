@@ -157,8 +157,8 @@ pub async fn api_register(
     config: web::Data<Config>,
     email_service: web::Data<EmailService>,
 ) -> HttpResponse {
-    if form.email.is_empty() || form.password.is_empty() || form.first_name.is_empty() || form.last_name.is_empty() {
-        return HttpResponse::BadRequest().json(serde_json::json!({"error": "Bitte alle Pflichtfelder ausfüllen"}));
+    if form.email.is_empty() || form.password.is_empty() {
+        return HttpResponse::BadRequest().json(serde_json::json!({"error": "Bitte E-Mail-Adresse und Passwort angeben"}));
     }
     if form.password.len() < 6 {
         return HttpResponse::BadRequest().json(serde_json::json!({"error": "Passwort muss mindestens 6 Zeichen lang sein"}));
@@ -169,16 +169,22 @@ pub async fn api_register(
         return HttpResponse::Conflict().json(serde_json::json!({"error": "E-Mail-Adresse ist bereits registriert"}));
     }
 
+    // Only email + password are collected at signup; name, phone and address are
+    // filled in later via the profile-completion gate (see customer_handler's
+    // profile_incomplete_response), which every portal page redirects into until
+    // first_name is no longer empty.
     let password_hash = auth::hash_password(&form.password);
+    let first_name = form.first_name.as_deref().unwrap_or("");
+    let last_name = form.last_name.as_deref().unwrap_or("");
     let phone = form.phone.as_deref().unwrap_or("");
-    let street = &form.street;
-    let postal_code = &form.postal_code;
-    let city = &form.city;
+    let street = form.street.as_deref().unwrap_or("");
+    let postal_code = form.postal_code.as_deref().unwrap_or("");
+    let city = form.city.as_deref().unwrap_or("");
     let calendar_token = Uuid::new_v4().to_string();
 
     match Customer::create(
         &conn, &form.email, &password_hash,
-        &form.first_name, &form.last_name,
+        first_name, last_name,
         phone, street, postal_code, city, &calendar_token,
     ) {
         Ok(id) => {
@@ -187,7 +193,8 @@ pub async fn api_register(
             let v_expires = (Utc::now() + Duration::hours(24)).format("%Y-%m-%d %H:%M:%S").to_string();
             let _ = Customer::set_verification_token(&conn, id, &v_token, &v_expires);
 
-            // Issue JWT so the user is logged in immediately (portal is gated on email_verified)
+            // Issue JWT so the user is logged in immediately (portal is gated on
+            // email_verified, then on profile completeness)
             let jwt = auth::create_token(id, &form.email, false, &config.jwt_secret, config.jwt_expiry_hours).unwrap_or_default();
             let cookie = Cookie::build("auth_token", &jwt)
                 .path("/")
@@ -199,7 +206,7 @@ pub async fn api_register(
             let verify_url = format!("{}/verify-email/{}", base_url, v_token);
             let es = email_service.get_ref().clone();
             let email = form.email.clone();
-            let name = form.first_name.clone();
+            let name = first_name.to_string();
             tokio::spawn(async move {
                 es.send_email_verification(&email, &name, &verify_url);
             });

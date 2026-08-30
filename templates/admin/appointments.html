@@ -5,10 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Termine – Admin</title>
   <link rel="icon" href="/favicon.v1.ico">
-  <link rel="stylesheet" href="/static/css/main.css">
-  <link rel="stylesheet" href="/static/css/admin.css">
+  <link rel="stylesheet" href="/static/css/main.css?v=1">
+  <link rel="stylesheet" href="/static/css/admin.css?v=1">
 </head>
 <body>
+  {% include "_icon_sprite.html" %}
   <nav class="admin-nav">
     <a href="/" class="admin-logo"><img src="/Logo.png" alt="" height="30"><span>Admin</span></a>
     <div class="admin-nav-links">
@@ -20,7 +21,7 @@
       <a href="/admin/faq">FAQ</a>
       <a href="/admin/reviews">Bewertungen</a>
       <a href="/admin/settings">Einstellungen</a>
-      <a href="/" class="nav-site">🌐</a>
+      <a href="/" class="nav-site"><svg class="icon"><use href="#icon-globe" xlink:href="#icon-globe"/></svg></a>
       <a href="/logout" class="nav-logout" style="text-decoration: none;">Abmelden</a>
     </div>
   </nav>
@@ -71,7 +72,7 @@
                 {% endif %}
               </td>
               <td>{{ apt.appointment_type }}</td>
-              <td>{% if apt.is_home_visit %}🏠 Hausbesuch{% else %}🏥 Praxis{% endif %}</td>
+              <td><span class="icon-label">{% if apt.is_home_visit %}<svg class="icon"><use href="#icon-home" xlink:href="#icon-home"/></svg> Hausbesuch{% else %}<svg class="icon"><use href="#icon-clinic" xlink:href="#icon-clinic"/></svg> Praxis{% endif %}</span></td>
               <td><span class="status-badge status-{{ apt.status }}">{{ apt.status }}</span></td>
               <td>
                 {% if apt.status == "confirmed" %}
@@ -79,7 +80,7 @@
                   <input type="text" value="{{ apt.therapist_notes }}" id="tnote-{{ apt.id }}"
                     placeholder="Interne Notiz…"
                     style="font-size:12px;padding:4px 8px;border:1px solid #d0e4ee;border-radius:6px;width:160px;">
-                  <button onclick="saveTherapistNote({{ apt.id }})" class="btn-small" style="font-size:11px;padding:4px 8px;">💾</button>
+                  <button onclick="saveTherapistNote({{ apt.id }})" class="btn-small" style="font-size:11px;padding:4px 8px;"><svg class="icon" style="width:13px;height:13px;display:block"><use href="#icon-save" xlink:href="#icon-save"/></svg></button>
                 </div>
                 {% else %}
                 <span style="color:#6a8fa0;font-size:12px;">{{ apt.therapist_notes }}</span>
@@ -161,7 +162,7 @@
       if (data.success) {
         const btn = event.target;
         btn.textContent = '✓';
-        setTimeout(() => btn.textContent = '💾', 1500);
+        setTimeout(() => btn.innerHTML = '<svg class="icon" style="width:13px;height:13px;display:block"><use href="#icon-save" xlink:href="#icon-save"/></svg>', 1500);
       }
     }
   </script>
