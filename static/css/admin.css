@@ -23,9 +23,7 @@
 }
 .admin-logo img { height: 30px; }
 .admin-logo span {
-  background: linear-gradient(135deg, var(--plum-light), var(--plum));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--plum-light);
   font-weight: 700;
   letter-spacing: .05em;
 }

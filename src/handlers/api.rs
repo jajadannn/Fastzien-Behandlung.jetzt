@@ -39,7 +39,7 @@ pub async fn get_llms_txt(
         - Einzelbehandlung (90 Min.): {} €\n\
         - 10er Karte (pro Sitzung): {} €\n\
         - Hausbesuche möglich (+15 €)\n\
-        Online-Buchung unter: https://faszien-behandlung.jetzt/portal/book\n\
+        Online-Buchung unter: https://faszienbehandlung.jetzt/portal/book\n\
         \n\
         ## Kontakt\n\
         Adresse: {}\n\
