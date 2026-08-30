@@ -178,7 +178,7 @@
       <h2>Kontakt</h2>
       <p>
         Telefon: <a href="tel:+4915234007225">+49 152 34 00 72 25</a><br>
-        E-Mail: <a class="js-email" href="#"></a><br>
+        E-Mail: <a href="mailto:termin&#64;faszienbehandlung.jetzt" aria-label="E-Mail an termin@faszienbehandlung.jetzt">termin&#64;faszienbehandlung.jetzt</a><br>
         Website: <a href="https://faszien-behandlung.jetzt">faszien-behandlung.jetzt</a>
       </p>
     </div>
@@ -251,14 +251,5 @@
     </p>
   </footer>
 
-  <script>
-    const EMAIL = ["termin", "faszienbehandlung.jetzt"];
-    const mail = `${EMAIL[0]}@${EMAIL[1]}`;
-    document.querySelectorAll(".js-email").forEach((el) => {
-      el.textContent = mail;
-      el.setAttribute("href", `mailto:${mail}`);
-      el.setAttribute("aria-label", `E-Mail an ${mail}`);
-    });
-  </script>
 </body>
 </html>

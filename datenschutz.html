@@ -167,7 +167,7 @@
         </address>
         <p class="meta-line">
           Telefon: <a href="tel:+4915234007225">+49 152 34 00 72 25</a><br>
-          E-Mail: <a class="js-email" href="#"></a>
+          E-Mail: <a href="mailto:termin&#64;faszienbehandlung.jetzt" aria-label="E-Mail an termin@faszienbehandlung.jetzt">termin&#64;faszienbehandlung.jetzt</a>
         </p>
       </div>
 
@@ -286,7 +286,7 @@
           <li><strong>Widerruf einer Einwilligung (Art. 7 Abs. 3 DSGVO)</strong> jederzeit mit Wirkung f&uuml;r die Zukunft, ohne dass dies die Rechtm&auml;&szlig;igkeit der bis zum Widerruf erfolgten Verarbeitung ber&uuml;hrt.</li>
           <li><strong>Beschwerde (Art. 77 DSGVO)</strong> bei einer Datenschutzaufsichtsbeh&ouml;rde, insbesondere am Wohnsitz, Arbeitsplatz oder dem Ort des mutma&szlig;lichen Versto&szlig;es. Zust&auml;ndige Beh&ouml;rde in Baden-W&uuml;rttemberg: <a href="https://www.baden-wuerttemberg.datenschutz.de" rel="noopener noreferrer" target="_blank">Landesbeauftragter f&uuml;r den Datenschutz und die Informationsfreiheit Baden-W&uuml;rttemberg</a>.</li>
         </ul>
-        <p style="margin-top:12px;">Zur Geltendmachung Ihrer Rechte wenden Sie sich bitte an: <a class="js-email" href="#"></a></p>
+        <p style="margin-top:12px;">Zur Geltendmachung Ihrer Rechte wenden Sie sich bitte an: <a href="mailto:termin&#64;faszienbehandlung.jetzt" aria-label="E-Mail an termin@faszienbehandlung.jetzt">termin&#64;faszienbehandlung.jetzt</a></p>
       </div>
 
       <div class="dp-section">
@@ -308,14 +308,5 @@
     </p>
   </footer>
 
-  <script>
-    const EMAIL = ["termin", "faszienbehandlung.jetzt"];
-    const mail = `${EMAIL[0]}@${EMAIL[1]}`;
-    document.querySelectorAll(".js-email").forEach((el) => {
-      el.textContent = mail;
-      el.setAttribute("href", `mailto:${mail}`);
-      el.setAttribute("aria-label", `E-Mail an ${mail}`);
-    });
-  </script>
 </body>
 </html>

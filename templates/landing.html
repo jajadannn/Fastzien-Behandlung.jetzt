@@ -98,6 +98,96 @@
 </head>
 <body>
 
+  <svg aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <defs>
+      <symbol id="icon-verified" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="9"/>
+        <path d="M8 12.3l2.6 2.6L16.2 9"/>
+      </symbol>
+      <symbol id="icon-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 21s-7-6.1-7-11.2A7 7 0 0 1 19 9.8C19 14.9 12 21 12 21z"/>
+        <circle cx="12" cy="9.8" r="2.3"/>
+      </symbol>
+      <symbol id="icon-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 11.5 12 4l8 7.5"/>
+        <path d="M6 10v9a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-9"/>
+      </symbol>
+      <symbol id="icon-spine" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="3" x2="12" y2="21"/>
+        <line x1="8.5" y1="7.5" x2="15.5" y2="7.5"/>
+        <line x1="8.5" y1="12" x2="15.5" y2="12"/>
+        <line x1="8.5" y1="16.5" x2="15.5" y2="16.5"/>
+      </symbol>
+      <symbol id="icon-headache" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="13.5" r="6"/>
+        <line x1="12" y1="2.5" x2="12" y2="5.2"/>
+        <line x1="7" y1="4.3" x2="8.5" y2="6.5"/>
+        <line x1="17" y1="4.3" x2="15.5" y2="6.5"/>
+      </symbol>
+      <symbol id="icon-shoulder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 17.5c2-.7 4-1.6 4-4.3a4 4 0 0 1 8 0c0 2.7 2 3.6 4 4.3"/>
+        <line x1="12" y1="6" x2="12" y2="10"/>
+      </symbol>
+      <symbol id="icon-joint" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="7" y1="5" x2="12" y2="13"/>
+        <line x1="12" y1="13" x2="9.5" y2="21"/>
+        <circle cx="12" cy="13" r="2.1"/>
+      </symbol>
+      <symbol id="icon-stress" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="7.5"/>
+        <path d="M8 12.3c.9-1.8 1.8 1.8 2.7 0s1.8-1.8 2.7 0 1.8 1.8 2.6 0"/>
+      </symbol>
+      <symbol id="icon-bandage" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="6.5" y="6.5" width="11" height="11" rx="3.5" transform="rotate(45 12 12)"/>
+        <circle cx="10.6" cy="12" r=".5" fill="currentColor" stroke="none"/>
+        <circle cx="13.4" cy="12" r=".5" fill="currentColor" stroke="none"/>
+      </symbol>
+      <symbol id="icon-parking" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="9"/>
+        <path d="M10 8v8"/>
+        <path d="M10 8h2.4a2 2 0 1 1 0 4H10"/>
+      </symbol>
+      <symbol id="icon-car" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4.5 16v-3.3a2 2 0 0 1 1.2-1.8l1.4-2.7A2 2 0 0 1 8.9 7h6.2a2 2 0 0 1 1.8 1.2l1.4 2.7a2 2 0 0 1 1.2 1.8V16"/>
+        <path d="M4.5 16h15"/>
+        <circle cx="8" cy="16" r="1.5"/>
+        <circle cx="16" cy="16" r="1.5"/>
+      </symbol>
+      <symbol id="icon-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="9"/>
+        <path d="M12 7.3v5l3.3 1.9"/>
+      </symbol>
+      <symbol id="icon-phone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M7 4c-1.5 0-2.5 1.1-2.4 2.6.5 6.7 5.6 11.8 12.3 12.3 1.5.1 2.6-.9 2.6-2.4v-1.8a1 1 0 0 0-.8-1l-3-.7a1 1 0 0 0-1 .3l-1 1.1a9.4 9.4 0 0 1-4.6-4.6l1.1-1a1 1 0 0 0 .3-1l-.7-3a1 1 0 0 0-1-.8H7z"/>
+      </symbol>
+      <symbol id="icon-mail" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3.5" y="5.5" width="17" height="13" rx="2"/>
+        <path d="M4.5 7l7.5 6 7.5-6"/>
+      </symbol>
+      <symbol id="icon-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+        <line x1="4" y1="7" x2="20" y2="7"/>
+        <line x1="4" y1="12" x2="20" y2="12"/>
+        <line x1="4" y1="17" x2="20" y2="17"/>
+      </symbol>
+      <symbol id="icon-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+        <line x1="6" y1="6" x2="18" y2="18"/>
+        <line x1="18" y1="6" x2="6" y2="18"/>
+      </symbol>
+      <symbol id="icon-settings" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"/>
+        <circle cx="12" cy="12" r="8" stroke-dasharray="2 2.1"/>
+      </symbol>
+      <symbol id="icon-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="8" r="3.5"/>
+        <path d="M5 20c0-4 3.5-6.5 7-6.5s7 2.5 7 6.5"/>
+      </symbol>
+      <symbol id="icon-spa" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 18c0-7 4-11 11-11 0 7-4 11-11 11z"/>
+        <path d="M7 17c3-3 5-6 9-9"/>
+      </symbol>
+    </defs>
+  </svg>
+
   <nav class="topbar" aria-label="Hauptnavigation">
     <a class="topbar-logo" href="#home">
       <img
@@ -107,20 +197,28 @@
         height="38">
       <span class="topbar-brand">Thilo Seifried · Gantke® Methode</span>
     </a>
-    <div class="topbar-links">
+    <div class="topbar-right">
+      <button type="button" class="nav-toggle" aria-expanded="false" aria-controls="topbar-menu" aria-label="Menü öffnen">
+        <svg class="icon icon-menu-open"><use href="#icon-menu" xlink:href="#icon-menu"/></svg>
+        <svg class="icon icon-menu-close"><use href="#icon-close" xlink:href="#icon-close"/></svg>
+      </button>
+      <div class="topbar-links" id="topbar-menu">
+      <div class="topbar-links-inner">
       <a href="#ueber">Über mich</a>
       <a href="#ablauf">Ablauf</a>
       <a href="#preise">Preise</a>
       <a href="#anfahrt">Anfahrt</a>
       <a href="#faq">FAQ</a>
+        </div>
+      </div>
       {% if is_logged_in %}
         {% if is_admin %}
-        <a href="/admin" class="btn-book">⚙️ Admin</a>
+        <a href="/admin" class="btn-book"><svg class="icon"><use href="#icon-settings" xlink:href="#icon-settings"/></svg> Admin</a>
         {% else %}
-        <a href="/portal" class="btn-book">👤 Mein Konto</a>
+        <a href="/portal" class="btn-book"><svg class="icon"><use href="#icon-user" xlink:href="#icon-user"/></svg> Mein Konto</a>
         {% endif %}
       {% else %}
-      <a href="/register" class="btn-book">📅 Termin buchen</a>
+      <a href="/register" class="btn-book">Termin buchen</a>
       {% endif %}
     </div>
   </nav>
@@ -137,14 +235,14 @@
         height="1050">
     </div>
     <div class="hero-inner">
-      <div class="hero-badge">✦ Gantke® zertifizierter Faszienbehandler · Sulgen / Schramberg</div>
+      <div class="hero-badge"><svg class="icon"><use href="#icon-verified" xlink:href="#icon-verified"/></svg> Gantke® zertifizierter Faszienbehandler · Sulgen / Schramberg</div>
       <h1>Endlich wieder<br><em>schmerzfrei</em> bewegen.</h1>
       <p class="hero-sub">Chronische Rückenschmerzen, Verspannungen, Migräne – die Gantke® Faszienbehandlung löst die Ursache, nicht nur die Symptome. Spürbar ab der ersten Sitzung.</p>
       <div class="hero-cta-group">
         {% if is_logged_in %}
-        <a class="btn-primary" href="{% if is_logged_in %}/portal/book{% else %}/register{% endif %}">📅 Jetzt Termin buchen</a>
+        <a class="btn-primary" href="{% if is_logged_in %}/portal/book{% else %}/register{% endif %}">Jetzt Termin buchen</a>
         {% else %}
-        <a class="btn-primary" href="/register">📅 Jetzt Termin buchen</a>
+        <a class="btn-primary" href="/register">Jetzt Termin buchen</a>
         {% endif %}
         <a class="btn-secondary" href="#ueber">Mehr erfahren ↓</a>
       </div>
@@ -154,10 +252,10 @@
 
   <div class="trust-bar">
     <div class="trust-bar-inner">
-      <div class="trust-item"><div class="trust-icon">🎓</div><div><div class="trust-label">Gantke® zertifiziert</div><div class="trust-sub">Anerkannte Methode</div></div></div>
-      <div class="trust-item"><div class="trust-icon">⏱</div><div><div class="trust-label">90 Min. Behandlung</div><div class="trust-sub">Ganzheitlich & gründlich</div></div></div>
-      <div class="trust-item"><div class="trust-icon">💆</div><div><div class="trust-label">100% schmerzfrei</div><div class="trust-sub">Sanfte Technik</div></div></div>
-      <div class="trust-item"><div class="trust-icon">🅿️</div><div><div class="trust-label">Kostenlos parken</div><div class="trust-sub">Direkt vor der Tür</div></div></div>
+      <div class="trust-item"><div class="trust-icon"><svg class="icon"><use href="#icon-verified" xlink:href="#icon-verified"/></svg></div><div><div class="trust-label">Gantke® zertifiziert</div><div class="trust-sub">Anerkannte Methode</div></div></div>
+      <div class="trust-item"><div class="trust-icon"><svg class="icon"><use href="#icon-clock" xlink:href="#icon-clock"/></svg></div><div><div class="trust-label">90 Min. Behandlung</div><div class="trust-sub">Ganzheitlich & gründlich</div></div></div>
+      <div class="trust-item"><div class="trust-icon"><svg class="icon"><use href="#icon-spa" xlink:href="#icon-spa"/></svg></div><div><div class="trust-label">100% schmerzfrei</div><div class="trust-sub">Sanfte Technik</div></div></div>
+      <div class="trust-item"><div class="trust-icon"><svg class="icon"><use href="#icon-parking" xlink:href="#icon-parking"/></svg></div><div><div class="trust-label">Kostenlos parken</div><div class="trust-sub">Direkt vor der Tür</div></div></div>
     </div>
   </div>
 
@@ -171,12 +269,12 @@
       </div>
       <p class="section-lead">Die Faszienbehandlung wirkt ganzheitlich – vom Fuß bis zum Kopf. Diese Beschwerden sprechen besonders gut auf die Gantke® Methode an:</p>
       <div class="pain-grid">
-        <div class="pain-card js-animate"><div class="pain-emoji">🔙</div><h3>Rückenschmerzen</h3><p>Chronische Schmerzen im Lenden- oder Brustwirbelsäulenbereich</p></div>
-        <div class="pain-card js-animate"><div class="pain-emoji">🤕</div><h3>Migräne &amp; Kopfschmerzen</h3><p>Wiederkehrende Kopfschmerzen und Spannungskopfschmerzen</p></div>
-        <div class="pain-card js-animate"><div class="pain-emoji">💪</div><h3>Nacken &amp; Schulter</h3><p>Verspannungen, Blockaden und eingeschränkte Beweglichkeit</p></div>
-        <div class="pain-card js-animate"><div class="pain-emoji">🦵</div><h3>Knie &amp; Hüfte</h3><p>Gelenkschmerzen, Arthrose-Beschwerden und Bewegungseinschränkung</p></div>
-        <div class="pain-card js-animate"><div class="pain-emoji">😰</div><h3>Stress &amp; Erschöpfung</h3><p>Innere Anspannung, Burnout-Symptome und chronische Müdigkeit</p></div>
-        <div class="pain-card js-animate"><div class="pain-emoji">🩹</div><h3>Nach Verletzungen</h3><p>Rehabilitation nach Operationen, Unfällen und Sportverletzungen</p></div>
+        <div class="pain-card js-animate"><div class="pain-icon"><svg class="icon"><use href="#icon-spine" xlink:href="#icon-spine"/></svg></div><h3>Rückenschmerzen</h3><p>Chronische Schmerzen im Lenden- oder Brustwirbelsäulenbereich</p></div>
+        <div class="pain-card js-animate"><div class="pain-icon"><svg class="icon"><use href="#icon-headache" xlink:href="#icon-headache"/></svg></div><h3>Migräne &amp; Kopfschmerzen</h3><p>Wiederkehrende Kopfschmerzen und Spannungskopfschmerzen</p></div>
+        <div class="pain-card js-animate"><div class="pain-icon"><svg class="icon"><use href="#icon-shoulder" xlink:href="#icon-shoulder"/></svg></div><h3>Nacken &amp; Schulter</h3><p>Verspannungen, Blockaden und eingeschränkte Beweglichkeit</p></div>
+        <div class="pain-card js-animate"><div class="pain-icon"><svg class="icon"><use href="#icon-joint" xlink:href="#icon-joint"/></svg></div><h3>Knie &amp; Hüfte</h3><p>Gelenkschmerzen, Arthrose-Beschwerden und Bewegungseinschränkung</p></div>
+        <div class="pain-card js-animate"><div class="pain-icon"><svg class="icon"><use href="#icon-stress" xlink:href="#icon-stress"/></svg></div><h3>Stress &amp; Erschöpfung</h3><p>Innere Anspannung, Burnout-Symptome und chronische Müdigkeit</p></div>
+        <div class="pain-card js-animate"><div class="pain-icon"><svg class="icon"><use href="#icon-bandage" xlink:href="#icon-bandage"/></svg></div><h3>Nach Verletzungen</h3><p>Rehabilitation nach Operationen, Unfällen und Sportverletzungen</p></div>
       </div>
       <div class="contra-note"><strong>Kontraindikationen:</strong> Die Behandlung ist nicht geeignet bei akuten Entzündungen, Fieber, Metastasen, frischen Operationswunden oder Thrombosen. Bitte teile mir Vorerkrankungen vorab mit.</div>
     </div>
@@ -198,9 +296,9 @@
               decoding="async">
           </div>
           <div class="about-creds">
-            <div class="cred-badge"><span class="ci">🎓</span> Gantke® zertifizierter Faszienbehandler</div>
-            <div class="cred-badge"><span class="ci">📍</span> Sulgen (Schramberg), BW</div>
-            <div class="cred-badge"><span class="ci">🏠</span> Hausbesuche in der Region</div>
+            <div class="cred-badge"><span class="ci"><svg class="icon"><use href="#icon-verified" xlink:href="#icon-verified"/></svg></span> Gantke® zertifizierter Faszienbehandler</div>
+            <div class="cred-badge"><span class="ci"><svg class="icon"><use href="#icon-pin" xlink:href="#icon-pin"/></svg></span> Sulgen (Schramberg), BW</div>
+            <div class="cred-badge"><span class="ci"><svg class="icon"><use href="#icon-home" xlink:href="#icon-home"/></svg></span> Hausbesuche in der Region</div>
           </div>
         </div>
         <div class="about-text js-animate">
@@ -250,7 +348,7 @@
       </div>
       <div style="text-align:center;margin-top:48px">
         <p style="color:rgba(255,255,255,0.8);margin-bottom:20px;font-size:.95rem">Eine Sitzung dauert ca. 90 Minuten · Hausbesuche im Raum Sulgen/Schramberg möglich</p>
-        <a class="btn-cta-large" href="{% if is_logged_in %}/portal/book{% else %}/register{% endif %}">📅 Termin jetzt buchen</a>
+        <a class="btn-cta-large" href="{% if is_logged_in %}/portal/book{% else %}/register{% endif %}">Termin jetzt buchen</a>
       </div>
     </div>
   </section>
@@ -303,15 +401,15 @@
       <p class="section-lead"><strong>Adresse:</strong> {{ settings.address_street | default(value="Sulgauer Straße 24") }}, {{ settings.address_zip | default(value="78713") }} {{ settings.address_city | default(value="Sulgen") }} (Ortsteil von Schramberg) – zentral zwischen Schramberg und Rottweil. Kostenlose Parkplätze direkt vor dem Haus.</p>
       <div class="anfahrt-grid">
         <a class="anfahrt-map-link js-animate" href="https://maps.google.com/?q=Sulgauer+Strasse+24,+78713+Sulgen" target="_blank" rel="noopener noreferrer" aria-label="Route zur Praxis in Google Maps öffnen">
-          <div class="map-icon">🗺️</div>
+          <div class="map-icon"><svg class="icon"><use href="#icon-pin" xlink:href="#icon-pin"/></svg></div>
           <span>Route in Google Maps öffnen</span>
           <small style="color:var(--text-light);font-size:.78rem">{{ settings.address_street | default(value="Sulgauer Straße 24") }}, {{ settings.address_zip | default(value="78713") }} {{ settings.address_city | default(value="Sulgen") }}</small>
         </a>
         <div class="anfahrt-details">
-          <div class="anfahrt-item js-animate"><div class="ai-icon">🅿️</div><div><h3>Parken</h3><p>Kostenlose Parkplätze direkt vor dem Haus – keine Parkplatzsuche.</p></div></div>
-          <div class="anfahrt-item js-animate"><div class="ai-icon">🚗</div><div><h3>Mit dem Auto</h3><p>Dunningen ca. 3 Min. · Schramberg ca. 8 Min. · Rottweil ca. 15 Min.</p></div></div>
-          <div class="anfahrt-item js-animate"><div class="ai-icon">🏠</div><div><h3>Hausbesuche</h3><p>In Sulgen, Dunningen, Schramberg, Villingendorf – +{{ settings.home_visit_surcharge | default(value="15") }} € Fahrtpauschale.</p></div></div>
-          <div class="anfahrt-item js-animate"><div class="ai-icon">🕐</div><div><h3>Öffnungszeiten</h3><p>{{ settings.hours_weekday | default(value="Mo–Fr: 16:00–22:00 Uhr") }}<br>{{ settings.hours_saturday | default(value="Sa: 9:00–19:00 Uhr") }}</p></div></div>
+          <div class="anfahrt-item js-animate"><div class="ai-icon"><svg class="icon"><use href="#icon-parking" xlink:href="#icon-parking"/></svg></div><div><h3>Parken</h3><p>Kostenlose Parkplätze direkt vor dem Haus – keine Parkplatzsuche.</p></div></div>
+          <div class="anfahrt-item js-animate"><div class="ai-icon"><svg class="icon"><use href="#icon-car" xlink:href="#icon-car"/></svg></div><div><h3>Mit dem Auto</h3><p>Dunningen ca. 3 Min. · Schramberg ca. 8 Min. · Rottweil ca. 15 Min.</p></div></div>
+          <div class="anfahrt-item js-animate"><div class="ai-icon"><svg class="icon"><use href="#icon-home" xlink:href="#icon-home"/></svg></div><div><h3>Hausbesuche</h3><p>In Sulgen, Dunningen, Schramberg, Villingendorf – +{{ settings.home_visit_surcharge | default(value="15") }} € Fahrtpauschale.</p></div></div>
+          <div class="anfahrt-item js-animate"><div class="ai-icon"><svg class="icon"><use href="#icon-clock" xlink:href="#icon-clock"/></svg></div><div><h3>Öffnungszeiten</h3><p>{{ settings.hours_weekday | default(value="Mo–Fr: 16:00–22:00 Uhr") }}<br>{{ settings.hours_saturday | default(value="Sa: 9:00–19:00 Uhr") }}</p></div></div>
         </div>
       </div>
     </div>
@@ -336,12 +434,12 @@
     <div class="cta-inner container">
       <h2>Bereit, endlich<br><em style="font-style:italic;font-weight:300">schmerzfrei</em> zu leben?</h2>
       <p>Buche jetzt deinen Termin – schnell, einfach und unverbindlich online. Die ersten freien Termine werden oft schnell belegt.</p>
-      <a class="btn-cta-large" href="{% if is_logged_in %}/portal/book{% else %}/register{% endif %}">📅 Jetzt Termin buchen</a>
+      <a class="btn-cta-large" href="{% if is_logged_in %}/portal/book{% else %}/register{% endif %}">Jetzt Termin buchen</a>
       <p class="cta-micro">Kostenlose Erstberatung inklusive · Keine Vorauszahlung</p>
       <div class="cta-contact">
-        <span>📞 <a href="tel:{{ settings.phone_raw | default(value='+4915234007225') }}">{{ settings.phone | default(value="+49 152 34 00 72 25") }}</a></span>
-        <span>✉️ <a class="js-email" href="#"></a></span>
-        <span>📍 {{ settings.address_street | default(value="Sulgauer Straße 24") }}, {{ settings.address_zip | default(value="78713") }} {{ settings.address_city | default(value="Sulgen") }}</span>
+        <span><svg class="icon"><use href="#icon-phone" xlink:href="#icon-phone"/></svg> <a href="tel:{{ settings.phone_raw | default(value='+4915234007225') }}">{{ settings.phone | default(value="+49 152 34 00 72 25") }}</a></span>
+        <span><svg class="icon"><use href="#icon-mail" xlink:href="#icon-mail"/></svg> <a href="mailto:{{ settings.email_contact | default(value='termin@faszienbehandlung.jetzt') }}">{{ settings.email_contact | default(value="termin@faszienbehandlung.jetzt") }}</a></span>
+        <span><svg class="icon"><use href="#icon-pin" xlink:href="#icon-pin"/></svg> {{ settings.address_street | default(value="Sulgauer Straße 24") }}, {{ settings.address_zip | default(value="78713") }} {{ settings.address_city | default(value="Sulgen") }}</span>
       </div>
     </div>
   </section>
@@ -360,7 +458,7 @@
           {{ settings.address_street | default(value="Sulgauer Straße 24") }}<br>
           {{ settings.address_zip | default(value="78713") }} {{ settings.address_city | default(value="Sulgen") }}<br><br>
           <a href="tel:{{ settings.phone_raw | default(value='+4915234007225') }}">{{ settings.phone | default(value="+49 152 34 00 72 25") }}</a><br>
-          <a class="js-email" href="#"></a>
+          <a href="mailto:{{ settings.email_contact | default(value='termin@faszienbehandlung.jetzt') }}">{{ settings.email_contact | default(value="termin@faszienbehandlung.jetzt") }}</a>
         </address>
       </div>
       <div class="footer-col">
