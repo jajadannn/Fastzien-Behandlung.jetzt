@@ -361,18 +361,29 @@ pub async fn api_save_review(
     let conn = db.lock().unwrap_or_else(|e| e.into_inner());
     let stars = form.stars.unwrap_or(5);
     let sort_order = form.sort_order.unwrap_or(0);
-    let is_active = form.is_active.unwrap_or(true);
-
-    if let Some(id) = form.id {
-        match Review::update(&conn, id, &form.author_name, &form.author_location, &form.content, stars, sort_order, is_active) {
-            Ok(_) => HttpResponse::Ok().json(serde_json::json!({"success": true, "id": id})),
-            Err(e) => HttpResponse::InternalServerError().json(serde_json::json!({"error": format!("{}", e)})),
-        }
+    let is_active = form.is_active.unwrap_or(false);
+    let approved = form.publication_approved.unwrap_or(false);
+    let text = form.content.to_lowercase();
+    if !(1..=5).contains(&stars) || form.author_name.trim().is_empty() || form.content.trim().is_empty() {
+        return HttpResponse::BadRequest().json(serde_json::json!({"error":"Bitte Name, Originaltext und 1 bis 5 Sterne angeben."}));
+    }
+    if is_active && (!approved || ["schmerz", "migräne", "geheilt", "arthrose", "burnout"].iter().any(|w| text.contains(w))) {
+        return HttpResponse::BadRequest().json(serde_json::json!({"error":"Veröffentliche nur freigegebene Originalstimmen über Erlebnis und Service mit dokumentierter Einwilligung, ohne Krankheits- oder Heilversprechen."}));
+    }
+    let tx = match conn.unchecked_transaction() { Ok(tx) => tx, Err(_) => return HttpResponse::InternalServerError().finish() };
+    let result = if let Some(id) = form.id {
+        Review::update(&tx, id, &form.author_name, &form.author_location, &form.content, stars, sort_order, is_active).map(|_| id)
     } else {
-        match Review::create(&conn, &form.author_name, &form.author_location, &form.content, stars, sort_order) {
-            Ok(id) => HttpResponse::Ok().json(serde_json::json!({"success": true, "id": id})),
-            Err(e) => HttpResponse::InternalServerError().json(serde_json::json!({"error": format!("{}", e)})),
+        Review::create(&tx, &form.author_name, &form.author_location, &form.content, stars, sort_order)
+    };
+    match result {
+        Ok(id) => {
+            if tx.execute("UPDATE reviews SET publication_approved=?1, is_active=?2 WHERE id=?3", rusqlite::params![approved, is_active, id]).is_err() || tx.commit().is_err() {
+                return HttpResponse::InternalServerError().json(serde_json::json!({"error":"Bewertung konnte nicht gespeichert werden."}));
+            }
+            HttpResponse::Ok().json(serde_json::json!({"success":true,"id":id}))
         }
+        Err(_) => HttpResponse::InternalServerError().json(serde_json::json!({"error":"Bewertung konnte nicht gespeichert werden."})),
     }
 }
 
@@ -900,7 +911,12 @@ pub async fn stats_page(
 
     let cancel_rate = if total_all > 0 { (cancelled_count as f64 / total_all as f64 * 100.0) as i64 } else { 0 };
 
+    let sources: Vec<serde_json::Value> = conn.prepare("SELECT CASE WHEN b.source='' THEN 'Keine Angabe' ELSE b.source END,COUNT(*) FROM booking_sources b JOIN appointments a ON a.id=b.appointment_id WHERE a.status!='cancelled' AND a.created_at>=datetime('now','-90 days') GROUP BY b.source ORDER BY COUNT(*) DESC")
+        .and_then(|mut stmt| stmt.query_map([], |r| Ok(serde_json::json!({"channel":r.get::<_,String>(0)?,"count":r.get::<_,i64>(1)?})))?.collect()).unwrap_or_default();
+    let new_customers: i64 = conn.query_row("SELECT COUNT(*) FROM (SELECT customer_id,MIN(start_time) AS first_visit FROM appointments WHERE status IN ('confirmed','completed') AND appointment_type!='blocked' GROUP BY customer_id) WHERE substr(first_visit,1,7)=strftime('%Y-%m','now')", [], |r| r.get(0)).unwrap_or(0);
     let mut ctx = tera::Context::new();
+    ctx.insert("booking_sources", &sources);
+    ctx.insert("new_customers", &new_customers);
     ctx.insert("months_data", &months_data);
     ctx.insert("total_revenue", &total_revenue);
     ctx.insert("total_appointments", &total_appointments);

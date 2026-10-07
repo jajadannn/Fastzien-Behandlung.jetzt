@@ -5,6 +5,7 @@ mod email;
 mod caldav;
 mod models;
 mod handlers;
+mod marketing;
 
 use actix_web::{web, App, HttpServer, middleware::Logger};
 use actix_files as fs;
@@ -78,6 +79,7 @@ async fn main() -> std::io::Result<()> {
                 tokio::time::sleep(std::time::Duration::from_secs(3600)).await;
                 let appointments = {
                     let conn = db_bg.lock().unwrap_or_else(|e| e.into_inner());
+                    let _ = conn.execute("DELETE FROM booking_requests WHERE created_at < datetime('now','-1 day')", []);
                     crate::models::appointment::Appointment::find_needing_reminders(&conn).unwrap_or_default()
                 };
                 for apt in appointments {
@@ -89,21 +91,6 @@ async fn main() -> std::io::Result<()> {
                         }
                         let conn = db_bg.lock().unwrap_or_else(|e| e.into_inner());
                         let _ = crate::models::appointment::Appointment::mark_reminder_sent(&conn, apt.id);
-                    }
-                }
-                // Review reminders
-                let review_apts = {
-                    let conn = db_bg.lock().unwrap_or_else(|e| e.into_inner());
-                    crate::models::appointment::Appointment::find_needing_review_reminders(&conn).unwrap_or_default()
-                };
-                for apt in review_apts {
-                    if let Ok(dt) = chrono::NaiveDateTime::parse_from_str(&apt.start_time, "%Y-%m-%d %H:%M:%S") {
-                        let date_s = dt.format("%d.%m.%Y").to_string();
-                        if let (Some(email), Some(name)) = (&apt.customer_email, &apt.customer_name) {
-                            es_bg.send_review_reminder(email, name, &date_s);
-                        }
-                        let conn = db_bg.lock().unwrap_or_else(|e| e.into_inner());
-                        let _ = crate::models::appointment::Appointment::mark_review_reminder_sent(&conn, apt.id);
                     }
                 }
             }
@@ -122,8 +109,19 @@ async fn main() -> std::io::Result<()> {
             .app_data(config_data.clone())
             // Landing page
             .route("/", web::get().to(handlers::landing::index))
+            .route("/index.html", web::get().to(handlers::landing::index))
+            .route("/faszienbehandlung-ruecken", web::get().to(handlers::landing::topic))
+            .route("/faszienbehandlung-nacken-schulter", web::get().to(handlers::landing::topic))
+            .route("/faszienbehandlung-haltung", web::get().to(handlers::landing::topic))
+            .route("/faszienbehandlung-sport", web::get().to(handlers::landing::topic))
+            .route("/preise-und-ablauf", web::get().to(handlers::landing::topic))
             .route("/datenschutz", web::get().to(handlers::landing::datenschutz))
             .route("/impressum", web::get().to(handlers::landing::impressum))
+            // Public booking: no registration, confirmation proves email ownership.
+            .route("/buchen", web::get().to(handlers::guest_booking::page))
+            .route("/buchen/bestaetigen/{token}", web::get().to(handlers::guest_booking::confirmation_page))
+            .route("/api/guest-booking/request", web::post().to(handlers::guest_booking::request))
+            .route("/api/guest-booking/confirm", web::post().to(handlers::guest_booking::confirm))
             // Auth pages
             .route("/login", web::get().to(handlers::auth_handler::login_page))
             .route("/register", web::get().to(handlers::auth_handler::register_page))
@@ -192,9 +190,10 @@ async fn main() -> std::io::Result<()> {
             .route("/api/settings", web::get().to(handlers::api::get_settings))
             .route("/llms.txt", web::get().to(handlers::api::get_llms_txt))
             // Static files
-            .service(fs::Files::new("/static", "static").show_files_listing().prefer_utf8(true))
+            .service(fs::Files::new("/static", "static").prefer_utf8(true))
             // Root-level static files (images, fonts, favicon, etc.)
-            .service(fs::Files::new("/", ".").show_files_listing().prefer_utf8(true).index_file("_none_"))
+            .service(fs::Files::new("/fonts", "fonts").prefer_utf8(true))
+            .route("/{asset}", web::get().to(handlers::landing::public_asset))
     })
     .bind(&bind_addr)?
     .run()

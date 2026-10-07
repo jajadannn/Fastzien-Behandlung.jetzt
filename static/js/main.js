@@ -15,7 +15,7 @@
   applyRevealDelay('#ueber .js-animate', 120);
 
   var animatedEls = document.querySelectorAll('.js-animate');
-  if ('IntersectionObserver' in window && animatedEls.length) {
+  if ('IntersectionObserver' in window && animatedEls.length && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     animatedEls.forEach(function(el) { el.classList.add('hidden'); });
     var revealObserver = new IntersectionObserver(
       function(entries, observer) {

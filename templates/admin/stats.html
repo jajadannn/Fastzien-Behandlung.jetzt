@@ -5,13 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Statistiken – Admin</title>
   <link rel="icon" href="/favicon.v1.ico">
-  <link rel="stylesheet" href="/static/css/main.css?v=1">
+  <link rel="stylesheet" href="/static/css/main.css?v=3">
   <link rel="stylesheet" href="/static/css/admin.css?v=1">
 </head>
 <body>
   {% include "_icon_sprite.html" %}
   <nav class="admin-nav">
-    <a href="/" class="admin-logo"><img src="/Logo.png" alt="" height="30"><span>Admin</span></a>
+    <a href="/" class="admin-logo"><picture><source srcset="/Logo.avif" type="image/avif"><img src="/static/images/logo-240.png" alt="" height="30"></picture><span>Admin</span></a>
     <div class="admin-nav-links">
       <a href="/admin">Übersicht</a>
       <a href="/admin/customers">Kunden</a>
@@ -28,6 +28,11 @@
   <main class="admin-main">
     <div class="admin-container">
       <h1>Statistiken</h1>
+      <section class="marketing-stats">
+        <h2>Wie Kunden zu dir finden</h2>
+        <p>{{ new_customers }} Kunden mit erstem gebuchtem Termin in diesem Monat. Freiwillige Kanalangaben aus bestätigten Buchungen ohne Konto, letzte 90 Tage; stornierte Termine sind ausgeschlossen.</p>
+        {% if booking_sources | length > 0 %}<table class="admin-table"><caption>Buchungen nach Herkunftskanal</caption><thead><tr><th scope="col">Kanal</th><th scope="col">Buchungen</th></tr></thead><tbody>{% for source in booking_sources %}<tr><td>{{ source.channel }}</td><td>{{ source.count }}</td></tr>{% endfor %}</tbody></table>{% else %}<p>Noch keine bestätigten Buchungen mit Herkunftsangabe. Es wird kein Tracking eingesetzt.</p>{% endif %}
+      </section>
 
       <div class="stats-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:32px;">
         <div class="stat-card" style="background:white;border-radius:12px;padding:20px;box-shadow:0 1px 4px rgba(0,0,0,0.08);">

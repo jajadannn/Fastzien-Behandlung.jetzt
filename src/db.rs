@@ -17,7 +17,7 @@ pub fn initialize(db_path: &str, admin_email: &str, admin_password: &str) -> Res
     migrate_existing_db(&conn)?;
     seed_settings(&conn)?;
     seed_faqs(&conn)?;
-    seed_reviews(&conn)?;
+    crate::marketing::migrate_content(&conn)?;
     seed_admin(&conn, admin_email, admin_password)?;
 
     info!("Database initialized at {}", db_path);
@@ -118,6 +118,15 @@ fn create_tables(conn: &Connection) -> Result<()> {
             updated_at TEXT NOT NULL DEFAULT (datetime('now'))
         );
 
+        CREATE TABLE IF NOT EXISTS booking_requests (
+            token TEXT PRIMARY KEY, date TEXT NOT NULL, time TEXT NOT NULL,
+            first_name TEXT NOT NULL, last_name TEXT NOT NULL, email TEXT NOT NULL, phone TEXT NOT NULL,
+            is_home_visit INTEGER NOT NULL DEFAULT 0, street TEXT NOT NULL DEFAULT '', zip_code TEXT NOT NULL DEFAULT '', city TEXT NOT NULL DEFAULT '', source TEXT NOT NULL DEFAULT '',
+            expires_at TEXT NOT NULL, consumed_at TEXT, created_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+        CREATE TABLE IF NOT EXISTS booking_sources (
+            appointment_id INTEGER PRIMARY KEY REFERENCES appointments(id) ON DELETE CASCADE, source TEXT NOT NULL, city TEXT NOT NULL
+        );
         CREATE TABLE IF NOT EXISTS site_settings (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             setting_key TEXT NOT NULL UNIQUE,
@@ -140,6 +149,7 @@ fn migrate_existing_db(conn: &Connection) -> Result<()> {
         "ALTER TABLE appointments ADD COLUMN therapist_notes TEXT NOT NULL DEFAULT ''",
         "ALTER TABLE appointments ADD COLUMN reminder_sent INTEGER NOT NULL DEFAULT 0",
         "ALTER TABLE appointments ADD COLUMN review_reminder_sent INTEGER NOT NULL DEFAULT 0",
+        "ALTER TABLE reviews ADD COLUMN publication_approved INTEGER NOT NULL DEFAULT 0",
         "CREATE TABLE IF NOT EXISTS waitlist (id INTEGER PRIMARY KEY AUTOINCREMENT, customer_id INTEGER NOT NULL, date TEXT NOT NULL, notified INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL DEFAULT (datetime('now')), FOREIGN KEY (customer_id) REFERENCES customers(id))",
     ];
     for sql in migrations {
@@ -165,8 +175,9 @@ fn seed_settings(conn: &Connection) -> Result<()> {
         ("email_contact", "termin@faszienbehandlung.jetzt"),
         ("address_street", "Sulgauer Straße 24"),
         ("address_zip", "78713"),
-        ("address_city", "Sulgen"),
+        ("address_city", "Schramberg-Sulgen"),
         ("cancellation_hours", "24"),
+        ("google_reviews_url", ""),
         ("nextcloud_caldav_url", ""),
         ("nextcloud_caldav_username", ""),
         ("nextcloud_caldav_password", ""),
@@ -193,46 +204,11 @@ fn seed_faqs(conn: &Connection) -> Result<()> {
     let count: i64 = conn.query_row("SELECT COUNT(*) FROM faqs", [], |row| row.get(0))?;
     if count > 0 { return Ok(()); }
 
-    let faqs = vec![
-        (1, "Was ist die Gantke® Faszienbehandlung genau?",
-         "Die Gantke® Methode ist eine sanfte, manuelle Faszientherapie, entwickelt von Robert Gantke. Durch präzise Grifftechniken werden Verklebungen und Fehlspannungen im Bindegewebe (Faszien) gelöst. Vollständig schmerzfrei, ca. 90 Minuten, ohne Geräte – ganzheitlich vom Fuß bis zum Kopf."),
-        (2, "Für wen ist die Faszienbehandlung geeignet?",
-         "Für alle Altersgruppen. Besonders wirksam bei chronischen Rückenschmerzen, Nackenverspannungen, Migräne, Gelenkbeschwerden und nach Verletzungen.<br><br><strong>Nicht geeignet bei:</strong> akuten Entzündungen, Fieber, frischen Operationswunden oder Thrombosen."),
-        (3, "Ist die Behandlung schmerzhaft?",
-         "In der Regel vollständig schmerzfrei. Du kannst ein angenehmes Ziehen oder Druckgefühl spüren – viele empfinden die Sitzung als tief entspannend. Sollte etwas unangenehm sein, passe ich den Druck sofort an."),
-        (4, "Was sollte ich vor der Behandlung beachten?",
-         "Bitte trinke ausreichend Wasser (mind. 1,5 Liter am Behandlungstag) und komme in bequemer Kleidung – Leggings oder lockere Hose mit T-Shirt. Schwere Mahlzeiten direkt vorher vermeiden."),
-        (5, "Wie viele Termine sind nötig?",
-         "Sehr individuell. Viele spüren nach der ersten Sitzung bereits Verbesserung. Bei chronischen Beschwerden empfehle ich 3–6 Behandlungen im Abstand von 1–3 Wochen."),
-        (6, "Übernimmt die Krankenkasse die Kosten?",
-         "Gesetzliche Krankenkassen übernehmen die Kosten in der Regel nicht. Private Zusatzversicherungen erstatten häufig einen Teil. Eine Rechnung stelle ich gerne aus."),
-        (7, "Wo findet die Behandlung statt – und wie komme ich hin?",
-         "<strong>Praxis:</strong> Sulgauer Straße 24, 78713 Sulgen. Kostenlose Parkplätze direkt vor dem Haus. Auto: Dunningen ca. 3 Min., Schramberg ca. 8 Min., Rottweil ca. 15 Min.<br><br>Hausbesuche in Sulgen, Dunningen, Schramberg und Villingendorf nach Absprache – Fahrtpauschale +15 €."),
-        (8, "Was ist der Unterschied zur klassischen Massage?",
-         "Klassische Massage behandelt primär die Muskulatur. Die Gantke® Methode zielt gezielt auf das fasziale Bindegewebsnetz und korrigiert strukturelle Fehlspannungen im gesamten Körper – nicht nur lokal. Die Wirkung ist oft nachhaltiger und langfristiger."),
-    ];
+    let faqs = crate::marketing::FAQS;
     for (order, question, answer) in faqs {
         conn.execute(
             "INSERT INTO faqs (question, answer_html, sort_order) VALUES (?1, ?2, ?3)",
             params![question, answer, order],
-        )?;
-    }
-    Ok(())
-}
-
-fn seed_reviews(conn: &Connection) -> Result<()> {
-    let count: i64 = conn.query_row("SELECT COUNT(*) FROM reviews", [], |row| row.get(0))?;
-    if count > 0 { return Ok(()); }
-
-    let reviews = vec![
-        (1, "Sandra M.", "Schramberg", "Nach nur drei Behandlungen sind meine chronischen Nackenschmerzen, die mich jahrelang gequält haben, fast vollständig verschwunden. Einfach unglaublich!", 5),
-        (2, "Klaus W.", "Sulgen", "Thilo nimmt sich wirklich Zeit und erklärt genau, was er macht. Ich fühle mich nach jeder Sitzung wie neu – entspannt und so viel beweglicher.", 5),
-        (3, "Maria K.", "Dunningen", "Meine Knieschmerzen haben sich nach der Behandlungsserie deutlich gebessert. Ich kann wieder Sport machen – sehr empfehlenswert!", 5),
-    ];
-    for (order, name, location, content, stars) in reviews {
-        conn.execute(
-            "INSERT INTO reviews (author_name, author_location, content, stars, sort_order) VALUES (?1, ?2, ?3, ?4, ?5)",
-            params![name, location, content, stars, order],
         )?;
     }
     Ok(())

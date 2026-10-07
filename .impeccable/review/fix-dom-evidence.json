@@ -1,0 +1,10 @@
+{
+  "ctaBackground": "linear-gradient(135deg, rgb(47, 101, 131), rgb(122, 54, 97))",
+  "ctaContactColor": "rgb(255, 255, 255)",
+  "ctaParagraphColor": "rgba(255, 255, 255, 0.85)",
+  "geo": "Schramberg-Sulgen, Baden-Württemberg",
+  "overflow": false,
+  "trustColor": "rgb(61, 90, 107)",
+  "trustFont": "14px",
+  "width": 390
+}

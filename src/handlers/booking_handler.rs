@@ -24,6 +24,26 @@ pub async fn api_book(
         None => return HttpResponse::Unauthorized().json(serde_json::json!({"error": "Nicht angemeldet"})),
     };
 
+    {
+        let conn = db.lock().unwrap_or_else(|e| e.into_inner());
+        match Customer::find_by_id(&conn, claims.sub) {
+            Ok(Some(c)) if c.email_verified && !c.first_name.is_empty() && !c.last_name.is_empty() => {},
+            _ => return HttpResponse::Forbidden().json(serde_json::json!({"error":"Bitte bestätige deine E-Mail-Adresse und vervollständige dein Profil."})),
+        }
+    }
+    complete_booking(Some(claims.sub), None, form.into_inner(), db, email_service, config).await
+}
+
+pub(crate) async fn complete_booking(
+    customer_id: Option<i64>,
+    guest: Option<super::guest_booking::GuestRequest>,
+    form: BookingForm,
+    db: web::Data<Mutex<Connection>>,
+    email_service: web::Data<EmailService>,
+    config: web::Data<Config>,
+) -> HttpResponse {
+    // Guest records get an inaccessible random password; portal access uses the existing reset flow.
+    let guest_password = guest.as_ref().map(|_| auth::hash_password(&uuid::Uuid::new_v4().to_string()));
     // Parse date and time first (no lock needed)
     let date = match NaiveDate::parse_from_str(&form.date, "%Y-%m-%d") {
         Ok(d) => d,
@@ -34,7 +54,7 @@ pub async fn api_book(
         Err(_) => return HttpResponse::BadRequest().json(serde_json::json!({"error": "Ungültige Uhrzeit"})),
     };
 
-    let now = chrono::Utc::now().naive_utc();
+    let now = chrono::Utc::now().with_timezone(&chrono_tz::Europe::Berlin).naive_local();
 
     // --- Phase 1: validate and read CalDAV settings under the lock ---
     let (caldav_auth, calendar_urls, primary_url, duration_min) = {
@@ -72,6 +92,14 @@ pub async fn api_book(
         }));
     }
 
+    {
+        let conn = db.lock().unwrap_or_else(|e| e.into_inner());
+        let pause = SiteSetting::get_or_default(&conn, "appointment_break_min", "0").parse().unwrap_or(0);
+        if !valid_booking_window(&form.date, &form.time, duration_min, pause) {
+            return HttpResponse::BadRequest().json(serde_json::json!({"error":"Bitte wähle einen verfügbaren Termin aus dem Kalender."}));
+        }
+    }
+
     // --- Phase 2: check Nextcloud CalDAV (async, outside the lock) ---
     if !calendar_urls.is_empty() {
         // Refresh OAuth token if needed
@@ -103,39 +131,68 @@ pub async fn api_book(
         _ => {}
     }
 
+    let tx = match conn.unchecked_transaction() {
+        Ok(tx) => tx,
+        Err(_) => return HttpResponse::InternalServerError().json(serde_json::json!({"error":"Buchung konnte nicht gespeichert werden."})),
+    };
+    let customer_id = if let Some(ref g) = guest {
+        if !matches!(super::guest_booking::load_request(&tx, &g.token), Ok(Some(_))) {
+            return HttpResponse::BadRequest().json(serde_json::json!({"error":"Dieser Link ist abgelaufen oder wurde bereits verwendet."}));
+        }
+        match super::guest_booking::customer_for_request(&tx, g, guest_password.as_deref().unwrap_or("")) {
+            Ok(id) => id,
+            Err(_) => return HttpResponse::BadRequest().json(serde_json::json!({"error":"Die Buchung konnte nicht zugeordnet werden. Bitte nutze das Kundenportal oder rufe mich an."})),
+        }
+    } else if let Some(id) = customer_id { id } else {
+        return HttpResponse::BadRequest().finish();
+    };
+
     let is_home_visit = form.is_home_visit.unwrap_or(false);
     let notes = form.notes.as_deref().unwrap_or("");
 
-    let active_credits = CreditPackage::find_active_by_customer(&conn, claims.sub).unwrap_or_default();
+    let active_credits = if guest.is_none() { CreditPackage::find_active_by_customer(&tx, customer_id).unwrap_or_default() } else { vec![] };
     let appointment_type = if !active_credits.is_empty() { "pack" } else { "single" };
 
-    let appointment_id = match Appointment::create(&conn, claims.sub, &start_str, &end_str, appointment_type, is_home_visit, notes) {
+    let appointment_id = match Appointment::create(&tx, customer_id, &start_str, &end_str, appointment_type, is_home_visit, notes) {
         Ok(id) => id,
         Err(e) => return HttpResponse::InternalServerError().json(serde_json::json!({"error": format!("{}", e)})),
     };
 
-    let price_single: f64 = SiteSetting::get_or_default(&conn, "price_single", "195").replace(',', ".").parse().unwrap_or(195.0);
-    let home_surcharge: f64 = SiteSetting::get_or_default(&conn, "home_visit_surcharge", "15").replace(',', ".").parse().unwrap_or(15.0);
+    let price_single: f64 = SiteSetting::get_or_default(&tx, "price_single", "195").replace(',', ".").parse().unwrap_or(195.0);
+    let home_surcharge: f64 = SiteSetting::get_or_default(&tx, "home_visit_surcharge", "15").replace(',', ".").parse().unwrap_or(15.0);
 
     if !active_credits.is_empty() {
         let credit = &active_credits[0];
-        let _ = CreditPackage::use_session(&conn, credit.id);
+        if CreditPackage::use_session(&tx, credit.id).is_err() { return HttpResponse::InternalServerError().finish(); }
         let amount = credit.price_per_session + if is_home_visit { home_surcharge } else { 0.0 };
-        let _ = Payment::create(&conn, claims.sub, Some(appointment_id), amount, "pack");
+        if Payment::create(&tx, customer_id, Some(appointment_id), amount, "pack").is_err() { return HttpResponse::InternalServerError().finish(); }
     } else {
         let amount = price_single + if is_home_visit { home_surcharge } else { 0.0 };
-        let _ = Payment::create(&conn, claims.sub, Some(appointment_id), amount, "single");
+        if Payment::create(&tx, customer_id, Some(appointment_id), amount, "single").is_err() { return HttpResponse::InternalServerError().finish(); }
     }
 
-    let customer = Customer::find_by_id(&conn, claims.sub).unwrap().unwrap();
+    let customer = match Customer::find_by_id(&tx, customer_id) { Ok(Some(c)) => c, _ => return HttpResponse::InternalServerError().finish() };
+    if let Some(ref g) = guest {
+        if tx.execute("UPDATE booking_requests SET consumed_at=datetime('now') WHERE token=?1 AND consumed_at IS NULL", [&g.token]).is_err() || tx.execute("INSERT INTO booking_sources(appointment_id,source,city) VALUES(?1,?2,?3)", rusqlite::params![appointment_id,g.source,g.city]).is_err() {
+            return HttpResponse::InternalServerError().finish();
+        }
+    }
+    if tx.commit().is_err() { return HttpResponse::InternalServerError().json(serde_json::json!({"error":"Die Buchung konnte nicht gespeichert werden. Bitte versuche es erneut."})); }
     let date_str = date.format("%d.%m.%Y").to_string();
     let time_str = time.format("%H:%M").to_string();
-    let customer_address = customer.full_address();
+    let customer_address = guest.as_ref().filter(|g| g.is_home_visit).map(|g| format!("{}, {} {}", g.street, g.zip_code, g.city)).unwrap_or_else(|| customer.full_address());
     let admin_email = config.admin_email.clone();
     let es = email_service.get_ref().clone();
     let cust_email = customer.email.clone();
-    let cust_name = customer.full_name();
-    let cust_phone = customer.phone.clone();
+    let cust_name = guest.as_ref().map(|g| format!("{} {}", g.first_name, g.last_name)).unwrap_or_else(|| customer.full_name());
+    let cust_phone = guest.as_ref().map(|g| g.phone.clone()).unwrap_or_else(|| customer.phone.clone());
+    let booking_details = crate::email::BookingDetails {
+        name:cust_name.clone(), date:date_str.clone(), time:time_str.clone(),
+        location:if is_home_visit { customer_address.clone() } else { format!("{}, {} {}",SiteSetting::get_or_default(&conn,"address_street","Sulgauer Straße 24"),SiteSetting::get_or_default(&conn,"address_zip","78713"),SiteSetting::get_or_default(&conn,"address_city","Schramberg-Sulgen")) },
+        duration:duration_min, cancellation_hours:SiteSetting::get_or_default(&conn,"cancellation_hours","24").parse().unwrap_or(24),
+        amount:conn.query_row("SELECT amount FROM payments WHERE appointment_id=?1",[appointment_id],|r|r.get(0)).unwrap_or(price_single),
+        phone:SiteSetting::get_or_default(&conn,"phone","+49 152 34 00 72 25"), contact_email:SiteSetting::get_or_default(&conn,"email_contact","termin@faszienbehandlung.jetzt"),
+    };
     let notes_owned = notes.to_string();
     let date_str2 = date_str.clone();
     let time_str2 = time_str.clone();
@@ -149,7 +206,7 @@ pub async fn api_book(
     let notes2      = notes_owned.clone();
 
     tokio::spawn(async move {
-        es.send_appointment_confirmation(&cust_email, &cust_name, &date_str, &time_str, is_home_visit);
+        es.send_booking_confirmation(&cust_email, &booking_details);
         es.send_admin_booking_notification(
             &admin_email, &cust_name, &cust_phone, &customer_address,
             &date_str2, &time_str2, &notes_owned, is_home_visit,
@@ -209,7 +266,7 @@ pub async fn api_cancel(
     // 24h cancellation policy (admin bypasses)
     let cancellation_hours: i64 = SiteSetting::get_or_default(&conn, "cancellation_hours", "24").parse().unwrap_or(24);
     if let Ok(start) = NaiveDateTime::parse_from_str(&appointment.start_time, "%Y-%m-%d %H:%M:%S") {
-        let now = chrono::Utc::now().naive_utc();
+        let now = chrono::Utc::now().with_timezone(&chrono_tz::Europe::Berlin).naive_local();
         let min_cancel_time = start - Duration::hours(cancellation_hours);
         if now > min_cancel_time && !claims.is_admin {
             return HttpResponse::BadRequest().json(serde_json::json!({
@@ -315,7 +372,7 @@ pub async fn api_available_slots(
         let conn = db.lock().unwrap_or_else(|e| e.into_inner());
         let duration_min: i64 = SiteSetting::get_or_default(&conn, "appointment_duration_min", "90").parse().unwrap_or(90);
         let break_min: i64 = SiteSetting::get_or_default(&conn, "appointment_break_min", "0").parse().unwrap_or(0);
-        let slot_step = duration_min + break_min;
+        let slot_step = (duration_min + break_min).max(1);
 
         // OAuth2 takes priority over legacy Basic Auth
         let access_token = SiteSetting::get_or_default(&conn, "nextcloud_access_token", "");
@@ -339,7 +396,6 @@ pub async fn api_available_slots(
             Weekday::Sun => return HttpResponse::Ok().json(serde_json::json!({"slots": []})),
         };
 
-        let now = chrono::Utc::now().naive_utc();
         let mut candidates = Vec::new();
         let mut current_minutes: i64 = start_hour * 60;
 
@@ -354,7 +410,7 @@ pub async fn api_available_slots(
             let closing = NaiveDateTime::new(date, NaiveTime::from_hms_opt(end_hour as u32, 0, 0).unwrap());
             if end_time > closing { break; }
 
-            if start_time > now + Duration::hours(24) {
+            if valid_booking_window(date_str, &start_time.format("%H:%M").to_string(), duration_min, break_min) {
                 let start_str = start_time.format("%Y-%m-%d %H:%M:%S").to_string();
                 let end_str = end_time.format("%Y-%m-%d %H:%M:%S").to_string();
 
@@ -431,7 +487,7 @@ pub async fn api_reschedule(
         Err(_) => return HttpResponse::BadRequest().json(serde_json::json!({"error": "Ungültige Uhrzeit"})),
     };
 
-    let now = chrono::Utc::now().naive_utc();
+    let now = chrono::Utc::now().with_timezone(&chrono_tz::Europe::Berlin).naive_local();
 
     // Phase 1: Load settings + validate old appointment
     let (old_appointment, caldav_auth, calendar_urls, primary_url, duration_min) = {
@@ -627,5 +683,35 @@ pub async fn api_waitlist_remove(
     match WaitlistEntry::remove(&conn, claims.sub, &form.date) {
         Ok(_) => HttpResponse::Ok().json(serde_json::json!({"success": true})),
         Err(e) => HttpResponse::InternalServerError().json(serde_json::json!({"error": format!("{}", e)})),
+    }
+}
+
+/// Validate the same slot grid offered by the public calendar, in Europe/Berlin.
+pub(crate) fn valid_booking_window(date: &str, time: &str, duration: i64, pause: i64) -> bool {
+    use chrono::{TimeZone, Timelike};
+    let (Ok(date), Ok(time)) = (NaiveDate::parse_from_str(date, "%Y-%m-%d"), NaiveTime::parse_from_str(time, "%H:%M")) else { return false; };
+    if !(15..=360).contains(&duration) || !(0..=120).contains(&pause) { return false; }
+    let (open, close) = match date.weekday() { Weekday::Sun => return false, Weekday::Sat => (9*60,19*60), _ => (16*60,22*60) };
+    let minute = time.hour() as i64 * 60 + time.minute() as i64;
+    if minute < open || minute + duration > close || (minute - open) % (duration + pause) != 0 { return false; }
+    let Some(start) = chrono_tz::Europe::Berlin.from_local_datetime(&NaiveDateTime::new(date,time)).single() else { return false; };
+    let now = chrono::Utc::now();
+    start >= now + Duration::hours(24) && start <= now + Duration::days(180)
+}
+
+#[cfg(test)]
+mod booking_window_tests {
+    use super::*;
+    #[test]
+    fn rejects_off_grid_closed_days_and_invalid_settings() {
+        let mut date = chrono::Utc::now().with_timezone(&chrono_tz::Europe::Berlin).date_naive() + Duration::days(7);
+        while date.weekday() != Weekday::Mon { date += Duration::days(1); }
+        let day = date.format("%Y-%m-%d").to_string();
+        assert!(valid_booking_window(&day,"16:00",90,0));
+        assert!(!valid_booking_window(&day,"16:15",90,0));
+        assert!(!valid_booking_window(&day,"22:00",90,0));
+        assert!(!valid_booking_window(&day,"16:00",0,0));
+        let sunday = (date + Duration::days(6)).format("%Y-%m-%d").to_string();
+        assert!(!valid_booking_window(&sunday,"16:00",90,0));
     }
 }

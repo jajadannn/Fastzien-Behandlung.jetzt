@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ title }} | Gantke® Faszienbehandlung Schramberg-Sulgen</title>
+  <meta name="description" content="{{ description }}">
+  <link rel="canonical" href="https://faszienbehandlung.jetzt{{ path }}">
+  <link rel="icon" href="/favicon.v1.ico">
+  <link rel="stylesheet" href="/static/css/main.css?v=3">
+</head>
+<body>
+  <nav class="topbar" aria-label="Hauptnavigation">
+    <a class="topbar-logo" href="/"><picture><source srcset="/Logo.avif" type="image/avif"><img src="/static/images/logo-240.png" width="92" height="38" alt="Faszienbehandlung Thilo Seifried"></picture></a>
+    <div class="topbar-right"><a class="topic-nav-link" href="/">Startseite</a><a class="btn-book" href="/buchen">Termin buchen</a></div>
+  </nav>
+  <main class="section-white">
+    <article class="container topic-content">
+      <h1>{{ title }}</h1>
+      <p class="section-lead">Persönliche Gantke® Faszienbehandlung bei Thilo Seifried in Schramberg-Sulgen.</p>
+      {% for section in sections %}<section><h2>{{ section.0 }}</h2><p>{{ section.1 }}</p></section>{% endfor %}
+      <section>
+        <h2>Preis und Termin</h2>
+        <p>Ca. {{ settings.appointment_duration_min | default(value="90") }} Minuten · {{ settings.price_single | default(value="195") }} € je Einzelbehandlung. Das Vorgespräch ist Teil der Sitzung. Hausbesuche im bisherigen Einzugsgebiet kosten zusätzlich {{ settings.home_visit_surcharge | default(value="15") }} € Fahrtpauschale.</p>
+        <p>{{ settings.hours_weekday | default(value="Mo–Fr 16:00–22:00 Uhr") }} · {{ settings.hours_saturday | default(value="Sa 9:00–19:00 Uhr") }}. Absagen sind bis {{ settings.cancellation_hours | default(value="24") }} Stunden vor dem Termin möglich.</p>
+        <a class="btn-primary" href="/buchen">Termin ohne Konto wählen</a>
+        <p class="topic-contact">Fragen vorab? <a href="tel:{{ settings.phone_raw | default(value='+4915234007225') }}">{{ settings.phone | default(value="+49 152 34 00 72 25") }}</a></p>
+      </section>
+      <nav class="topic-related" aria-label="Weitere Informationen"><a href="/faszienbehandlung-ruecken">Rücken</a><a href="/faszienbehandlung-nacken-schulter">Nacken und Schulter</a><a href="/faszienbehandlung-haltung">Haltung</a><a href="/faszienbehandlung-sport">Sport</a><a href="/preise-und-ablauf">Preise und Ablauf</a></nav>
+    </article>
+  </main>
+  <footer class="footer"><div class="container"><address>Thilo Seifried · {{ settings.address_street | default(value="Sulgauer Straße 24") }}, {{ settings.address_zip | default(value="78713") }} {{ settings.address_city | default(value="Schramberg-Sulgen") }}</address><p><a href="/impressum">Impressum</a> · <a href="/datenschutz">Datenschutz</a></p></div></footer>
+</body>
+</html>

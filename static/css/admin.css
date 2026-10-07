@@ -384,3 +384,5 @@
 .admin-modal p { font-size: 0.95rem; color: var(--text-mid); margin-bottom: 24px; line-height: 1.5; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 32px; }
 .modal-actions button { margin: 0; }
+
+.marketing-stats{margin:24px 0 40px;max-width:75ch}.marketing-stats h2{margin-bottom:12px}.marketing-stats p{color:var(--text-mid);margin-bottom:16px}.marketing-stats caption{text-align:left;padding:12px 0;font-weight:600}

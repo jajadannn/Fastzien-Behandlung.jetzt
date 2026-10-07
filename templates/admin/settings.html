@@ -5,13 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Einstellungen – Admin</title>
   <link rel="icon" href="/favicon.v1.ico">
-  <link rel="stylesheet" href="/static/css/main.css?v=1">
+  <link rel="stylesheet" href="/static/css/main.css?v=3">
   <link rel="stylesheet" href="/static/css/admin.css?v=1">
 </head>
 <body>
   {% include "_icon_sprite.html" %}
   <nav class="admin-nav">
-    <a href="/" class="admin-logo"><img src="/Logo.png" alt="" height="30"><span>Admin</span></a>
+    <a href="/" class="admin-logo"><picture><source srcset="/Logo.avif" type="image/avif"><img src="/static/images/logo-240.png" alt="" height="30"></picture><span>Admin</span></a>
     <div class="admin-nav-links">
       <a href="/admin">Übersicht</a>
       <a href="/admin/customers">Kunden</a>
@@ -59,11 +59,12 @@
         <div class="form-group"><label>Telefon (Link, ohne Leerzeichen)</label><input type="text" name="phone_raw" value="{{ settings.phone_raw | default(value='+4915234007225') }}"></div>
         <div class="form-group"><label>E-Mail</label><input type="text" name="email_contact" value="{{ settings.email_contact | default(value='termin@faszienbehandlung.jetzt') }}"></div>
 
+        <div class="form-group"><label for="google-reviews-url">Link zu echten Google-Bewertungen (optional)</label><input type="url" id="google-reviews-url" name="google_reviews_url" value="{{ settings.google_reviews_url | default(value='') }}" placeholder="https://..."><small>Den tatsächlichen Link aus deinem Google-Unternehmensprofil eintragen. Ohne Link wird keine Google-Bewertung angezeigt.</small></div>
         <h2>Adresse</h2>
         <div class="form-group"><label>Straße</label><input type="text" name="address_street" value="{{ settings.address_street | default(value='Sulgauer Straße 24') }}"></div>
         <div class="form-row">
           <div class="form-group"><label>PLZ</label><input type="text" name="address_zip" value="{{ settings.address_zip | default(value='78713') }}"></div>
-          <div class="form-group"><label>Ort</label><input type="text" name="address_city" value="{{ settings.address_city | default(value='Sulgen') }}"></div>
+          <div class="form-group"><label>Ort</label><input type="text" name="address_city" value="{{ settings.address_city | default(value='Schramberg-Sulgen') }}"></div>
         </div>
 
         <h2>Stornierung</h2>

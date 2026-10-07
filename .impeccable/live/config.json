@@ -1,0 +1,7 @@
+{
+  "files": ["*.html", "templates/**/*.html"],
+  "exclude": ["templates/_icon_sprite.html"],
+  "insertBefore": "</body>",
+  "commentSyntax": "html",
+  "cspChecked": true
+}

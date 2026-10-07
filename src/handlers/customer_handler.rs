@@ -426,7 +426,7 @@ pub async fn api_invoice(
     let settings = settings.unwrap_or_default();
     let address_street = settings.get("address_street").map(|s| s.as_str()).unwrap_or("Sulgauer Straße 24");
     let address_zip = settings.get("address_zip").map(|s| s.as_str()).unwrap_or("78713");
-    let address_city = settings.get("address_city").map(|s| s.as_str()).unwrap_or("Sulgen");
+    let address_city = settings.get("address_city").map(|s| s.as_str()).unwrap_or("Schramberg-Sulgen");
     let phone = settings.get("phone").map(|s| s.as_str()).unwrap_or("+49 152 34 00 72 25");
 
     let appointment_info = payment.appointment_id
@@ -457,6 +457,7 @@ pub async fn api_invoice(
         format!("{}, {} {}", customer.street, customer.zip_code, customer.city)
     };
 
+    let escape = |value: &str| value.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;").replace('\"', "&quot;");
     let html = format!(r#"<!DOCTYPE html>
 <html lang="de">
 <head>
@@ -516,7 +517,7 @@ pub async fn api_invoice(
   </tfoot>
 </table>
 
-<p style="font-size:13px;color:#3d5a6b;">* Gemäß § 4 Nr. 14 UStG handelt es sich bei Heilbehandlungen im Bereich der Humanmedizin um steuerbefreite Leistungen. Diese Rechnung enthält keine gesondert ausgewiesene Umsatzsteuer.</p>
+<p style="font-size:13px;color:#3d5a6b;">* Gemäß § 19 UStG wird keine Umsatzsteuer berechnet (Kleinunternehmerregelung). Wellness- und Körperarbeitsleistung; keine Erstattung durch Krankenkassen oder Versicherungen.</p>
 
 <div class="footer">
   <p>Faszienbehandlung Thilo Seifried · {} · {} {} · {} | Kein Mitglied einer Berufsorganisation</p>
@@ -529,16 +530,16 @@ pub async fn api_invoice(
 </body>
 </html>"#,
         payment.id,
-        address_street, address_zip, address_city, phone,
+        escape(address_street), escape(address_zip), escape(address_city), escape(phone),
         payment.id, invoice_date,
-        customer.full_name(),
-        customer_address,
-        customer.email,
-        appointment_info,
+        escape(&customer.full_name()),
+        escape(&customer_address),
+        escape(&customer.email),
+        escape(&appointment_info),
         payment_type_label,
         payment.amount,
         payment.amount,
-        address_street, address_zip, address_city, phone,
+        escape(address_street), escape(address_zip), escape(address_city), escape(phone),
     );
 
     HttpResponse::Ok()

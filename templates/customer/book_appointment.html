@@ -4,20 +4,23 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Termin buchen – Faszienbehandlung</title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="referrer" content="no-referrer">
   <link rel="icon" href="/favicon.v1.ico">
   <link rel="preload" href="/fonts/cormorant-garamond-normal-latin.v1.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/fonts/dm-sans-latin.v1.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/static/css/main.css?v=1">
-  <link rel="stylesheet" href="/static/css/customer.css?v=1">
+  <link rel="stylesheet" href="/static/css/main.css?v=3">
+  <link rel="stylesheet" href="/static/css/customer.css?v=3">
 </head>
-<body>
+<body data-guest-booking="{% if is_guest %}true{% else %}false{% endif %}">
   {% include "_icon_sprite.html" %}
   <nav class="portal-nav">
     <a href="/" class="portal-logo">
-      <img src="/Logo.png" alt="Faszienbehandlung" height="32">
-      <span>Kundenportal</span>
+      <picture><source srcset="/Logo.avif" type="image/avif"><img src="/static/images/logo-240.png" alt="Faszienbehandlung" height="32"></picture>
+      <span>{% if is_guest %}Termin buchen{% else %}Kundenportal{% endif %}</span>
     </a>
     <div class="portal-nav-links">
+      {% if is_guest %}<a href="/">Zur Startseite</a><a href="/login">Kundenportal</a>{% else %}
       <a href="/portal">Dashboard</a>
       <a href="/portal/book" class="active">Buchen</a>
       <a href="/portal/appointments">Termine</a>
@@ -25,6 +28,7 @@
       <a href="/portal/profile">Profil</a>
       {% if is_admin %}<a href="/admin" class="nav-admin"><svg class="icon"><use href="#icon-settings" xlink:href="#icon-settings"/></svg> Admin</a>{% endif %}
       <a href="/logout" class="nav-logout" style="text-decoration: none;">Abmelden</a>
+      {% endif %}
     </div>
   </nav>
 
@@ -32,21 +36,36 @@
     <div class="portal-container">
       <div class="portal-welcome">
         <h1><svg class="icon"><use href="#icon-calendar" xlink:href="#icon-calendar"/></svg> Termin buchen</h1>
-        <p>Wähle einen verfügbaren Termin</p>
+        {% if is_guest %}<p>Wähle einen Termin, gib deine Kontaktdaten an und bestätige die Buchung per E-Mail. Du brauchst kein Konto.</p>
+        <p>Ca. {{ settings.appointment_duration_min | default(value="90") }} Minuten · {{ settings.price_single | default(value="195") }} € · Zahlung bar oder per Überweisung.</p>
+        <p class="booking-fineprint">Wellness- und Körperarbeit. Keine Erstattung durch Krankenkassen oder Versicherungen. Bei Beschwerden mit Krankheitswert bitte vorher ärztlich abklären.</p>
+        {% else %}<p>Wähle einen verfügbaren Termin</p>{% endif %}
         {% if remaining_credits > 0 %}
         <div class="credits-badge"><svg class="icon"><use href="#icon-ticket" xlink:href="#icon-ticket"/></svg> Du hast {{ remaining_credits }} Sitzung(en) auf deiner 10er-Karte</div>
         {% endif %}
       </div>
 
-      <div id="error-msg" class="portal-error" style="display:none"></div>
-      <div id="success-msg" class="portal-success" style="display:none"></div>
+      <div id="error-msg" role="alert" class="portal-error" style="display:none"></div>
+      <div id="success-msg" role="status" class="portal-success" style="display:none"></div>
 
+      {% if confirmation_mode %}
+        {% if guest_request %}
+        <form id="guest-confirm-form" class="booking-confirmation" action="/api/guest-booking/confirm" method="post">
+          <h2>Deinen Termin verbindlich buchen</h2>
+          <p>{{ guest_request.date }} · {{ guest_request.time }} Uhr · {% if guest_request.is_home_visit %}Hausbesuch{% else %}Praxis in Schramberg-Sulgen{% endif %}</p>
+          <p>Einzelbehandlung: {{ settings.price_single | default(value="195") }} €{% if guest_request.is_home_visit %} zuzüglich {{ settings.home_visit_surcharge | default(value="15") }} € Fahrtpauschale{% endif %}. Vorgespräch und Übungen sind enthalten. Keine Vorauszahlung.</p>
+          <p>Absagen sind bis {{ settings.cancellation_hours | default(value="24") }} Stunden vor dem Termin möglich. Für Absagen oder Änderungen erreichst du mich unter <a href="tel:{{ settings.phone_raw | default(value='+4915234007225') }}">{{ settings.phone | default(value="+49 152 34 00 72 25") }}</a>.</p>
+          <input type="hidden" name="token" value="{{ guest_request.token }}">
+          <button type="submit" class="auth-btn">Termin kostenpflichtig buchen</button>
+        </form>
+        {% else %}<div class="booking-confirmation"><h2>Dieser Link ist nicht mehr gültig</h2><p>Der Link ist abgelaufen oder wurde bereits verwendet. Falls du noch keine Buchungsbestätigung erhalten hast, wähle bitte einen neuen Termin.</p><a class="btn-primary" href="/buchen">Neuen Termin wählen</a></div>{% endif %}
+      {% else %}
       <div class="booking-layout">
         <div class="booking-calendar">
           <div class="calendar-header">
-            <button id="prev-month" class="cal-nav">‹</button>
+            <button type="button" id="prev-month" class="cal-nav" aria-label="Vorheriger Monat">‹</button>
             <h3 id="calendar-title"></h3>
-            <button id="next-month" class="cal-nav">›</button>
+            <button type="button" id="next-month" class="cal-nav" aria-label="Nächster Monat">›</button>
           </div>
           <div class="calendar-weekdays">
             <span>Mo</span><span>Di</span><span>Mi</span><span>Do</span><span>Fr</span><span>Sa</span><span>So</span>
@@ -56,26 +75,53 @@
 
         <div class="booking-slots" id="booking-slots">
           <h3 id="slots-title">Wähle ein Datum</h3>
-          <div id="slots-container" class="slots-container">
-            <p class="slots-placeholder">← Klicke auf einen Tag im Kalender</p>
+          <div id="slots-container" class="slots-container" aria-live="polite">
+            <p class="slots-placeholder">Wähle einen Tag im Kalender</p>
           </div>
 
           <div id="booking-options" class="booking-options" style="display:none">
+            <p id="booking-summary" class="booking-summary"></p>
+            <form id="booking-details">
+            {% if is_guest %}
+            <div class="form-row">
+              <div class="form-group"><label for="guest-first-name">Vorname</label><input id="guest-first-name" name="given-name" autocomplete="given-name" maxlength="100" required></div>
+              <div class="form-group"><label for="guest-last-name">Nachname</label><input id="guest-last-name" name="family-name" autocomplete="family-name" maxlength="100" required></div>
+            </div>
+            <div class="form-group"><label for="guest-email">E-Mail-Adresse</label><input id="guest-email" type="email" name="email" autocomplete="email" maxlength="254" required><small>An diese Adresse sende ich den Bestätigungslink.</small></div>
+            <div class="form-group"><label for="guest-phone">Telefonnummer</label><input id="guest-phone" type="tel" name="tel" autocomplete="tel" maxlength="100" required><small>Für Rückfragen zu deinem Termin.</small></div>
+            <div class="booking-honeypot" aria-hidden="true"><label for="guest-website">Website</label><input id="guest-website" tabindex="-1" autocomplete="off"></div>
+            {% endif %}
             <label class="checkbox-label">
               <input type="checkbox" id="home-visit">
               <span class="icon-label"><svg class="icon"><use href="#icon-home" xlink:href="#icon-home"/></svg> Hausbesuch (+{{ settings.home_visit_surcharge | default(value="15") }} €)</span>
             </label>
+            {% if is_guest %}
+            <div id="guest-address" hidden>
+              <div class="form-group"><label for="guest-street">Straße und Hausnummer</label><input id="guest-street" autocomplete="street-address" maxlength="200"></div>
+              <div class="form-row">
+                <div class="form-group"><label for="guest-zip">Postleitzahl</label><input id="guest-zip" autocomplete="postal-code" inputmode="numeric" pattern="[0-9]{5}" maxlength="5"></div>
+                <div class="form-group"><label for="guest-city">Ort</label><input id="guest-city" autocomplete="address-level2" maxlength="100"></div>
+              </div>
+              <p class="booking-fineprint">Hausbesuche im bisherigen Einzugsgebiet: Schramberg, Sulgen, Dunningen und Villingendorf.</p>
+            </div>
+            <div class="form-group"><label for="guest-source">Wie hast du mich gefunden? (optional)</label><select id="guest-source"><option value="">Keine Angabe</option><option>Google</option><option>Empfehlung</option><option>Social Media</option><option>Verein / Netzwerk</option><option>Sonstiges</option></select></div>
+            <label class="checkbox-label booking-privacy"><input type="checkbox" id="guest-privacy" required><span>Ich habe die <a href="/datenschutz" target="_blank" rel="noopener noreferrer">Datenschutzhinweise</a> gelesen. Meine Kontaktdaten werden für diese Buchung verarbeitet.</span></label>
+            <p class="booking-fineprint">Deine Buchung wird erst nach der Bestätigung per E-Mail verbindlich. Bis dahin ist der Termin nicht reserviert. Ein bestehendes Guthaben nutzt du über das <a href="/portal/book">Kundenportal</a>.</p>
+            {% else %}
             <div class="form-group">
               <label for="booking-notes">Anmerkungen (optional)</label>
               <textarea id="booking-notes" rows="2" placeholder="Besondere Wünsche oder Hinweise..."></textarea>
             </div>
-            <button id="confirm-booking" class="auth-btn" onclick="confirmBooking()">
-              <span class="btn-text">✓ Termin bestätigen</span>
+            {% endif %}
+            <button type="button" id="confirm-booking" class="auth-btn" onclick="confirmBooking()">
+              <span class="btn-text">{% if is_guest %}Bestätigungslink anfordern{% else %}Termin kostenpflichtig buchen{% endif %}</span>
               <span class="btn-loader" style="display:none"></span>
             </button>
+            </form>
           </div>
         </div>
       </div>
+      {% endif %}
     </div>
   </main>
 

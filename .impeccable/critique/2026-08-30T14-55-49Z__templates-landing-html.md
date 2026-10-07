@@ -7,6 +7,7 @@ p0_count: 0
 p1_count: 1
 timestamp: 2026-08-30T14-55-49Z
 slug: templates-landing-html
+closed: true
 ---
 Method: dual-agent (A: design-review subagent · B: detector-scan subagent)
 

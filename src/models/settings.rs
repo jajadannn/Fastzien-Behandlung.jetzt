@@ -9,6 +9,11 @@ pub struct SiteSetting {
 }
 
 impl SiteSetting {
+    pub fn get_public(conn: &Connection) -> Result<HashMap<String, String>> {
+        let mut settings = Self::get_all(conn)?;
+        settings.retain(|key, _| ["price_single", "price_pack", "price_pack_count", "home_visit_surcharge", "appointment_duration_min", "cancellation_hours", "hours_weekday", "hours_saturday", "hours_stripe", "hours_stripe_short", "phone", "phone_raw", "email_contact", "address_street", "address_zip", "address_city", "google_reviews_url"].contains(&key.as_str()));
+        Ok(settings)
+    }
     pub fn get(conn: &Connection, key: &str) -> Result<String> {
         conn.query_row(
             "SELECT setting_value FROM site_settings WHERE setting_key = ?1",

@@ -160,22 +160,8 @@ impl Appointment {
         rows.collect()
     }
 
-    /// Find completed appointments that need a review reminder (finished > 2h ago, review not sent yet).
-    pub fn find_needing_review_reminders(conn: &Connection) -> Result<Vec<Self>> {
-        let mut stmt = conn.prepare(
-            "SELECT a.id, a.customer_id, a.start_time, a.end_time, a.status, a.appointment_type, a.is_home_visit, a.notes, a.therapist_notes, a.reminder_sent, a.review_reminder_sent, a.created_at, c.first_name, c.last_name, c.email, c.phone FROM appointments a JOIN customers c ON a.customer_id = c.id WHERE a.status = 'confirmed' AND a.review_reminder_sent = 0 AND a.appointment_type != 'blocked' AND a.end_time <= datetime('now', '-2 hours') AND a.end_time >= datetime('now', '-48 hours')"
-        )?;
-        let rows = stmt.query_map([], Self::from_row_with_customer)?;
-        rows.collect()
-    }
-
     pub fn mark_reminder_sent(conn: &Connection, id: i64) -> Result<()> {
         conn.execute("UPDATE appointments SET reminder_sent = 1 WHERE id = ?1", params![id])?;
-        Ok(())
-    }
-
-    pub fn mark_review_reminder_sent(conn: &Connection, id: i64) -> Result<()> {
-        conn.execute("UPDATE appointments SET review_reminder_sent = 1 WHERE id = ?1", params![id])?;
         Ok(())
     }
 

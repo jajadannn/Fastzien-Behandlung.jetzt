@@ -8,7 +8,7 @@ pub async fn get_settings(
     db: web::Data<Mutex<Connection>>,
 ) -> HttpResponse {
     let conn = db.lock().unwrap_or_else(|e| e.into_inner());
-    let settings = SiteSetting::get_all(&conn).unwrap_or_default();
+    let settings = SiteSetting::get_public(&conn).unwrap_or_default();
     HttpResponse::Ok().json(settings)
 }
 

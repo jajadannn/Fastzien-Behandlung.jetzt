@@ -11,6 +11,7 @@ pub struct Review {
     pub sort_order: i32,
     pub is_active: bool,
     pub updated_at: String,
+    pub publication_approved: bool,
 }
 
 #[derive(Debug, Deserialize)]
@@ -22,6 +23,7 @@ pub struct ReviewForm {
     pub stars: Option<i32>,
     pub sort_order: Option<i32>,
     pub is_active: Option<bool>,
+    pub publication_approved: Option<bool>,
 }
 
 impl Review {
@@ -35,12 +37,13 @@ impl Review {
             sort_order: row.get(5)?,
             is_active: row.get::<_, i32>(6)? != 0,
             updated_at: row.get(7)?,
+            publication_approved: row.get(8)?,
         })
     }
 
     pub fn find_all(conn: &Connection) -> Result<Vec<Self>> {
         let mut stmt = conn.prepare(
-            "SELECT id, author_name, author_location, content, stars, sort_order, is_active, updated_at FROM reviews ORDER BY sort_order ASC"
+            "SELECT id, author_name, author_location, content, stars, sort_order, is_active, updated_at, publication_approved FROM reviews ORDER BY sort_order ASC"
         )?;
         let rows = stmt.query_map([], Self::from_row)?;
         rows.collect()
@@ -48,7 +51,7 @@ impl Review {
 
     pub fn find_active(conn: &Connection) -> Result<Vec<Self>> {
         let mut stmt = conn.prepare(
-            "SELECT id, author_name, author_location, content, stars, sort_order, is_active, updated_at FROM reviews WHERE is_active = 1 ORDER BY sort_order ASC"
+            "SELECT id, author_name, author_location, content, stars, sort_order, is_active, updated_at, publication_approved FROM reviews WHERE is_active = 1 AND publication_approved = 1 ORDER BY sort_order ASC"
         )?;
         let rows = stmt.query_map([], Self::from_row)?;
         rows.collect()

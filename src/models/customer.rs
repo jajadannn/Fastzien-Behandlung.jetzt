@@ -108,7 +108,7 @@ impl Customer {
     }
 
     pub fn find_by_email(conn: &Connection, email: &str) -> Result<Option<Self>> {
-        let sql = format!("SELECT {} FROM customers WHERE email = ?1", SELECT_COLS);
+        let sql = format!("SELECT {} FROM customers WHERE email = ?1 COLLATE NOCASE", SELECT_COLS);
         let mut stmt = conn.prepare(&sql)?;
         let mut rows = stmt.query(params![email])?;
         match rows.next()? {

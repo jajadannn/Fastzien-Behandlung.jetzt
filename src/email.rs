@@ -10,13 +10,17 @@ const SKY_FROM: &str = "#70AECD";
 const SKY_TO: &str = "#4d93b8";
 const PLUM_FROM: &str = "#964279";
 const PLUM_TO: &str = "#7a3661";
-const LOGO_URL: &str = "https://faszienbehandlung.jetzt/Logo.png";
+const LOGO_URL: &str = "https://faszienbehandlung.jetzt/static/images/logo-240.png";
 
 /// Wraps a block of body HTML in the shared branded shell: a hidden preheader (the
 /// one-line summary inbox apps show before the subject is opened), a gradient header
 /// with a flat background-color fallback (Outlook desktop ignores linear-gradient)
 /// carrying the logo and a serif heading, a white body area, and a footer with
 /// business contact details.
+fn escape_html(value: &str) -> String {
+    value.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;").replace('\"', "&quot;")
+}
+
 fn shell(top: &str, bottom: &str, heading: &str, preheader: &str, body: &str) -> String {
     format!(
         r#"<div style="display:none;max-height:0;overflow:hidden;opacity:0;mso-hide:all;font-size:1px;line-height:1px;color:#f7fbfd;">{preheader}</div>
@@ -30,12 +34,12 @@ fn shell(top: &str, bottom: &str, heading: &str, preheader: &str, body: &str) ->
     </div>
     <div style="background-color:#ffffff; border-radius: 0 0 20px 20px; padding: 0 32px 30px;">
         <div style="border-top: 1px solid rgba(112,174,205,0.18); padding-top: 18px; text-align: center;">
-            <p style="color: #6a8fa0; font-size: 12px; margin: 0 0 4px; line-height: 1.6;">Faszienbehandlung Thilo Seifried &middot; Sulgauer Stra&szlig;e 24, 78713 Sulgen</p>
+            <p style="color: #6a8fa0; font-size: 12px; margin: 0 0 4px; line-height: 1.6;">Faszienbehandlung Thilo Seifried &middot; Sulgauer Stra&szlig;e 24, 78713 Schramberg-Sulgen</p>
             <p style="color: #6a8fa0; font-size: 12px; margin: 0; line-height: 1.6;">Tel. +49 152 34 00 72 25 &middot; termin@faszienbehandlung.jetzt</p>
         </div>
     </div>
 </div>"#,
-        top = top, bottom = bottom, heading = heading, preheader = preheader, body = body, logo = LOGO_URL
+        top = top, bottom = bottom, heading = escape_html(heading), preheader = escape_html(preheader), body = body, logo = LOGO_URL
     )
 }
 
@@ -83,7 +87,42 @@ pub struct EmailService {
     from_name: String,
 }
 
+pub struct BookingDetails {
+    pub name: String,
+    pub date: String,
+    pub time: String,
+    pub location: String,
+    pub duration: i64,
+    pub cancellation_hours: i64,
+    pub amount: f64,
+    pub phone: String,
+    pub contact_email: String,
+}
+
 impl EmailService {
+    pub fn send_booking_confirmation(&self, to: &str, details: &BookingDetails) {
+        let rows = info_row("Datum", &escape_html(&details.date))
+            + &info_row("Uhrzeit", &escape_html(&details.time))
+            + &info_row("Ort", &escape_html(&details.location))
+            + &info_row("Dauer", &format!("ca. {} Minuten", details.duration))
+            + &info_row("Preis", &format!("{} €", format!("{:.2}", details.amount).replace('.', ",")));
+        let body = shell(SKY_FROM, SKY_TO, "Dein Termin ist gebucht", "Datum, Ort und Preis deiner bestätigten Buchung.",
+            &format!(r#"<p style="color:#1a2a33;font-size:16px;line-height:1.7;">Hallo {},</p>
+            <p style="color:#3d5a6b;font-size:15px;line-height:1.7;">dein Termin für die Gantke&reg; Faszienbehandlung ist verbindlich gebucht.</p>{}
+            <p style="color:#3d5a6b;font-size:15px;line-height:1.7;">Zahlung bar oder per Überweisung. Keine Erstattung durch Krankenkassen oder Versicherungen; du erhältst eine Rechnung.</p>
+            <p style="color:#3d5a6b;font-size:15px;line-height:1.7;">Für Änderungen oder eine Absage bis {} Stunden vor dem Termin erreichst du mich unter {} oder {}. Ein eingerichtetes Kundenkonto kannst du zusätzlich zur Terminverwaltung nutzen.</p>"#,
+            escape_html(&details.name), info_card(&rows), details.cancellation_hours, escape_html(&details.phone), escape_html(&details.contact_email)));
+        if let Err(error) = self.send_html(to, "", &format!("Terminbestätigung – {}", details.date), &body) { error!("Failed to send booking confirmation: {}", error); }
+    }
+    pub fn send_guest_booking_link(&self, to_email: &str, name: &str, date: &str, time: &str, url: &str) -> Result<(), String> {
+        let escape = |s: &str| s.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;").replace('"', "&quot;");
+        let body = shell(SKY_FROM, SKY_TO, "Deine Buchung bestätigen", "Ein Schritt fehlt noch: bestätige deinen Termin.",
+            &format!(r#"<p style="color:#1a2a33;font-size:16px;line-height:1.7;">Hallo {},</p>
+            <p style="color:#3d5a6b;font-size:15px;line-height:1.7;">du möchtest am <strong>{} um {} Uhr</strong> eine Sitzung buchen. Öffne den folgenden Link und bestätige deine Buchung dort innerhalb von 30 Minuten.</p>
+            <p style="color:#3d5a6b;font-size:15px;line-height:1.7;">Bis zur Bestätigung ist der Termin noch nicht reserviert. Es ist keine Registrierung erforderlich.</p>{}
+            <p style="color:#3d5a6b;font-size:13px;line-height:1.7;">Falls du keine Buchung angefragt hast, ignoriere diese E-Mail. Es wird dann kein Termin gebucht.</p>"#, escape(name), escape(date), escape(time), cta_button(&escape(url), "Buchung prüfen")));
+        self.send_html(to_email, "", "Deinen Termin bei Thilo Seifried bestätigen", &body)
+    }
     pub fn new(config: &Config) -> Self {
         EmailService {
             smtp_host: config.smtp_host.clone(),
@@ -174,9 +213,9 @@ impl EmailService {
                 </p>
                 {}
                 <p style="color: #6a8fa0; font-size: 13px; margin: 0;">
-                    Stornierung bis 24 Stunden vor dem Termin m&ouml;glich &uuml;ber dein Kundenportal.
+                    F&uuml;r Absagen und &Auml;nderungen erreichst du mich telefonisch oder per E-Mail. Mit einem eingerichteten Kundenkonto kannst du Termine auch im Portal verwalten.
                 </p>"#,
-                name, info_card(&rows)
+                escape_html(name), info_card(&rows)
             ),
         );
 
@@ -297,14 +336,14 @@ impl EmailService {
     ) {
         let visit_label = if is_home_visit { "Hausbesuch" } else { "Praxis" };
         let mut rows = String::new();
-        rows.push_str(&info_row("Kunde", customer_name));
-        rows.push_str(&info_row("Telefon", customer_phone));
-        rows.push_str(&info_row("Adresse", customer_address));
+        rows.push_str(&info_row("Kunde", &escape_html(customer_name)));
+        rows.push_str(&info_row("Telefon", &escape_html(customer_phone)));
+        rows.push_str(&info_row("Adresse", &escape_html(customer_address)));
         rows.push_str(&info_row("Datum", date_str));
         rows.push_str(&info_row("Uhrzeit", time_str));
         rows.push_str(&info_row("Art", visit_label));
         if !notes.is_empty() {
-            rows.push_str(&info_row("Notiz", notes));
+            rows.push_str(&info_row("Notiz", &escape_html(notes)));
         }
         let subject = format!("Neue Buchung: {} am {}", customer_name, date_str);
         let preheader = format!("{} hat einen Termin am {} gebucht.", customer_name, date_str);
@@ -329,7 +368,7 @@ impl EmailService {
         let location = if is_home_visit {
             "Hausbesuch \u{2013} Thilo kommt zu dir".to_string()
         } else {
-            "Praxis \u{b7} Sulgauer Stra\u{df}e 24, 78713 Sulgen".to_string()
+            "Praxis \u{b7} Sulgauer Stra\u{df}e 24, 78713 Schramberg-Sulgen".to_string()
         };
         let mut rows = String::new();
         rows.push_str(&info_row("Datum", date));
@@ -355,34 +394,6 @@ impl EmailService {
 
         if let Err(e) = self.send_html(to_email, name, &subject, &body) {
             error!("Failed to send appointment reminder: {}", e);
-        }
-    }
-
-    /// Review reminder sent ~2h after appointment end.
-    pub fn send_review_reminder(&self, to_email: &str, name: &str, date: &str) {
-        let subject = "Wie war deine Behandlung? Wir freuen uns \u{fc}ber dein Feedback";
-        let body = shell(
-            SKY_FROM, SKY_TO, "Wie war deine Behandlung?",
-            "Wir freuen uns \u{fc}ber dein Feedback \u{2013} dauert nur 1 Minute.",
-            &format!(
-                r#"<p style="color: #1a2a33; font-size: 16px; margin: 0 0 12px;">Hallo {},</p>
-                <p style="color: #3d5a6b; font-size: 15px; line-height: 1.7; margin: 0 0 12px;">
-                    Du warst heute am {} bei uns &ndash; wir hoffen, du f&uuml;hlst dich gut und entspannt!
-                </p>
-                <p style="color: #3d5a6b; font-size: 15px; line-height: 1.7; margin: 0;">
-                    Dein Feedback hilft uns sehr und anderen Interessierten bei der Entscheidung. Eine kurze Bewertung dauert nur 1 Minute:
-                </p>
-                {}
-                <p style="color: #6a8fa0; font-size: 13px; text-align: center; margin: 0;">
-                    Vielen Dank &ndash; wir freuen uns auf deinen n&auml;chsten Besuch!
-                </p>"#,
-                name, date,
-                cta_button("https://g.page/r/faszienbehandlung/review", "Bewertung schreiben")
-            ),
-        );
-
-        if let Err(e) = self.send_html(to_email, name, subject, &body) {
-            error!("Failed to send review reminder: {}", e);
         }
     }
 

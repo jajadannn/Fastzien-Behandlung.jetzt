@@ -1,8 +1,38 @@
 // ===== Booking Calendar =====
 (function() {
+  const isGuest = document.body.dataset.guestBooking === 'true';
+  const confirmationForm = document.getElementById('guest-confirm-form');
+  if (confirmationForm) {
+    confirmationForm.addEventListener('submit', async function(event) {
+      event.preventDefault();
+      const button = confirmationForm.querySelector('button');
+      const error = document.getElementById('error-msg');
+      button.disabled = true; button.textContent = 'Termin wird gebucht …'; error.style.display = 'none';
+      try {
+        const res = await fetch(confirmationForm.action, {method:'POST', body:new URLSearchParams(new FormData(confirmationForm))});
+        const data = await res.json();
+        if (!res.ok || !data.success) throw new Error(data.error || 'Bitte wähle einen neuen Termin.');
+        confirmationForm.hidden = true;
+        const success = document.getElementById('success-msg');
+        success.textContent = 'Dein Termin ist verbindlich gebucht. Du erhältst die Buchungsbestätigung per E-Mail. Für Änderungen oder Absagen erreichst du Thilo telefonisch oder per E-Mail.';
+        success.style.display = 'block';
+      } catch (err) { error.textContent = err.message || 'Verbindungsfehler. Bitte versuche es erneut.'; error.style.display = 'block'; button.disabled = false; button.textContent = 'Termin kostenpflichtig buchen'; }
+    });
+    return;
+  }
+  if (!document.getElementById('calendar-title')) return;
+  let requestVersion = 0;
+  const detailsForm = document.getElementById('booking-details');
+  const homeVisit = document.getElementById('home-visit');
+  detailsForm.addEventListener('submit', event => { event.preventDefault(); window.confirmBooking(); });
+  if (isGuest) homeVisit.addEventListener('change', () => {
+    document.getElementById('guest-address').hidden = !homeVisit.checked;
+    ['guest-street','guest-zip','guest-city'].forEach(id => { document.getElementById(id).required = homeVisit.checked; });
+  });
   let currentYear, currentMonth, selectedDate = null, selectedSlot = null;
 
-  const now = new Date();
+  const berlinDate = new Intl.DateTimeFormat('sv-SE', {timeZone:'Europe/Berlin',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+  const now = new Date(berlinDate + 'T12:00:00');
   currentYear = now.getFullYear();
   currentMonth = now.getMonth();
 
@@ -24,9 +54,12 @@
     startDay -= 1; // 0-indexed
 
     const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-    const today = new Date();
+    const today = new Date(berlinDate + 'T00:00:00');
     today.setHours(0,0,0,0);
 
+    document.getElementById('prev-month').disabled = currentYear === now.getFullYear() && currentMonth === now.getMonth();
+    const horizon = new Date(today.getTime() + 180 * 86400000);
+    document.getElementById('next-month').disabled = currentYear === horizon.getFullYear() && currentMonth === horizon.getMonth();
     // Empty cells before
     for (let i = 0; i < startDay; i++) {
       const d = document.createElement('div');
@@ -37,6 +70,8 @@
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(currentYear, currentMonth, day);
       const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.setAttribute('aria-label', day + '. ' + months[currentMonth] + ' ' + currentYear);
       btn.className = 'cal-day';
       btn.textContent = day;
 
@@ -48,6 +83,8 @@
       if (date < today) {
         btn.classList.add('disabled');
       }
+      btn.disabled = date.getDay() === 0 || date < today || date - today > 180 * 86400000;
+      btn.classList.toggle('disabled', btn.disabled);
       // Today highlight
       if (date.getTime() === today.getTime()) {
         btn.classList.add('today');
@@ -57,11 +94,11 @@
         btn.classList.add('selected');
       }
 
-      btn.addEventListener('click', function() {
+      btn.addEventListener('click', async function() {
         selectedDate = new Date(currentYear, currentMonth, day);
         selectedSlot = null;
         renderCalendar();
-        loadSlots(selectedDate);
+        await loadSlots(selectedDate);
       });
 
       calDays.appendChild(btn);
@@ -69,28 +106,37 @@
   }
 
   async function loadSlots(date) {
+    const version = ++requestVersion;
+    selectedSlot = null;
     const dateStr = date.getFullYear() + '-' +
       String(date.getMonth() + 1).padStart(2, '0') + '-' +
       String(date.getDate()).padStart(2, '0');
 
     slotsTitle.textContent = date.getDate() + '. ' + months[date.getMonth()] + ' ' + date.getFullYear();
-    slotsContainer.innerHTML = '<div class="slots-loading">Laden...</div>';
+    slotsContainer.textContent = 'Freie Termine werden geladen …';
+    slotsContainer.setAttribute('aria-busy', 'true');
     bookingOptions.style.display = 'none';
 
     try {
       const res = await fetch('/api/appointments/available-slots?date=' + dateStr + '&_=' + Date.now());
       const data = await res.json();
+      if (version !== requestVersion) return;
+      if (!res.ok) throw new Error(data.error || 'Bitte wähle den Tag erneut.');
 
       if (data.slots && data.slots.length > 0) {
         slotsContainer.innerHTML = '';
         data.slots.forEach(function(slot) {
           const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.setAttribute('aria-pressed', 'false');
           btn.className = 'slot-btn';
           btn.textContent = slot.display;
           btn.dataset.time = slot.time;
           btn.addEventListener('click', function() {
-            document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('selected'));
+            document.querySelectorAll('.slot-btn').forEach(b => { b.classList.remove('selected'); b.setAttribute('aria-pressed','false'); });
             btn.classList.add('selected');
+            btn.setAttribute('aria-pressed', 'true');
+            document.getElementById('booking-summary').textContent = slotsTitle.textContent + ' · ' + slot.display + ' Uhr';
             selectedSlot = slot.time;
             bookingOptions.style.display = 'block';
           });
@@ -100,7 +146,9 @@
         slotsContainer.innerHTML = '<p class="slots-placeholder">Keine freien Termine an diesem Tag</p>';
       }
     } catch (err) {
-      slotsContainer.innerHTML = '<p class="slots-placeholder">Fehler beim Laden der Termine</p>';
+      if (version === requestVersion) slotsContainer.textContent = 'Freie Termine konnten nicht geladen werden. Bitte wähle den Tag erneut.';
+    } finally {
+      if (version === requestVersion) slotsContainer.setAttribute('aria-busy', 'false');
     }
   }
 
@@ -120,9 +168,10 @@
 
   // Expose confirmBooking globally
   window.confirmBooking = async function() {
-    if (!selectedDate || !selectedSlot) return;
+    if (!selectedDate || !selectedSlot || !detailsForm.reportValidity()) return;
 
     const btn = document.getElementById('confirm-booking');
+    if (btn.disabled) return;
     btn.querySelector('.btn-text').style.display = 'none';
     btn.querySelector('.btn-loader').style.display = 'inline-block';
     btn.disabled = true;
@@ -136,26 +185,24 @@
     errorMsg.style.display = 'none';
     successMsg.style.display = 'none';
 
+    const payload = { date:dateStr, time:selectedSlot, is_home_visit:homeVisit.checked };
+    if (isGuest) {
+      const value = id => document.getElementById(id).value.trim();
+      Object.assign(payload, {first_name:value('guest-first-name'),last_name:value('guest-last-name'),email:value('guest-email'),phone:value('guest-phone'),street:homeVisit.checked ? value('guest-street') : '',zip_code:homeVisit.checked ? value('guest-zip') : '',city:homeVisit.checked ? value('guest-city') : '',source:value('guest-source'),privacy_acknowledged:document.getElementById('guest-privacy').checked,website:value('guest-website')});
+    } else payload.notes = document.getElementById('booking-notes').value || null;
     try {
-      const res = await fetch('/api/appointments/book', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          date: dateStr,
-          time: selectedSlot,
-          is_home_visit: document.getElementById('home-visit').checked,
-          notes: document.getElementById('booking-notes').value || null,
-        }),
+      const res = await fetch(isGuest ? '/api/guest-booking/request' : '/api/appointments/book', {
+        method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)
       });
       const data = await res.json();
-      if (data.success) {
-        successMsg.textContent = '✓ Termin erfolgreich gebucht! Du erhältst eine Bestätigung per E-Mail.';
+      if (res.ok && data.success) {
+        successMsg.textContent = isGuest ? data.message : 'Dein Termin ist verbindlich gebucht. Du erhältst eine Bestätigung per E-Mail.';
         successMsg.style.display = 'block';
         bookingOptions.style.display = 'none';
         selectedSlot = null;
         // Reload slots
-        loadSlots(selectedDate);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        await loadSlots(selectedDate);
+        successMsg.scrollIntoView({block:'center',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
       } else {
         errorMsg.textContent = data.error || 'Buchung fehlgeschlagen';
         errorMsg.style.display = 'block';

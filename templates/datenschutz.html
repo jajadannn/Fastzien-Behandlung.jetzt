@@ -13,7 +13,7 @@
 
   <link rel="preload" href="/fonts/cormorant-garamond-normal-latin.v1.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/fonts/dm-sans-latin.v1.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/static/css/main.css?v=1">
+  <link rel="stylesheet" href="/static/css/main.css?v=3">
 
   <style>
     .back-link{display:inline-flex;align-items:center;gap:8px;color:rgba(255,255,255,0.85);text-decoration:none;font-size:.86rem;padding:5px 14px;border-radius:50px;transition:all .2s;border:1px solid rgba(255,255,255,0.3)}
@@ -51,11 +51,11 @@
 
   <nav class="topbar" aria-label="Hauptnavigation">
     <a class="topbar-logo" href="/">
-      <img
-        src="/Logo.png"
+      <picture><source srcset="/Logo.avif" type="image/avif"><img
+        src="/static/images/logo-240.png"
         alt="Faszienbehandlung Thilo Seifried"
         width="92"
-        height="38">
+        height="38"></picture>
       <span class="topbar-brand">Thilo Seifried &middot; Gantke&reg; Methode</span>
     </a>
     <a class="back-link" href="/">&#8592; Zur&uuml;ck zur Startseite</a>
@@ -74,7 +74,7 @@
           <strong>Thilo Seifried</strong><br>
           Gantke&reg; Faszienbehandlung<br>
           Sulgauer Stra&szlig;e 24<br>
-          78655 Sulgen<br>
+          78713 Schramberg-Sulgen<br>
           Deutschland
         </address>
         <p class="meta-line">
@@ -89,7 +89,7 @@
         <p>Die auf der Website verwendeten Schriftarten werden lokal vom eigenen Webserver geladen. Es werden keine externen Font-Dienste von Google oder anderen Drittanbietern eingebunden.</p>
         <p>Personenbezogene Daten werden nur verarbeitet, soweit dies technisch erforderlich ist, Sie Kontakt aufnehmen oder das Online-Buchungssystem nutzen.</p>
         <div class="info-box">
-          <p>Stand dieser Datenschutzhinweise: 7. April 2026.</p>
+          <p>Stand dieser Datenschutzhinweise: 7. Oktober 2026.</p>
         </div>
       </div>
 
@@ -121,9 +121,9 @@
         <h2>5. Kundenkonto und Online-Terminbuchung</h2>
         <p>Die Terminbuchung erfolgt &uuml;ber ein eigenes, auf dieser Website betriebenes Buchungssystem. Externe Buchungsanbieter werden nicht eingesetzt. Die Verarbeitung findet ausschlie&szlig;lich auf eigenem Serverinfrastruktur statt.</p>
         <p><strong>5.1 Registrierung und Kundenkonto</strong></p>
-        <p>Zur Nutzung des Online-Buchungssystems ist die Anlage eines pers&ouml;nlichen Kundenkontos erforderlich. Bei der Registrierung erheben wir folgende Daten:</p>
+        <p>Eine Terminbuchung ist ohne vorherige Registrierung möglich. Für das optionale Kundenportal kannst du ein persönliches Konto einrichten. Dabei werden E-Mail-Adresse und ein als bcrypt-Hash gespeichertes Passwort erhoben; weitere Profildaten ergänzt du im Portal.</p>
         <ul>
-          <li><strong>Pflichtangaben:</strong> Vorname, Nachname, E-Mail-Adresse, Telefonnummer, Passwort (gespeichert als bcrypt-Hash, nicht im Klartext).</li>
+          <li><strong>Daten im Kundenportal:</strong> E-Mail-Adresse, Passwort-Hash sowie die von dir ergänzten Namen, Kontakt- und Adressangaben.</li>
           <li><strong>Freiwillige Angaben:</strong> Stra&szlig;e und Hausnummer, PLZ, Ort (werden f&uuml;r Hausbesuche ben&ouml;tigt).</li>
           <li><strong>Zweck:</strong> Kontoverwaltung, Kommunikation rund um Termine, Ausstellung von Buchungsbest&auml;tigungen per E-Mail.</li>
           <li><strong>Rechtsgrundlage:</strong> Art. 6 Abs. 1 lit. b DSGVO (Vertragsanbahnung/-erf&uuml;llung); f&uuml;r freiwillige Adressangaben Art. 6 Abs. 1 lit. a DSGVO (Einwilligung).</li>
@@ -135,7 +135,10 @@
           <li><strong>Zweck:</strong> Sicherstellung der Erreichbarkeit und Schutz vor Missbrauch der E-Mail-Adresse.</li>
           <li><strong>Rechtsgrundlage:</strong> Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an Sicherheit und Kontointegrität).</li>
         </ul>
-        <p><strong>5.3 Terminbuchung und -verwaltung</strong></p>
+        <p><strong>5.3 Terminbuchung ohne Konto und Terminverwaltung</strong></p>
+        <p>Bei einer Buchung ohne Konto werden Name, E-Mail-Adresse, Telefonnummer und gewünschter Termin verarbeitet. Für Hausbesuche kommen Straße, Postleitzahl und Ort hinzu. Du erhältst einen 30 Minuten gültigen Bestätigungslink. Erst deine ausdrückliche Bestätigung auf der Buchungsseite führt zu einem verbindlichen Termin. Unbestätigte Anfragen werden nach einem Tag bei der nächsten automatischen Bereinigung entfernt.</p>
+        <p>Nach der Bestätigung werden deine Kontaktdaten für die Praxisverwaltung gespeichert. Ein vorhandenes Kundenkonto wird anhand der bestätigten E-Mail-Adresse zugeordnet; dessen Passwort, Profil und Guthaben werden dadurch nicht verändert. Ein Kundenportalzugang ist für die Buchung nicht erforderlich. Absagen und Änderungen ohne Portalzugang sind telefonisch oder per E-Mail möglich.</p>
+        <p>Die freiwillige Angabe „Wie hast du mich gefunden?“ wird ausschließlich für die eigene Auswertung von Buchungskanälen verwendet. Es werden keine Werbe- oder Tracking-Dienste eingebunden. Rechtsgrundlage für diese freiwillige Angabe ist Art. 6 Abs. 1 lit. a DSGVO; du kannst die Löschung dieser Angabe jederzeit anfragen.</p>
         <ul>
           <li><strong>Verarbeitete Daten:</strong> Datum, Uhrzeit, Behandlungsort (Praxis oder Hausbesuch), optionale Notizen sowie die mit dem Konto gespeicherten Kontaktdaten.</li>
           <li><strong>Zweck:</strong> Terminverwaltung, Best&auml;tigungen, Erinnerungen und ggf. Stornierungsvorschl&auml;ge per E-Mail.</li>
@@ -163,7 +166,7 @@
           <li><strong>Name:</strong> <code>auth_token</code></li>
           <li><strong>Art:</strong> HttpOnly-Cookie, kein Zugriff durch JavaScript, keine Tracking-Funktion.</li>
           <li><strong>G&uuml;ltigkeit:</strong> 7 Tage oder bis zur Abmeldung.</li>
-          <li><strong>Rechtsgrundlage:</strong> Art. 6 Abs. 1 lit. f DSGVO (technisch notwendig f&uuml;r den sicheren Betrieb des Portals); eine gesonderte Einwilligung ist nach &sect; 25 Abs. 2 TTDSG nicht erforderlich, da das Cookie ausschlie&szlig;lich der &Uuml;bertragung einer Nachricht &uuml;ber ein Telekommunikationsnetz dient.</li>
+          <li><strong>Rechtsgrundlage:</strong> Art. 6 Abs. 1 lit. f DSGVO (technisch notwendig f&uuml;r den sicheren Betrieb des Portals); eine gesonderte Einwilligung ist nach &sect; 25 Abs. 2 TDDDG nicht erforderlich, da das Cookie ausschlie&szlig;lich der &Uuml;bertragung einer Nachricht &uuml;ber ein Telekommunikationsnetz dient.</li>
         </ul>
         <div class="info-box">
           <p>Es werden keine Analyse-, Werbe- oder Tracking-Cookies eingesetzt. Google Fonts, Google Analytics, Meta Pixel oder vergleichbare Dienste sind nicht eingebunden.</p>
@@ -171,8 +174,8 @@
       </div>
 
       <div class="dp-section">
-        <h2>7. Externe Links, insbesondere Google Maps</h2>
-        <p>Auf dieser Website ist keine Karte direkt eingebettet. Es gibt jedoch einen Link zu Google Maps, &uuml;ber den Sie eine Route zur Praxis aufrufen k&ouml;nnen.</p>
+        <h2>7. Externe Links: Google Maps, Google-Bewertungen und WhatsApp</h2>
+        <p>WhatsApp und gegebenenfalls Google-Bewertungen sind ausschließlich als externe Links eingebunden. Erst beim Anklicken wird eine Verbindung zum jeweiligen Anbieter aufgebaut. Die Kontaktaufnahme über WhatsApp ist freiwillig; alternativ stehen Telefon und E-Mail zur Verfügung. Bitte sende keine Gesundheitsangaben über WhatsApp. Auf dieser Website ist keine Karte direkt eingebettet. Es gibt jedoch einen Link zu Google Maps, &uuml;ber den Sie eine Route zur Praxis aufrufen k&ouml;nnen.</p>
         <ul>
           <li><strong>Wichtig:</strong> Erst wenn Sie den Link anklicken, verlassen Sie diese Website und es wird eine Verbindung zu Google aufgebaut.</li>
           <li><strong>Verantwortung:</strong> F&uuml;r die anschlie&szlig;ende Datenverarbeitung auf den Seiten des jeweiligen Anbieters ist ausschlie&szlig;lich der dortige Betreiber verantwortlich.</li>

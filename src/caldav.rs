@@ -389,7 +389,7 @@ fn build_ical(
     let location = if is_home_visit {
         format!("Hausbesuch: {}", customer_address)
     } else {
-        "Sulgauer Straße 24, 78655 Sulgen".to_string()
+        "Sulgauer Straße 24, 78713 Schramberg-Sulgen".to_string()
     };
     let mut desc_parts = vec![
         format!("Kunde: {}", customer_name),
