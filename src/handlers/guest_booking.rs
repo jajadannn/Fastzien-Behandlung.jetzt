@@ -22,7 +22,6 @@ pub struct GuestForm {
     #[serde(default)] pub zip_code: String,
     #[serde(default)] pub city: String,
     #[serde(default)] pub source: String,
-    #[serde(default)] pub privacy_acknowledged: bool,
     #[serde(default)] pub website: String,
 }
 
@@ -43,7 +42,12 @@ pub struct GuestRequest {
 }
 
 #[derive(Deserialize)]
-pub struct ConfirmForm { pub token: String }
+pub struct ConfirmForm {
+    pub token: String,
+    #[serde(default)] pub expected_total: Option<f64>,
+    #[serde(default)] pub expected_duration: Option<i64>,
+    #[serde(default)] pub early_start_requested: bool,
+}
 
 pub fn load_request(conn: &Connection, token: &str) -> rusqlite::Result<Option<GuestRequest>> {
     conn.query_row("SELECT token, date, time, first_name, last_name, email, phone, is_home_visit, street, zip_code, city, source FROM booking_requests WHERE token=?1 AND expires_at > datetime('now') AND consumed_at IS NULL", [token], |r| Ok(GuestRequest {
@@ -65,22 +69,27 @@ fn render_page(tmpl: &Tera, db: &Mutex<Connection>, token: Option<String>) -> Ht
     ctx.insert("is_guest", &true);
     ctx.insert("is_admin", &false);
     ctx.insert("remaining_credits", &0);
-    ctx.insert("settings", &SiteSetting::get_all(&conn).unwrap_or_default());
+    ctx.insert("settings", &SiteSetting::get_public(&conn).unwrap_or_default());
+    ctx.insert("session_price", &SiteSetting::get_or_default(&conn,"price_single","195").replace(',',".").parse::<f64>().unwrap_or(195.0));
     ctx.insert("confirmation_mode", &token.is_some());
     if let Some(token) = token {
         if let Ok(Some(request)) = load_request(&conn, &token) {
+            let price = SiteSetting::get_or_default(&conn,"price_single","195").replace(',',".").parse::<f64>().unwrap_or(195.0);
+            let surcharge = SiteSetting::get_or_default(&conn,"home_visit_surcharge","15").replace(',',".").parse::<f64>().unwrap_or(15.0);
+            let total = price + if request.is_home_visit { surcharge } else { 0.0 };
+            ctx.insert("booking_total", &total);
+            ctx.insert("booking_total_display", &format!("{:.2}",total).replace('.',","));
             ctx.insert("guest_request", &request);
         }
     }
     match tmpl.render("customer/book_appointment.html", &ctx) {
         Ok(body) => HttpResponse::Ok().insert_header(("Cache-Control", "no-store")).insert_header(("Referrer-Policy", "no-referrer")).content_type("text/html; charset=utf-8").body(body),
-        Err(e) => { log::error!("Booking template: {:#}", e); HttpResponse::InternalServerError().body("Die Buchungsseite ist gerade nicht erreichbar. Bitte rufe mich an.") }
+        Err(_) => { log::error!("Guest booking template rendering failed"); HttpResponse::InternalServerError().body("Die Buchungsseite ist gerade nicht erreichbar. Bitte rufe mich an.") }
     }
 }
 
 pub fn validate_form(form: &GuestForm) -> Result<(), &'static str> {
     if !form.website.is_empty() { return Err("Die Anfrage konnte nicht verarbeitet werden."); }
-    if !form.privacy_acknowledged { return Err("Bitte bestätige, dass du die Datenschutzhinweise gelesen hast."); }
     for value in [&form.first_name, &form.last_name, &form.phone] {
         if value.trim().is_empty() || value.chars().count() > 100 || value.chars().any(char::is_control) { return Err("Bitte gib deinen Namen und eine gültige Telefonnummer an."); }
     }
@@ -130,14 +139,17 @@ pub async fn confirm(form: web::Form<ConfirmForm>, db: web::Data<Mutex<Connectio
             _ => return HttpResponse::BadRequest().json(serde_json::json!({"error":"Dieser Link ist abgelaufen oder wurde bereits verwendet. Bitte wähle einen neuen Termin."})),
         }
     };
-    let booking = BookingForm { date: request.date.clone(), time: request.time.clone(), is_home_visit: Some(request.is_home_visit), notes: None };
+    let booking = BookingForm { date: request.date.clone(), time: request.time.clone(), is_home_visit: Some(request.is_home_visit), notes: None, expected_total:form.expected_total, expected_duration:form.expected_duration, early_start_requested:form.early_start_requested, expected_using_credit:Some(false) };
     super::booking_handler::complete_booking(None, Some(request), booking, db, es, config).await
 }
 
 /// Called only after email ownership was proven and inside the booking transaction.
 pub fn customer_for_request(conn: &Connection, request: &GuestRequest, password_hash: &str) -> rusqlite::Result<i64> {
     if let Some(c) = Customer::find_by_email(conn, &request.email)? {
-        if c.is_admin { return Err(rusqlite::Error::InvalidQuery); }
+        // A prior signup can have been created by someone who does not own
+        // this e-mail. Guest confirmation must not attach private records to
+        // those unverified credentials or enable them as a side effect.
+        if c.is_admin || !c.email_verified { return Err(rusqlite::Error::InvalidQuery); }
         return Ok(c.id); // Keep account credentials, credits and profile unchanged.
     }
     let id = Customer::create(conn, &request.email, password_hash, &request.first_name, &request.last_name, &request.phone, &request.street, &request.zip_code, &request.city, &Uuid::new_v4().to_string())?;
@@ -148,13 +160,28 @@ pub fn customer_for_request(conn: &Connection, request: &GuestRequest, password_
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn guest_confirmation_cannot_link_data_to_unverified_signup_credentials() {
+        let conn = crate::db::test_connection();
+        conn.execute("INSERT INTO customers(email,password_hash,first_name,last_name) VALUES('pending@example.test','original-password','Original','Profile')",[]).unwrap();
+        let id = conn.last_insert_rowid();
+        let request = GuestRequest{token:"email-proof".into(),date:"2026-11-02".into(),time:"16:00".into(),first_name:"Guest".into(),last_name:"Contact".into(),email:"pending@example.test".into(),phone:"0123".into(),is_home_visit:false,street:String::new(),zip_code:String::new(),city:String::new(),source:String::new()};
+        assert!(customer_for_request(&conn,&request,"replacement-password").is_err());
+        let before = Customer::find_by_id(&conn,id).unwrap().unwrap();
+        assert!(!before.email_verified);
+        assert_eq!(before.password_hash,"original-password");
+        assert_eq!(before.first_name,"Original");
+        Customer::mark_email_verified(&conn,id).unwrap();
+        assert_eq!(customer_for_request(&conn,&request,"replacement-password").unwrap(),id);
+        assert_eq!(Customer::find_by_id(&conn,id).unwrap().unwrap().password_hash,"original-password");
+    }
     fn form() -> GuestForm { serde_json::from_value(serde_json::json!({"date":"2026-11-02","time":"16:00","first_name":"Test","last_name":"Kunde","email":"test@example.com","phone":"0123456789","privacy_acknowledged":true})).unwrap() }
     #[test] fn invalid_contact_and_missing_house_address_are_rejected() {
         let mut f = form(); assert!(validate_form(&f).is_ok());
         f.email = "invalid".into(); assert!(validate_form(&f).is_err());
         f.email = "test@example.com".into(); f.is_home_visit = true; assert!(validate_form(&f).is_err());
         f.street = "Testweg 1".into(); f.zip_code = "78713".into(); f.city = "Schramberg".into(); assert!(validate_form(&f).is_ok());
-        f.privacy_acknowledged = false; assert!(validate_form(&f).is_err());
+        assert!(validate_form(&f).is_ok());
     }
     #[test] fn confirmation_tokens_are_single_use_and_expire() {
         let conn = Connection::open_in_memory().unwrap();

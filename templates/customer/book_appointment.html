@@ -9,10 +9,12 @@
   <link rel="icon" href="/favicon.v1.ico">
   <link rel="preload" href="/fonts/cormorant-garamond-normal-latin.v1.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/fonts/dm-sans-latin.v1.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/static/css/main.css?v=3">
-  <link rel="stylesheet" href="/static/css/customer.css?v=3">
+  <link rel="stylesheet" href="/static/css/main.css?v=4">
+  <link rel="stylesheet" href="/static/css/customer.css?v=4">
 </head>
-<body data-guest-booking="{% if is_guest %}true{% else %}false{% endif %}">
+<body data-practice-address="{{ settings.address_street | default(value='Sulgauer Straße 24') }}, {{ settings.address_zip | default(value='78713') }} {{ settings.address_city | default(value='Schramberg-Sulgen') }}" data-home-address="{{ customer_address | default(value='') }}" data-session-price="{{ session_price }}" data-duration="{{ settings.appointment_duration_min | default(value='90') }}" data-surcharge="{{ settings.home_visit_surcharge | default(value='15') }}" data-credits="{{ remaining_credits }}" data-guest-booking="{% if is_guest %}true{% else %}false{% endif %}">
+  <nav class="skip-navigation" aria-label="Seiteneinstieg"><a class="skip-link" href="#main-content">Zum Inhalt</a></nav>
+
   {% include "_icon_sprite.html" %}
   <nav class="portal-nav">
     <a href="/" class="portal-logo">
@@ -22,7 +24,7 @@
     <div class="portal-nav-links">
       {% if is_guest %}<a href="/">Zur Startseite</a><a href="/login">Kundenportal</a>{% else %}
       <a href="/portal">Dashboard</a>
-      <a href="/portal/book" class="active">Buchen</a>
+      <a href="/portal/book" class="active" aria-current="page">Buchen</a>
       <a href="/portal/appointments">Termine</a>
       <a href="/portal/credits">Guthaben</a>
       <a href="/portal/profile">Profil</a>
@@ -32,7 +34,8 @@
     </div>
   </nav>
 
-  <main class="portal-main">
+  <noscript><p class="script-fallback">Diese Funktion benötigt JavaScript. Für Hilfe und Terminabstimmung erreichst du die Praxis über <a href="/impressum">Telefon oder E-Mail</a>. <a href="/widerruf">Vertrag widerrufen</a> funktioniert auch ohne JavaScript.</p></noscript>
+  <main tabindex="-1" id="main-content" class="portal-main">
     <div class="portal-container">
       <div class="portal-welcome">
         <h1><svg class="icon"><use href="#icon-calendar" xlink:href="#icon-calendar"/></svg> Termin buchen</h1>
@@ -53,7 +56,10 @@
         <form id="guest-confirm-form" class="booking-confirmation" action="/api/guest-booking/confirm" method="post">
           <h2>Deinen Termin verbindlich buchen</h2>
           <p>{{ guest_request.date }} · {{ guest_request.time }} Uhr · {% if guest_request.is_home_visit %}Hausbesuch{% else %}Praxis in Schramberg-Sulgen{% endif %}</p>
-          <p>Einzelbehandlung: {{ settings.price_single | default(value="195") }} €{% if guest_request.is_home_visit %} zuzüglich {{ settings.home_visit_surcharge | default(value="15") }} € Fahrtpauschale{% endif %}. Vorgespräch und Übungen sind enthalten. Keine Vorauszahlung.</p>
+          <p><strong>Gesamtpreis: {{ booking_total_display }} €</strong> · ca. {{ settings.appointment_duration_min | default(value="90") }} Minuten, einschließlich Vorgespräch und Übungen{% if guest_request.is_home_visit %} und Fahrtpauschale{% endif %}. Zahlung bar oder per Überweisung. Keine Vorauszahlung.</p>
+          <p>Leistung und Anbieter: Thilo Seifried, Gantke® Faszienbehandlung als Wellness- und Körperarbeit. <a href="/buchungsbedingungen" target="_blank" rel="noopener">Buchungsbedingungen, Widerrufsbelehrung und Musterformular (neues Fenster)</a>. Das gesetzliche Widerrufsrecht bleibt von der Stornofrist unberührt.</p>
+          <label class="checkbox-label"><input type="checkbox" name="early_start_requested" value="true"><span>Falls der Termin innerhalb von 14 Tagen stattfindet: Ich verlange ausdrücklich den Leistungsbeginn vor Ablauf der Widerrufsfrist. Mir ist bekannt, dass mein Widerrufsrecht bei vollständiger Vertragserfüllung erlischt. Alternativ kann ich einen späteren Termin wählen.</span></label>
+          <input type="hidden" name="expected_total" value="{{ booking_total }}"><input type="hidden" name="expected_duration" value="{{ settings.appointment_duration_min | default(value='90') }}">
           <p>Absagen sind bis {{ settings.cancellation_hours | default(value="24") }} Stunden vor dem Termin möglich. Für Absagen oder Änderungen erreichst du mich unter <a href="tel:{{ settings.phone_raw | default(value='+4915234007225') }}">{{ settings.phone | default(value="+49 152 34 00 72 25") }}</a>.</p>
           <input type="hidden" name="token" value="{{ guest_request.token }}">
           <button type="submit" class="auth-btn">Termin kostenpflichtig buchen</button>
@@ -64,7 +70,7 @@
         <div class="booking-calendar">
           <div class="calendar-header">
             <button type="button" id="prev-month" class="cal-nav" aria-label="Vorheriger Monat">‹</button>
-            <h3 id="calendar-title"></h3>
+            <h2 id="calendar-title" aria-live="polite"></h2>
             <button type="button" id="next-month" class="cal-nav" aria-label="Nächster Monat">›</button>
           </div>
           <div class="calendar-weekdays">
@@ -74,7 +80,7 @@
         </div>
 
         <div class="booking-slots" id="booking-slots">
-          <h3 id="slots-title">Wähle ein Datum</h3>
+          <h2 id="slots-title">Wähle ein Datum</h2>
           <div id="slots-container" class="slots-container" aria-live="polite">
             <p class="slots-placeholder">Wähle einen Tag im Kalender</p>
           </div>
@@ -82,6 +88,7 @@
           <div id="booking-options" class="booking-options" style="display:none">
             <p id="booking-summary" class="booking-summary"></p>
             <form id="booking-details">
+            <p>Alle Angaben sind erforderlich, sofern sie nicht als optional gekennzeichnet sind.</p>
             {% if is_guest %}
             <div class="form-row">
               <div class="form-group"><label for="guest-first-name">Vorname</label><input id="guest-first-name" name="given-name" autocomplete="given-name" maxlength="100" required></div>
@@ -105,15 +112,19 @@
               <p class="booking-fineprint">Hausbesuche im bisherigen Einzugsgebiet: Schramberg, Sulgen, Dunningen und Villingendorf.</p>
             </div>
             <div class="form-group"><label for="guest-source">Wie hast du mich gefunden? (optional)</label><select id="guest-source"><option value="">Keine Angabe</option><option>Google</option><option>Empfehlung</option><option>Social Media</option><option>Verein / Netzwerk</option><option>Sonstiges</option></select></div>
-            <label class="checkbox-label booking-privacy"><input type="checkbox" id="guest-privacy" required><span>Ich habe die <a href="/datenschutz" target="_blank" rel="noopener noreferrer">Datenschutzhinweise</a> gelesen. Meine Kontaktdaten werden für diese Buchung verarbeitet.</span></label>
+            <p class="booking-fineprint">Deine Kontaktdaten verarbeite ich zur Vorbereitung und Durchführung der Buchung. <a href="/datenschutz" target="_blank" rel="noopener noreferrer">Datenschutzhinweise (neues Fenster)</a></p>
             <p class="booking-fineprint">Deine Buchung wird erst nach der Bestätigung per E-Mail verbindlich. Bis dahin ist der Termin nicht reserviert. Ein bestehendes Guthaben nutzt du über das <a href="/portal/book">Kundenportal</a>.</p>
             {% else %}
             <div class="form-group">
               <label for="booking-notes">Anmerkungen (optional)</label>
-              <textarea id="booking-notes" rows="2" placeholder="Besondere Wünsche oder Hinweise..."></textarea>
+              <textarea id="booking-notes" rows="2" maxlength="1000" aria-describedby="booking-notes-help" placeholder="Organisatorische Hinweise"></textarea><small id="booking-notes-help">Bitte keine Gesundheitsangaben oder Diagnosen eintragen.</small>
             </div>
             {% endif %}
-            <button type="button" id="confirm-booking" class="auth-btn" onclick="confirmBooking()">
+            {% if not is_guest %}
+            <div class="booking-contract"><h3>Deine Buchung im Überblick</h3><p>Gantke® Wellness- und Körperarbeit · ca. {{ settings.appointment_duration_min | default(value="90") }} Minuten · Vorgespräch und Übungen enthalten.</p><p id="booking-price" role="status"></p><p id="booking-location"></p><p>Zahlung bar oder per Überweisung. Keine Vorauszahlung. Keine Erstattung durch Krankenkassen oder Versicherungen.</p><p>Reguläre Absage bis {{ settings.cancellation_hours | default(value="24") }} Stunden vor dem Termin. Das gesetzliche Widerrufsrecht bleibt unberührt.</p><p>Anbieter: Thilo Seifried. <a href="/impressum" target="_blank" rel="noopener">Anbieterangaben</a> · <a href="/buchungsbedingungen" target="_blank" rel="noopener">Buchungsbedingungen, Widerrufsbelehrung und Musterformular</a> (neues Fenster)</p></div>
+            <label class="checkbox-label"><input id="early-start" type="checkbox"><span>Falls der Termin innerhalb von 14 Tagen stattfindet: Ich verlange ausdrücklich den Leistungsbeginn vor Ablauf der Widerrufsfrist. Mir ist bekannt, dass mein Widerrufsrecht bei vollständiger Vertragserfüllung erlischt. Alternativ kann ich einen späteren Termin wählen.</span></label>
+            {% endif %}
+            <button type="submit" id="confirm-booking" class="auth-btn">
               <span class="btn-text">{% if is_guest %}Bestätigungslink anfordern{% else %}Termin kostenpflichtig buchen{% endif %}</span>
               <span class="btn-loader" style="display:none"></span>
             </button>
@@ -126,5 +137,8 @@
   </main>
 
   <script src="/static/js/booking.js"></script>
+  {% include "_service_footer.html" %}
+  <script src="/static/js/accessibility.js" defer></script>
+  <script src="/static/js/main.js?v=3" defer></script>
 </body>
 </html>

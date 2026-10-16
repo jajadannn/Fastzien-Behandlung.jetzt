@@ -5,41 +5,44 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Kundendetails – Admin</title>
   <link rel="icon" href="/favicon.v1.ico">
-  <link rel="stylesheet" href="/static/css/main.css?v=3">
+  <link rel="stylesheet" href="/static/css/main.css?v=4">
   <link rel="stylesheet" href="/static/css/admin.css?v=1">
 </head>
 <body>
+  <nav class="skip-navigation" aria-label="Seiteneinstieg"><a class="skip-link" href="#main-content">Zum Inhalt</a></nav>
+
   {% include "_icon_sprite.html" %}
   <nav class="admin-nav">
     <a href="/" class="admin-logo"><picture><source srcset="/Logo.avif" type="image/avif"><img src="/static/images/logo-240.png" alt="" height="30"></picture><span>Admin</span></a>
     <div class="admin-nav-links">
       <a href="/admin">Übersicht</a>
-      <a href="/admin/customers" class="active">Kunden</a>
+      <a href="/admin/customers" class="active" aria-current="page">Kunden</a>
       <a href="/admin/appointments">Termine</a>
       <a href="/admin/payments">Zahlungen</a>
       <a href="/admin/stats">Statistiken</a>
       <a href="/admin/faq">FAQ</a>
       <a href="/admin/reviews">Bewertungen</a>
       <a href="/admin/settings">Einstellungen</a>
-      <a href="/" class="nav-site"><svg class="icon"><use href="#icon-globe" xlink:href="#icon-globe"/></svg></a>
+      <a href="/" class="nav-site" aria-label="Website öffnen"><svg class="icon"><use href="#icon-globe" xlink:href="#icon-globe"/></svg></a>
       <a href="/logout" class="nav-logout" style="text-decoration: none;">Abmelden</a>
     </div>
   </nav>
-  <main class="admin-main">
+  <noscript><p class="script-fallback">Diese Funktion benötigt JavaScript. Für Hilfe und Terminabstimmung erreichst du die Praxis über <a href="/impressum">Telefon oder E-Mail</a>. <a href="/widerruf">Vertrag widerrufen</a> funktioniert auch ohne JavaScript.</p></noscript>
+  <main tabindex="-1" id="main-content" class="admin-main">
     <div class="admin-container">
       <a href="/admin/customers" class="back-link">← Zurück zur Kundenliste</a>
       <h1>{{ customer.first_name }} {{ customer.last_name }}</h1>
 
       <div class="detail-grid">
         <div class="detail-card">
-          <h3>Kontaktdaten</h3>
+          <h2>Kontaktdaten</h2>
           <div class="detail-row"><span><svg class="icon"><use href="#icon-mail" xlink:href="#icon-mail"/></svg></span><span>{{ customer.email }}</span></div>
           <div class="detail-row"><span><svg class="icon"><use href="#icon-phone" xlink:href="#icon-phone"/></svg></span><span>{{ customer.phone | default(value="–") }}</span></div>
           <div class="detail-row"><span><svg class="icon"><use href="#icon-pin" xlink:href="#icon-pin"/></svg></span><span>{{ customer.street | default(value="–") }}, {{ customer.zip_code }} {{ customer.city }}</span></div>
           <div class="detail-row"><span><svg class="icon"><use href="#icon-calendar" xlink:href="#icon-calendar"/></svg></span><span>Kunde seit {{ customer.created_at }}</span></div>
         </div>
         <div class="detail-card">
-          <h3>Finanzen</h3>
+          <h2>Finanzen</h2>
           <div class="detail-row"><span class="icon-label"><svg class="icon"><use href="#icon-money" xlink:href="#icon-money"/></svg> Offen</span><span class="{% if pending_amount > 0 %}text-warning{% endif %}">{{ pending_amount | round(method="common", precision=2) }} €</span></div>
           <div class="detail-row"><span class="icon-label"><svg class="icon"><use href="#icon-verified" xlink:href="#icon-verified"/></svg> Bezahlt</span><span>{{ paid_amount | round(method="common", precision=2) }} €</span></div>
           <div class="detail-row"><span class="icon-label"><svg class="icon"><use href="#icon-ticket" xlink:href="#icon-ticket"/></svg> Guthaben</span><span>{{ remaining_credits }} Sitzungen</span></div>
@@ -108,18 +111,18 @@
     <div class="admin-modal">
       <h2>Termin stornieren</h2>
       <p>Möchtest du dem Kunden alternative Termine vorschlagen? (Optional)</p>
-      
+
       <div class="portal-form">
         <input type="hidden" id="cancel-appointment-id">
         <div class="form-group">
-          <label>Vorschlag 1 (Optional)</label>
+          <label for="cancel-suggest-1">Vorschlag 1 (Optional)</label>
           <input type="datetime-local" id="cancel-suggest-1">
         </div>
         <div class="form-group">
-          <label>Vorschlag 2 (Optional)</label>
+          <label for="cancel-suggest-2">Vorschlag 2 (Optional)</label>
           <input type="datetime-local" id="cancel-suggest-2">
         </div>
-        
+
         <div class="modal-actions">
           <button class="btn-small" onclick="closeCancelModal()" style="background:#e5e7eb; color:#374151;">Abbrechen</button>
           <button class="btn-small btn-danger" onclick="confirmCancelWithSuggestions()" id="btn-cancel-confirm">
@@ -131,5 +134,8 @@
     </div>
   </div>
   <script src="/static/js/admin.js?v=6"></script>
+  {% include "_service_footer.html" %}
+  <script src="/static/js/accessibility.js" defer></script>
+  <script src="/static/js/main.js?v=3" defer></script>
 </body>
 </html>

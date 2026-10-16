@@ -5,27 +5,30 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Termine – Admin</title>
   <link rel="icon" href="/favicon.v1.ico">
-  <link rel="stylesheet" href="/static/css/main.css?v=3">
+  <link rel="stylesheet" href="/static/css/main.css?v=4">
   <link rel="stylesheet" href="/static/css/admin.css?v=1">
 </head>
 <body>
+  <nav class="skip-navigation" aria-label="Seiteneinstieg"><a class="skip-link" href="#main-content">Zum Inhalt</a></nav>
+
   {% include "_icon_sprite.html" %}
   <nav class="admin-nav">
     <a href="/" class="admin-logo"><picture><source srcset="/Logo.avif" type="image/avif"><img src="/static/images/logo-240.png" alt="" height="30"></picture><span>Admin</span></a>
     <div class="admin-nav-links">
       <a href="/admin">Übersicht</a>
       <a href="/admin/customers">Kunden</a>
-      <a href="/admin/appointments" class="active">Termine</a>
+      <a href="/admin/appointments" class="active" aria-current="page">Termine</a>
       <a href="/admin/payments">Zahlungen</a>
       <a href="/admin/stats">Statistiken</a>
       <a href="/admin/faq">FAQ</a>
       <a href="/admin/reviews">Bewertungen</a>
       <a href="/admin/settings">Einstellungen</a>
-      <a href="/" class="nav-site"><svg class="icon"><use href="#icon-globe" xlink:href="#icon-globe"/></svg></a>
+      <a href="/" class="nav-site" aria-label="Website öffnen"><svg class="icon"><use href="#icon-globe" xlink:href="#icon-globe"/></svg></a>
       <a href="/logout" class="nav-logout" style="text-decoration: none;">Abmelden</a>
     </div>
   </nav>
-  <main class="admin-main">
+  <noscript><p class="script-fallback">Diese Funktion benötigt JavaScript. Für Hilfe und Terminabstimmung erreichst du die Praxis über <a href="/impressum">Telefon oder E-Mail</a>. <a href="/widerruf">Vertrag widerrufen</a> funktioniert auch ohne JavaScript.</p></noscript>
+  <main tabindex="-1" id="main-content" class="admin-main">
     <div class="admin-container">
 
       <!-- Create appointment form -->
@@ -33,11 +36,11 @@
         <h2 style="margin:0 0 16px;color:#1a2a33;">Termin manuell anlegen / Zeit blockieren</h2>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px;align-items:end;">
           <div class="form-group" style="margin:0;">
-            <label>Datum & Uhrzeit</label>
+            <label for="new-apt-time">Datum & Uhrzeit</label>
             <input type="datetime-local" id="new-apt-time" style="width:100%;">
           </div>
           <div class="form-group" style="margin:0;">
-            <label>Kunde (leer = Blockierung)</label>
+            <label for="new-apt-customer">Kunde (leer = Blockierung)</label>
             <select id="new-apt-customer" style="width:100%;padding:10px;border:1px solid #d0e4ee;border-radius:8px;">
               <option value="">— Zeitblock (kein Kunde) —</option>
               {% for apt in appointments %}
@@ -48,12 +51,12 @@
             </select>
           </div>
           <div class="form-group" style="margin:0;">
-            <label>Notiz</label>
+            <label for="new-apt-notes">Notiz</label>
             <input type="text" id="new-apt-notes" placeholder="z.B. Urlaub, Hausbesuch..." style="width:100%;">
           </div>
-          <button class="btn-small" style="background:#70AECD;color:white;" onclick="createAppointment()">Anlegen</button>
+          <button class="btn-small" style="background:var(--sky-dark);color:white;" onclick="createAppointment()">Anlegen</button>
         </div>
-        <div id="create-apt-msg" style="margin-top:8px;display:none;"></div>
+        <div id="create-apt-msg" style="margin-top:8px;display:none;" role="alert"></div>
       </div>
 
       <h1>Alle Termine ({{ appointments | length }})</h1>
@@ -66,7 +69,7 @@
               <td>{{ apt.start_time | format_date(format="%d.%m.%Y %H:%M") }}</td>
               <td>
                 {% if apt.appointment_type == "blocked" %}
-                  <em style="color:#6a8fa0;">— Blockiert —</em>
+                  <em style="color:var(--text-light);">— Blockiert —</em>
                 {% else %}
                   <a href="/admin/customers/{{ apt.customer_id }}">{{ apt.customer_name | default(value="–") }}</a>
                 {% endif %}
@@ -78,12 +81,12 @@
                 {% if apt.status == "confirmed" %}
                 <div style="display:flex;gap:6px;align-items:center;">
                   <input type="text" value="{{ apt.therapist_notes }}" id="tnote-{{ apt.id }}"
-                    placeholder="Interne Notiz…"
+                    aria-label="Organisatorische Notiz zum Termin" placeholder="Keine Gesundheitsangaben"
                     style="font-size:12px;padding:4px 8px;border:1px solid #d0e4ee;border-radius:6px;width:160px;">
-                  <button onclick="saveTherapistNote({{ apt.id }})" class="btn-small" style="font-size:11px;padding:4px 8px;"><svg class="icon" style="width:13px;height:13px;display:block"><use href="#icon-save" xlink:href="#icon-save"/></svg></button>
+                  <button aria-label="Organisatorische Notiz speichern" onclick="saveTherapistNote({{ apt.id }})" class="btn-small" style="font-size:11px;padding:4px 8px;"><svg class="icon" style="width:13px;height:13px;display:block"><use href="#icon-save" xlink:href="#icon-save"/></svg></button>
                 </div>
                 {% else %}
-                <span style="color:#6a8fa0;font-size:12px;">{{ apt.therapist_notes }}</span>
+                <span style="color:var(--text-light);font-size:12px;">{{ apt.therapist_notes }}</span>
                 {% endif %}
               </td>
               <td>{% if apt.status == "confirmed" %}<button onclick="openCancelModal({{ apt.id }})" class="btn-small btn-danger">Stornieren</button>{% endif %}</td>
@@ -103,11 +106,11 @@
       <div class="portal-form">
         <input type="hidden" id="cancel-appointment-id">
         <div class="form-group">
-          <label>Vorschlag 1 (Optional)</label>
+          <label for="cancel-suggest-1">Vorschlag 1 (Optional)</label>
           <input type="datetime-local" id="cancel-suggest-1">
         </div>
         <div class="form-group">
-          <label>Vorschlag 2 (Optional)</label>
+          <label for="cancel-suggest-2">Vorschlag 2 (Optional)</label>
           <input type="datetime-local" id="cancel-suggest-2">
         </div>
 
@@ -142,11 +145,11 @@
       const data = await res.json();
       msg.style.display = 'block';
       if (data.success) {
-        msg.style.color = '#27ae60';
+        msg.style.color = '#197943';
         msg.textContent = '✓ Termin angelegt (ID: ' + data.appointment_id + ')';
         setTimeout(() => location.reload(), 1500);
       } else {
-        msg.style.color = '#e74c3c';
+        msg.style.color = '#b42b21';
         msg.textContent = data.error || 'Fehler beim Anlegen';
       }
     }
@@ -166,5 +169,8 @@
       }
     }
   </script>
+  {% include "_service_footer.html" %}
+  <script src="/static/js/accessibility.js" defer></script>
+  <script src="/static/js/main.js?v=3" defer></script>
 </body>
 </html>

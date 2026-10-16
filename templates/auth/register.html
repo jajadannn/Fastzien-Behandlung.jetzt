@@ -2,24 +2,28 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
+  <meta name="robots" content="noindex, nofollow">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Registrieren – Faszienbehandlung Thilo Seifried</title>
   <link rel="icon" href="/favicon.v1.ico">
   <link rel="preload" href="/fonts/cormorant-garamond-normal-latin.v1.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/fonts/dm-sans-latin.v1.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/static/css/main.css?v=3">
-  <link rel="stylesheet" href="/static/css/auth.css?v=1">
+  <link rel="stylesheet" href="/static/css/main.css?v=4">
+  <link rel="stylesheet" href="/static/css/auth.css?v=2">
 </head>
 <body class="auth-body">
-  <div class="auth-container">
+  <nav class="skip-navigation" aria-label="Seiteneinstieg"><a class="skip-link" href="#main-content">Zum Inhalt</a></nav>
+
+  <noscript><p class="script-fallback">Diese Funktion benötigt JavaScript. Für Hilfe und Terminabstimmung erreichst du die Praxis über <a href="/impressum">Telefon oder E-Mail</a>. <a href="/widerruf">Vertrag widerrufen</a> funktioniert auch ohne JavaScript.</p></noscript>
+  <main tabindex="-1" id="main-content" class="auth-container">
     <div class="auth-card">
       <a href="/" class="auth-logo">
         <picture><source srcset="/Logo.avif" type="image/avif"><img src="/static/images/logo-240.png" alt="Faszienbehandlung" width="120" height="49"></picture>
       </a>
       <h1>Konto erstellen</h1>
-      <p class="auth-subtitle">Registriere dich, um online Termine zu buchen</p>
+      <p class="auth-subtitle">Verwalte Termine und Guthaben im Kundenportal. <a href="/buchen">Ohne Konto buchen</a></p>
 
-      <div id="error-msg" class="auth-error" style="display:none"></div>
+      <div id="error-msg" class="auth-error" style="display:none" role="alert"></div>
 
       <form id="register-form" class="auth-form">
         <div class="form-group">
@@ -27,22 +31,15 @@
           <input type="email" id="email" name="email" required placeholder="deine@email.de" autocomplete="email">
         </div>
         <div class="form-group">
-          <label for="password">Passwort * <small>(min. 6 Zeichen)</small></label>
-          <input type="password" id="password" name="password" required minlength="6" placeholder="••••••••" autocomplete="new-password">
+          <label for="password">Passwort * <small>(min. 12 Zeichen)</small></label>
+          <input type="password" id="password" name="password" required minlength="12" placeholder="••••••••" autocomplete="new-password">
         </div>
 
         <p style="font-size: 13px; color: var(--text-light); margin: 4px 0 16px;">
-          Nach der Registrierung erhältst du eine Bestätigungs-E-Mail. Deine Kontaktdaten (Name, Telefon, Adresse) trägst du danach in deinem Profil nach, bevor du einen Termin buchen kannst.
+          Nach der Registrierung erhältst du eine Bestätigungs-E-Mail. Deinen Namen ergänzt du danach im Profil. Adressangaben sind nur für einen Hausbesuch erforderlich.
         </p>
 
-        <div class="form-group" style="margin-bottom: 16px;">
-          <label style="display:flex; align-items:flex-start; gap:10px; cursor:pointer; font-weight:400;">
-            <input type="checkbox" id="dsgvo_consent" name="dsgvo_consent" required style="margin-top:3px; flex-shrink:0; width:16px; height:16px; accent-color:var(--sky-dark);">
-            <span style="font-size:13px; color:var(--text-mid); line-height:1.5;">
-              Ich habe die <a href="/datenschutz" target="_blank" rel="noopener" style="color:var(--sky-dark);">Datenschutzhinweise</a> gelesen und stimme der Verarbeitung meiner personenbezogenen Daten zur Terminverwaltung zu. *
-            </span>
-          </label>
-        </div>
+        <p class="booking-fineprint">Wir verarbeiten deine Angaben für das Kundenkonto und die Terminverwaltung. <a href="/datenschutz">Datenschutzhinweise</a></p>
 
         <button type="submit" class="auth-btn" id="submit-btn">
           <span class="btn-text">Konto erstellen</span>
@@ -57,7 +54,7 @@
 
       <a href="/" class="auth-back">← Zurück zur Startseite</a>
     </div>
-  </div>
+  </main>
 
   <script>
     document.getElementById('register-form').addEventListener('submit', async (e) => {
@@ -95,5 +92,8 @@
       }
     });
   </script>
+  {% include "_service_footer.html" %}
+  <script src="/static/js/accessibility.js" defer></script>
+  <script src="/static/js/main.js?v=3" defer></script>
 </body>
 </html>

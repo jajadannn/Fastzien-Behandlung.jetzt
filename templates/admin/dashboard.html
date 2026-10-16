@@ -7,10 +7,12 @@
   <link rel="icon" href="/favicon.v1.ico">
   <link rel="preload" href="/fonts/cormorant-garamond-normal-latin.v1.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/fonts/dm-sans-latin.v1.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/static/css/main.css?v=3">
+  <link rel="stylesheet" href="/static/css/main.css?v=4">
   <link rel="stylesheet" href="/static/css/admin.css?v=1">
 </head>
 <body>
+  <nav class="skip-navigation" aria-label="Seiteneinstieg"><a class="skip-link" href="#main-content">Zum Inhalt</a></nav>
+
   {% include "_icon_sprite.html" %}
   <nav class="admin-nav">
     <a href="/" class="admin-logo">
@@ -18,7 +20,7 @@
       <span>Admin</span>
     </a>
     <div class="admin-nav-links">
-      <a href="/admin" class="active">Übersicht</a>
+      <a href="/admin" class="active" aria-current="page">Übersicht</a>
       <a href="/admin/customers">Kunden</a>
       <a href="/admin/appointments">Termine</a>
       <a href="/admin/payments">Zahlungen</a>
@@ -26,14 +28,30 @@
       <a href="/admin/faq">FAQ</a>
       <a href="/admin/reviews">Bewertungen</a>
       <a href="/admin/settings">Einstellungen</a>
-      <a href="/" class="nav-site"><svg class="icon"><use href="#icon-globe" xlink:href="#icon-globe"/></svg> Website</a>
+      <a href="/" class="nav-site" aria-label="Website öffnen"><svg class="icon"><use href="#icon-globe" xlink:href="#icon-globe"/></svg> Website</a>
       <a href="/logout" class="nav-logout" style="text-decoration: none;">Abmelden</a>
     </div>
   </nav>
 
-  <main class="admin-main">
+  <noscript><p class="script-fallback">Diese Funktion benötigt JavaScript. Für Hilfe und Terminabstimmung erreichst du die Praxis über <a href="/impressum">Telefon oder E-Mail</a>. <a href="/widerruf">Vertrag widerrufen</a> funktioniert auch ohne JavaScript.</p></noscript>
+  <main tabindex="-1" id="main-content" class="admin-main">
     <div class="admin-container">
       <h1>Dashboard</h1>
+      {% if not settings.vat_id %}<p class="auth-error" role="alert">Deine vorhandene USt-ID fehlt noch im Impressum. Bitte unter <a href="/admin/settings#vat-id">Einstellungen → Rechtliche Angaben</a> eintragen.</p>{% endif %}
+      {% if outbox_pending > 0 %}<p class="auth-error" role="status">{{ outbox_pending }} E-Mail-Bestätigung(en) warten auf Versand. Bei anhaltendem Zustand SMTP-Verbindung prüfen; fehlgeschlagene Übermittlung wird erneut versucht.</p>{% endif %}
+      <section class="admin-section" aria-labelledby="withdrawals-title">
+        <h2 id="withdrawals-title">Eingegangene Widerrufe</h2>
+        <p>Zuordnung und Identität prüfen, Termin und Zahlung anschließend bearbeiten. Eine Eingabe verändert eine Buchung nicht automatisch. Auch Teilwiderrufe und Gastbuchungen bearbeiten.</p>
+        {% for item in withdrawals %}
+        <article class="withdrawal-entry">
+          <h3>{{ item.name }}</h3>
+          <p>{{ item.email }} · Eingang: {{ item.created_at }} UTC · Referenz: {{ item.id }}</p>
+          <p>{{ item.contract }}</p>
+          <form method="post" action="/admin/widerruf/{{ item.id }}/bearbeitet"><button type="submit" class="btn-small">Nach Klärung als bearbeitet markieren</button></form>
+        </article>
+        {% else %}<p>Keine unbearbeiteten Widerrufe.</p>{% endfor %}
+        <p><a href="/api/admin/retained-invoices">Getrennt aufbewahrte Buchungsbelege herunterladen (JSON)</a></p>
+      </section>
 
       <div class="admin-stats">
         <div class="stat-card stat-sky">
@@ -107,5 +125,8 @@
   </main>
 
   <script src="/static/js/admin.js?v=6"></script>
+  {% include "_service_footer.html" %}
+  <script src="/static/js/accessibility.js" defer></script>
+  <script src="/static/js/main.js?v=3" defer></script>
 </body>
 </html>

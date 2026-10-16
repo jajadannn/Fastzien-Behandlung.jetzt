@@ -7,14 +7,16 @@
   <meta name="description" content="{{ description }}">
   <link rel="canonical" href="https://faszienbehandlung.jetzt{{ path }}">
   <link rel="icon" href="/favicon.v1.ico">
-  <link rel="stylesheet" href="/static/css/main.css?v=3">
+  <link rel="stylesheet" href="/static/css/main.css?v=4">
 </head>
 <body>
+  <nav class="skip-navigation" aria-label="Seiteneinstieg"><a class="skip-link" href="#main-content">Zum Inhalt</a></nav>
+
   <nav class="topbar" aria-label="Hauptnavigation">
     <a class="topbar-logo" href="/"><picture><source srcset="/Logo.avif" type="image/avif"><img src="/static/images/logo-240.png" width="92" height="38" alt="Faszienbehandlung Thilo Seifried"></picture></a>
     <div class="topbar-right"><a class="topic-nav-link" href="/">Startseite</a><a class="btn-book" href="/buchen">Termin buchen</a></div>
   </nav>
-  <main class="section-white">
+  <main tabindex="-1" id="main-content" class="section-white">
     <article class="container topic-content">
       <h1>{{ title }}</h1>
       <p class="section-lead">Persönliche Gantke® Faszienbehandlung bei Thilo Seifried in Schramberg-Sulgen.</p>
@@ -30,5 +32,8 @@
     </article>
   </main>
   <footer class="footer"><div class="container"><address>Thilo Seifried · {{ settings.address_street | default(value="Sulgauer Straße 24") }}, {{ settings.address_zip | default(value="78713") }} {{ settings.address_city | default(value="Schramberg-Sulgen") }}</address><p><a href="/impressum">Impressum</a> · <a href="/datenschutz">Datenschutz</a></p></div></footer>
+  {% include "_service_footer.html" %}
+  <script src="/static/js/accessibility.js" defer></script>
+  <script src="/static/js/main.js?v=3" defer></script>
 </body>
 </html>

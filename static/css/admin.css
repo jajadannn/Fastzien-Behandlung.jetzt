@@ -386,3 +386,19 @@
 .modal-actions button { margin: 0; }
 
 .marketing-stats{margin:24px 0 40px;max-width:75ch}.marketing-stats h2{margin-bottom:12px}.marketing-stats p{color:var(--text-mid);margin-bottom:16px}.marketing-stats caption{text-align:left;padding:12px 0;font-weight:600}
+
+.admin-modal{max-height:calc(100dvh - 32px);overflow-y:auto}
+.admin-main table{font-variant-numeric:tabular-nums}
+.admin-main .btn-small{min-height:44px}
+.admin-modal .btn-secondary-flat,.admin-modal button{min-height:44px}
+
+.admin-modal-overlay:not(.active){visibility:hidden}
+.admin-modal-overlay.active{visibility:visible}
+
+.withdrawal-entry{padding:24px 0;border-top:1px solid var(--border)}.withdrawal-entry p{margin:12px 0}
+
+.admin-logo{color:var(--sky-light)}
+
+.admin-logo span{color:var(--sky-light)}
+
+@media(prefers-reduced-motion:reduce){.admin-modal-overlay,.admin-modal{transition:none}.admin-modal{transform:none}}

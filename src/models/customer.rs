@@ -215,7 +215,8 @@ impl Customer {
 
     pub fn update_password(conn: &Connection, id: i64, password_hash: &str) -> Result<()> {
         conn.execute(
-            "UPDATE customers SET password_hash = ?1, updated_at = datetime('now') WHERE id = ?2",
+            "UPDATE customers SET password_hash = ?1, reset_token = NULL,
+             reset_token_expires = NULL, updated_at = datetime('now') WHERE id = ?2",
             params![password_hash, id],
         )?;
         Ok(())
@@ -223,7 +224,10 @@ impl Customer {
 
     pub fn update_email(conn: &Connection, id: i64, email: &str) -> Result<()> {
         conn.execute(
-            "UPDATE customers SET email = ?1, updated_at = datetime('now') WHERE id = ?2",
+            "UPDATE customers SET email = ?1, email_verified = 0,
+             verification_token = NULL, verification_token_expires = NULL,
+             reset_token = NULL, reset_token_expires = NULL,
+             updated_at = datetime('now') WHERE id = ?2",
             params![email, id],
         )?;
         Ok(())
@@ -233,14 +237,6 @@ impl Customer {
         conn.execute(
             "UPDATE customers SET reset_token = ?1, reset_token_expires = ?2 WHERE id = ?3",
             params![token, expires, id],
-        )?;
-        Ok(())
-    }
-
-    pub fn clear_reset_token(conn: &Connection, id: i64) -> Result<()> {
-        conn.execute(
-            "UPDATE customers SET reset_token = NULL, reset_token_expires = NULL WHERE id = ?1",
-            params![id],
         )?;
         Ok(())
     }
@@ -255,9 +251,10 @@ impl Customer {
 
     pub fn mark_email_verified(conn: &Connection, id: i64) -> Result<()> {
         conn.execute(
-            "UPDATE customers SET email_verified = 1, verification_token = NULL, \
+            "UPDATE customers SET calendar_token = CASE WHEN email_verified = 0 THEN ?2 ELSE calendar_token END, \
+             email_verified = 1, verification_token = NULL, \
              verification_token_expires = NULL, updated_at = datetime('now') WHERE id = ?1",
-            params![id],
+            params![id,uuid::Uuid::new_v4().to_string()],
         )?;
         Ok(())
     }

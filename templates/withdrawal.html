@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Vertrag widerrufen | Faszienbehandlung Thilo Seifried{% endblock %}
+{% block body %}
+<nav class="topbar" aria-label="Hauptnavigation"><a class="topbar-logo" href="/">Faszienbehandlung Thilo Seifried</a><a href="/buchungsbedingungen">Buchungsbedingungen</a></nav>
+<main id="main-content" class="legal-content">
+  <h1>Vertrag widerrufen</h1>
+  <p>Hier kannst du einen online geschlossenen Vertrag oder einen Teil davon widerrufen. Ein Kundenkonto ist dafür nicht erforderlich. Für eine gewöhnliche Terminabsage nutze das <a href="/portal/appointments">Kundenportal</a> oder <a href="/impressum">Telefon und E-Mail</a>.</p>
+  {% if error %}<p role="alert" class="auth-error">{{ error }}</p>{% endif %}
+  {% if step == "entry" %}
+  <form action="/widerruf/pruefen" method="post">
+    <p>Alle drei Angaben werden zur Zuordnung und Eingangsbestätigung benötigt. Bitte keine Gesundheitsangaben eintragen.</p>
+    <div class="form-group"><label for="withdrawal-name">Vor- und Nachname</label><input id="withdrawal-name" name="name" autocomplete="name" required maxlength="200" value="{{ form.name }}"></div>
+    <div class="form-group"><label for="withdrawal-email">E-Mail für die Eingangsbestätigung</label><input id="withdrawal-email" name="email" type="email" autocomplete="email" required maxlength="254" value="{{ form.email }}"></div>
+    <div class="form-group"><label for="withdrawal-contract">Welchen Vertrag oder Teil möchtest du widerrufen?</label><textarea id="withdrawal-contract" name="contract" required maxlength="1000" aria-describedby="contract-help">{{ form.contract }}</textarea><small id="contract-help">Zum Beispiel Buchungsnummer oder Datum und Uhrzeit des Termins. Eine Teilangabe genügt, wenn der Vertrag damit zugeordnet werden kann.</small></div>
+    <div class="booking-honeypot" aria-hidden="true"><label for="withdrawal-website">Website</label><input id="withdrawal-website" name="website" tabindex="-1" autocomplete="off"></div>
+    <p>Die Angaben verarbeiten wir zur Bearbeitung deines Widerrufs. <a href="/datenschutz">Datenschutzhinweise</a></p>
+    <button class="auth-btn" type="submit">Widerruf prüfen</button>
+  </form>
+  {% elif step == "review" %}
+  <h2>Deine Erklärung prüfen</h2>
+  <dl class="legal-summary"><dt>Name</dt><dd>{{ form.name }}</dd><dt>E-Mail</dt><dd>{{ form.email }}</dd><dt>Vertrag / Teil des Vertrags</dt><dd>{{ form.contract }}</dd></dl>
+  <p>Hiermit widerrufe ich den bezeichneten Vertrag bzw. den bezeichneten Teil des Vertrags.</p>
+  <form action="/widerruf/bestaetigen" method="post">
+    <input type="hidden" name="name" value="{{ form.name }}"><input type="hidden" name="email" value="{{ form.email }}"><input type="hidden" name="contract" value="{{ form.contract }}"><input type="hidden" name="request_id" value="{{ form.request_id }}">
+    <button class="auth-btn" type="submit">Widerruf bestätigen</button>
+  </form>
+  <form action="/widerruf/pruefen" method="post" class="withdrawal-correction">
+    <details><summary>Angaben korrigieren</summary>
+    <div class="form-group"><label for="correct-name">Name</label><input id="correct-name" name="name" required value="{{ form.name }}" maxlength="200"></div>
+    <div class="form-group"><label for="correct-email">E-Mail</label><input id="correct-email" name="email" type="email" required value="{{ form.email }}" maxlength="254"></div>
+    <div class="form-group"><label for="correct-contract">Vertrag / Teil des Vertrags</label><textarea id="correct-contract" name="contract" required maxlength="1000">{{ form.contract }}</textarea></div>
+    <button type="submit" class="auth-btn">Korrigierte Angaben prüfen</button></details>
+  </form>
+  {% else %}
+  <h2>Dein Widerruf ist eingegangen</h2>
+  <p role="status">Die Erklärung wurde gespeichert. Die Eingangsbestätigung wird per E-Mail übermittelt; bei einer Versandstörung wird die Übermittlung erneut versucht. Du kannst diese Seite zusätzlich drucken oder speichern.</p>
+  <pre class="legal-receipt">{{ receipt }}</pre>
+  {% endif %}
+</main>
+{% endblock %}

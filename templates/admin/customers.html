@@ -5,27 +5,30 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Kunden – Admin</title>
   <link rel="icon" href="/favicon.v1.ico">
-  <link rel="stylesheet" href="/static/css/main.css?v=3">
+  <link rel="stylesheet" href="/static/css/main.css?v=4">
   <link rel="stylesheet" href="/static/css/admin.css?v=1">
 </head>
 <body>
+  <nav class="skip-navigation" aria-label="Seiteneinstieg"><a class="skip-link" href="#main-content">Zum Inhalt</a></nav>
+
   {% include "_icon_sprite.html" %}
   <nav class="admin-nav">
     <a href="/" class="admin-logo"><picture><source srcset="/Logo.avif" type="image/avif"><img src="/static/images/logo-240.png" alt="" height="30"></picture><span>Admin</span></a>
     <div class="admin-nav-links">
       <a href="/admin">Übersicht</a>
-      <a href="/admin/customers" class="active">Kunden</a>
+      <a href="/admin/customers" class="active" aria-current="page">Kunden</a>
       <a href="/admin/appointments">Termine</a>
       <a href="/admin/payments">Zahlungen</a>
       <a href="/admin/stats">Statistiken</a>
       <a href="/admin/faq">FAQ</a>
       <a href="/admin/reviews">Bewertungen</a>
       <a href="/admin/settings">Einstellungen</a>
-      <a href="/" class="nav-site"><svg class="icon"><use href="#icon-globe" xlink:href="#icon-globe"/></svg></a>
+      <a href="/" class="nav-site" aria-label="Website öffnen"><svg class="icon"><use href="#icon-globe" xlink:href="#icon-globe"/></svg></a>
       <a href="/logout" class="nav-logout" style="text-decoration: none;">Abmelden</a>
     </div>
   </nav>
-  <main class="admin-main">
+  <noscript><p class="script-fallback">Diese Funktion benötigt JavaScript. Für Hilfe und Terminabstimmung erreichst du die Praxis über <a href="/impressum">Telefon oder E-Mail</a>. <a href="/widerruf">Vertrag widerrufen</a> funktioniert auch ohne JavaScript.</p></noscript>
+  <main tabindex="-1" id="main-content" class="admin-main">
     <div class="admin-container">
       <h1>Kunden ({{ customers | length }})</h1>
       <input type="text" id="customer-search" class="admin-search" placeholder="Kunden suchen..." oninput="filterCustomers()">
@@ -58,5 +61,8 @@
     }
   </script>
   <script src="/static/js/admin.js?v=6"></script>
+  {% include "_service_footer.html" %}
+  <script src="/static/js/accessibility.js" defer></script>
+  <script src="/static/js/main.js?v=3" defer></script>
 </body>
 </html>

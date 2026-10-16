@@ -1,0 +1,551 @@
+{
+  "results": [
+    {
+      "width": 1440,
+      "route": "/",
+      "status": 200,
+      "violations": [],
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "route": "/faszienbehandlung-ruecken",
+      "status": 200,
+      "violations": [],
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "route": "/preise-und-ablauf",
+      "status": 200,
+      "violations": [],
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "route": "/buchen",
+      "status": 200,
+      "violations": [],
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "route": "/impressum",
+      "status": 200,
+      "violations": [],
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "route": "/datenschutz",
+      "status": 200,
+      "violations": [],
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "route": "/buchungsbedingungen",
+      "status": 200,
+      "violations": [],
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "route": "/barrierefreiheit",
+      "status": 200,
+      "violations": [],
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "route": "/widerruf",
+      "status": 200,
+      "violations": [],
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "route": "/login",
+      "status": 200,
+      "violations": [],
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "route": "/register",
+      "status": 200,
+      "violations": [],
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "route": "/reset-password",
+      "status": 200,
+      "violations": [],
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "route": "/nicht-vorhanden",
+      "status": 404,
+      "violations": [],
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "route": "/admin",
+      "status": 200,
+      "violations": [],
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "route": "/admin/appointments",
+      "status": 200,
+      "violations": [],
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "route": "/admin/customers",
+      "status": 200,
+      "violations": [],
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "route": "/admin/payments",
+      "status": 200,
+      "violations": [],
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "route": "/admin/faq",
+      "status": 200,
+      "violations": [],
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "route": "/admin/reviews",
+      "status": 200,
+      "violations": [],
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "route": "/admin/settings",
+      "status": 200,
+      "violations": [],
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "route": "/admin/stats",
+      "status": 200,
+      "violations": [],
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "route": "/portal",
+      "status": 200,
+      "violations": [],
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "route": "/portal/book",
+      "status": 200,
+      "violations": [],
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "route": "/portal/profile",
+      "status": 200,
+      "violations": [],
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "route": "/portal/appointments",
+      "status": 200,
+      "violations": [],
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "route": "/portal/credits",
+      "status": 200,
+      "violations": [],
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "route": "/",
+      "layoutOnly": true,
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "route": "/buchen",
+      "layoutOnly": true,
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "route": "/widerruf",
+      "layoutOnly": true,
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "route": "/portal/profile",
+      "layoutOnly": true,
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "route": "/admin/settings",
+      "layoutOnly": true,
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "route": "/",
+      "layoutOnly": true,
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "route": "/buchen",
+      "layoutOnly": true,
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "route": "/widerruf",
+      "layoutOnly": true,
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "route": "/portal/profile",
+      "layoutOnly": true,
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "route": "/admin/settings",
+      "layoutOnly": true,
+      "overflow": false
+    },
+    {
+      "width": 1024,
+      "route": "/",
+      "layoutOnly": true,
+      "overflow": false
+    },
+    {
+      "width": 1024,
+      "route": "/buchen",
+      "layoutOnly": true,
+      "overflow": false
+    },
+    {
+      "width": 1024,
+      "route": "/widerruf",
+      "layoutOnly": true,
+      "overflow": false
+    },
+    {
+      "width": 1024,
+      "route": "/portal/profile",
+      "layoutOnly": true,
+      "overflow": false
+    },
+    {
+      "width": 1024,
+      "route": "/admin/settings",
+      "layoutOnly": true,
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "route": "/",
+      "status": 200,
+      "violations": [],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "route": "/faszienbehandlung-ruecken",
+      "status": 200,
+      "violations": [],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "route": "/preise-und-ablauf",
+      "status": 200,
+      "violations": [],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "route": "/buchen",
+      "status": 200,
+      "violations": [],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "route": "/impressum",
+      "status": 200,
+      "violations": [],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "route": "/datenschutz",
+      "status": 200,
+      "violations": [],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "route": "/buchungsbedingungen",
+      "status": 200,
+      "violations": [],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "route": "/barrierefreiheit",
+      "status": 200,
+      "violations": [],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "route": "/widerruf",
+      "status": 200,
+      "violations": [],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "route": "/login",
+      "status": 200,
+      "violations": [],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "route": "/register",
+      "status": 200,
+      "violations": [],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "route": "/reset-password",
+      "status": 200,
+      "violations": [],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "route": "/nicht-vorhanden",
+      "status": 404,
+      "violations": [],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "route": "/admin",
+      "status": 200,
+      "violations": [],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "route": "/admin/appointments",
+      "status": 200,
+      "violations": [],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "route": "/admin/customers",
+      "status": 200,
+      "violations": [],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "route": "/admin/payments",
+      "status": 200,
+      "violations": [],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "route": "/admin/faq",
+      "status": 200,
+      "violations": [],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "route": "/admin/reviews",
+      "status": 200,
+      "violations": [],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "route": "/admin/settings",
+      "status": 200,
+      "violations": [],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "route": "/admin/stats",
+      "status": 200,
+      "violations": [],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "route": "/portal",
+      "status": 200,
+      "violations": [],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "route": "/portal/book",
+      "status": 200,
+      "violations": [],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "route": "/portal/profile",
+      "status": 200,
+      "violations": [],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "route": "/portal/appointments",
+      "status": 200,
+      "violations": [],
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "route": "/portal/credits",
+      "status": 200,
+      "violations": [],
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "route": "/",
+      "layoutOnly": true,
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "route": "/buchen",
+      "layoutOnly": true,
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "route": "/widerruf",
+      "layoutOnly": true,
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "route": "/portal/profile",
+      "layoutOnly": true,
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "route": "/admin/settings",
+      "layoutOnly": true,
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "route": "/",
+      "layoutOnly": true,
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "route": "/buchen",
+      "layoutOnly": true,
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "route": "/widerruf",
+      "layoutOnly": true,
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "route": "/portal/profile",
+      "layoutOnly": true,
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "route": "/admin/settings",
+      "layoutOnly": true,
+      "overflow": false
+    },
+    {
+      "width": 1024,
+      "route": "/",
+      "layoutOnly": true,
+      "overflow": false
+    },
+    {
+      "width": 1024,
+      "route": "/buchen",
+      "layoutOnly": true,
+      "overflow": false
+    },
+    {
+      "width": 1024,
+      "route": "/widerruf",
+      "layoutOnly": true,
+      "overflow": false
+    },
+    {
+      "width": 1024,
+      "route": "/portal/profile",
+      "layoutOnly": true,
+      "overflow": false
+    },
+    {
+      "width": 1024,
+      "route": "/admin/settings",
+      "layoutOnly": true,
+      "overflow": false
+    }
+  ],
+  "external": [],
+  "errors": [],
+  "noJsWithdrawal": true
+}

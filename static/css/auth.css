@@ -111,3 +111,7 @@
   .auth-links { margin-top: 12px; }
   .auth-back { margin-top: 8px; }
 }
+
+@media(max-width:480px){.auth-container{padding:0}.auth-form .form-group label{font-size:.95rem}.auth-card h1{font-size:1.85rem}}
+
+@media(prefers-reduced-motion:reduce){.auth-card{animation:none}}

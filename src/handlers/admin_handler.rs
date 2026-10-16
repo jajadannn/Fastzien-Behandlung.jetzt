@@ -68,9 +68,46 @@ pub async fn dashboard(
     ctx.insert("settings", &settings);
     ctx.insert("is_admin", &true);
 
+    let withdrawals = (|| -> rusqlite::Result<Vec<serde_json::Value>> {
+        let mut statement = conn.prepare("SELECT id,name,email,contract,created_at FROM withdrawals WHERE processed_at IS NULL ORDER BY created_at DESC")?;
+        let rows = statement.query_map([], |r| Ok(serde_json::json!({"id":r.get::<_,String>(0)?,"name":r.get::<_,String>(1)?,"email":r.get::<_,String>(2)?,"contract":r.get::<_,String>(3)?,"created_at":r.get::<_,String>(4)?})))?;
+        rows.collect()
+    })();
+    let Ok(withdrawals) = withdrawals else { return super::api::internal_error("load withdrawal inbox"); };
+    ctx.insert("withdrawals", &withdrawals);
+    let outbox_pending: i64 = conn.query_row("SELECT COUNT(*) FROM email_outbox WHERE sent_at IS NULL",[],|r|r.get(0)).unwrap_or(0);
+    ctx.insert("outbox_pending", &outbox_pending);
+
     match tmpl.render("admin/dashboard.html", &ctx) {
         Ok(body) => HttpResponse::Ok().content_type("text/html; charset=utf-8").body(body),
-        Err(e) => HttpResponse::InternalServerError().body(format!("Template error: {}", e)),
+        Err(_) => super::api::internal_error("render page"),
+    }
+}
+
+pub async fn process_withdrawal(req: HttpRequest, path: web::Path<String>, db: web::Data<Mutex<Connection>>, jwt_secret: web::Data<String>) -> HttpResponse {
+    if let Err(response) = require_admin(&req,&jwt_secret) { return response; }
+    let conn = db.lock().unwrap_or_else(|e| e.into_inner());
+    match conn.execute("UPDATE withdrawals SET processed_at=datetime('now') WHERE id=?1 AND processed_at IS NULL",[path.into_inner()]) {
+        Ok(_) => HttpResponse::SeeOther().insert_header(("Location","/admin")).finish(),
+        Err(_) => super::api::internal_error("process withdrawal"),
+    }
+}
+
+pub async fn retained_invoices(req: HttpRequest, db: web::Data<Mutex<Connection>>, jwt_secret: web::Data<String>) -> HttpResponse {
+    if let Err(response) = require_admin(&req,&jwt_secret) { return response; }
+    let conn = db.lock().unwrap_or_else(|e| e.into_inner());
+    let records = (|| -> rusqlite::Result<Vec<serde_json::Value>> {
+        let mut statement = conn.prepare("SELECT record_json,retain_until FROM retained_invoices ORDER BY payment_id")?;
+        let rows = statement.query_map([],|r| {
+            let raw: String = r.get(0)?;
+            Ok(serde_json::json!({"record":serde_json::from_str::<serde_json::Value>(&raw).map_err(|_| rusqlite::Error::InvalidQuery)?,"retain_until":r.get::<_,String>(1)?}))
+        })?;
+        rows.collect()
+    })();
+    match records {
+        Ok(records) => HttpResponse::Ok().insert_header(("Content-Disposition","attachment; filename=\"buchungsbelege-archiv.json\""))
+            .content_type("application/json; charset=utf-8").body(serde_json::to_string_pretty(&records).unwrap_or_default()),
+        Err(_) => super::api::internal_error("export retained invoices"),
     }
 }
 
@@ -112,7 +149,7 @@ pub async fn customers_page(
 
     match tmpl.render("admin/customers.html", &ctx) {
         Ok(body) => HttpResponse::Ok().content_type("text/html; charset=utf-8").body(body),
-        Err(e) => HttpResponse::InternalServerError().body(format!("Template error: {}", e)),
+        Err(_) => super::api::internal_error("render page"),
     }
 }
 
@@ -152,7 +189,7 @@ pub async fn customer_detail(
 
     match tmpl.render("admin/customer_detail.html", &ctx) {
         Ok(body) => HttpResponse::Ok().content_type("text/html; charset=utf-8").body(body),
-        Err(e) => HttpResponse::InternalServerError().body(format!("Template error: {}", e)),
+        Err(_) => super::api::internal_error("render page"),
     }
 }
 
@@ -173,7 +210,7 @@ pub async fn appointments_page(
 
     match tmpl.render("admin/appointments.html", &ctx) {
         Ok(body) => HttpResponse::Ok().content_type("text/html; charset=utf-8").body(body),
-        Err(e) => HttpResponse::InternalServerError().body(format!("Template error: {}", e)),
+        Err(_) => super::api::internal_error("render page"),
     }
 }
 
@@ -225,7 +262,7 @@ pub async fn payments_page(
 
     match tmpl.render("admin/payments.html", &ctx) {
         Ok(body) => HttpResponse::Ok().content_type("text/html; charset=utf-8").body(body),
-        Err(e) => HttpResponse::InternalServerError().body(format!("Template error: {}", e)),
+        Err(_) => super::api::internal_error("render page"),
     }
 }
 
@@ -246,7 +283,7 @@ pub async fn faq_editor(
 
     match tmpl.render("admin/faq_editor.html", &ctx) {
         Ok(body) => HttpResponse::Ok().content_type("text/html; charset=utf-8").body(body),
-        Err(e) => HttpResponse::InternalServerError().body(format!("Template error: {}", e)),
+        Err(_) => super::api::internal_error("render page"),
     }
 }
 
@@ -267,7 +304,7 @@ pub async fn review_editor(
 
     match tmpl.render("admin/review_editor.html", &ctx) {
         Ok(body) => HttpResponse::Ok().content_type("text/html; charset=utf-8").body(body),
-        Err(e) => HttpResponse::InternalServerError().body(format!("Template error: {}", e)),
+        Err(_) => super::api::internal_error("render page"),
     }
 }
 
@@ -288,7 +325,7 @@ pub async fn settings_page(
 
     match tmpl.render("admin/settings.html", &ctx) {
         Ok(body) => HttpResponse::Ok().content_type("text/html; charset=utf-8").body(body),
-        Err(e) => HttpResponse::InternalServerError().body(format!("Template error: {}", e)),
+        Err(_) => super::api::internal_error("render page"),
     }
 }
 
@@ -306,7 +343,7 @@ pub async fn api_mark_paid(
     let conn = db.lock().unwrap_or_else(|e| e.into_inner());
     match Payment::mark_paid(&conn, payment_id) {
         Ok(_) => HttpResponse::Ok().json(serde_json::json!({"success": true})),
-        Err(e) => HttpResponse::InternalServerError().json(serde_json::json!({"error": format!("{}", e)})),
+        Err(_) => super::api::internal_error("database operation"),
     }
 }
 
@@ -325,12 +362,12 @@ pub async fn api_save_faq(
     if let Some(id) = form.id {
         match Faq::update(&conn, id, &form.question, &form.answer_html, sort_order, is_active) {
             Ok(_) => HttpResponse::Ok().json(serde_json::json!({"success": true, "id": id})),
-            Err(e) => HttpResponse::InternalServerError().json(serde_json::json!({"error": format!("{}", e)})),
+            Err(_) => super::api::internal_error("database operation"),
         }
     } else {
         match Faq::create(&conn, &form.question, &form.answer_html, sort_order) {
             Ok(id) => HttpResponse::Ok().json(serde_json::json!({"success": true, "id": id})),
-            Err(e) => HttpResponse::InternalServerError().json(serde_json::json!({"error": format!("{}", e)})),
+            Err(_) => super::api::internal_error("database operation"),
         }
     }
 }
@@ -346,7 +383,7 @@ pub async fn api_delete_faq(
     let conn = db.lock().unwrap_or_else(|e| e.into_inner());
     match Faq::delete(&conn, path.into_inner()) {
         Ok(_) => HttpResponse::Ok().json(serde_json::json!({"success": true})),
-        Err(e) => HttpResponse::InternalServerError().json(serde_json::json!({"error": format!("{}", e)})),
+        Err(_) => super::api::internal_error("database operation"),
     }
 }
 
@@ -398,7 +435,7 @@ pub async fn api_delete_review(
     let conn = db.lock().unwrap_or_else(|e| e.into_inner());
     match Review::delete(&conn, path.into_inner()) {
         Ok(_) => HttpResponse::Ok().json(serde_json::json!({"success": true})),
-        Err(e) => HttpResponse::InternalServerError().json(serde_json::json!({"error": format!("{}", e)})),
+        Err(_) => super::api::internal_error("database operation"),
     }
 }
 
@@ -410,12 +447,17 @@ pub async fn api_save_settings(
 ) -> HttpResponse {
     if let Err(r) = require_admin(&req, &jwt_secret) { return r; }
 
+    if form.iter().any(|(key, value)| !SiteSetting::valid_value(key, value)) {
+        return HttpResponse::BadRequest().json(serde_json::json!({"error":"Bitte prüfe die Angaben für Preise, Dauer, Pausen und Stornierungsfrist."}));
+    }
     let conn = db.lock().unwrap_or_else(|e| e.into_inner());
+    let tx = match conn.unchecked_transaction() { Ok(tx) => tx, Err(_) => return HttpResponse::InternalServerError().finish() };
     for (key, value) in form.iter() {
-        if let Err(e) = SiteSetting::set(&conn, key, value) {
-            return HttpResponse::InternalServerError().json(serde_json::json!({"error": format!("{}", e)}));
+        if SiteSetting::set(&tx, key, value).is_err() {
+            return HttpResponse::InternalServerError().json(serde_json::json!({"error":"Einstellungen konnten nicht gespeichert werden."}));
         }
     }
+    if tx.commit().is_err() { return HttpResponse::InternalServerError().finish(); }
     HttpResponse::Ok().json(serde_json::json!({"success": true}))
 }
 
@@ -435,6 +477,10 @@ pub async fn api_suggest_appointment(
     email_service: web::Data<EmailService>,
 ) -> HttpResponse {
     if let Err(r) = require_admin(&req, &jwt_secret) { return r; }
+    let slots_html = match crate::email::suggestion_rows(&form.slots) {
+        Ok(html) => html,
+        Err(error) => return HttpResponse::BadRequest().json(serde_json::json!({"error":error})),
+    };
 
     let conn = db.lock().unwrap_or_else(|e| e.into_inner());
     let customer = match Customer::find_by_id(&conn, form.customer_id) {
@@ -442,10 +488,7 @@ pub async fn api_suggest_appointment(
         _ => return HttpResponse::NotFound().json(serde_json::json!({"error": "Kunde nicht gefunden"})),
     };
 
-    let slots_html = form.slots.iter()
-        .map(|s| format!("<p style='margin: 8px 0; padding: 10px 14px; background: #dff0f7; border-radius: 8px; color: #1a2a33; font-size: 15px; font-weight: 500;'>{}</p>", s))
-        .collect::<Vec<_>>()
-        .join("");
+
 
     let es = email_service.get_ref().clone();
     let email = customer.email.clone();
@@ -471,6 +514,10 @@ pub async fn api_cancel_with_suggestions(
     email_service: web::Data<EmailService>,
 ) -> HttpResponse {
     if let Err(r) = require_admin(&req, &jwt_secret) { return r; }
+    let slots_html = match crate::email::suggestion_rows(&form.slots) {
+        Ok(html) => html,
+        Err(error) => return HttpResponse::BadRequest().json(serde_json::json!({"error":error})),
+    };
 
     let conn = db.lock().unwrap_or_else(|e| e.into_inner());
 
@@ -488,24 +535,11 @@ pub async fn api_cancel_with_suggestions(
         _ => return HttpResponse::NotFound().json(serde_json::json!({"error": "Kunde nicht gefunden"})),
     };
 
-    // Cancel the appointment in database
-    let _ = Appointment::cancel(&conn, form.appointment_id);
-
-    // Reset pending payment for this appointment
-    let _ = conn.execute(
-        "UPDATE payments SET status = 'cancelled' WHERE appointment_id = ?1 AND status = 'pending'",
-        rusqlite::params![form.appointment_id],
-    );
-
-    // If it was a pack appointment, return the credit
-    if appointment.appointment_type == "pack" {
-        let active_credits = CreditPackage::find_active_by_customer(&conn, appointment.customer_id).unwrap_or_default();
-        if let Some(credit) = active_credits.first() {
-            let _ = conn.execute(
-                "UPDATE credit_packages SET used_sessions = MAX(used_sessions - 1, 0) WHERE id = ?1",
-                rusqlite::params![credit.id],
-            );
-        }
+    match Appointment::cancel(&conn, form.appointment_id) {
+        Ok(true) => {},
+        Ok(false) => return HttpResponse::Conflict().json(serde_json::json!({"error":"Der Termin wurde bereits geändert."})),
+        Err(rusqlite::Error::InvalidQuery) => return HttpResponse::Conflict().json(serde_json::json!({"error":"Die verwendete Mehrfachkarte ist nicht eindeutig zugeordnet. Bitte prüfe die bestehende Buchung."})),
+        Err(_) => return HttpResponse::InternalServerError().json(serde_json::json!({"error":"Der Termin konnte nicht storniert werden."})),
     }
 
     let (del_auth, del_url) = {
@@ -536,10 +570,7 @@ pub async fn api_cancel_with_suggestions(
     let cancelled_id = form.appointment_id;
     drop(conn);
 
-    let slots_html = form.slots.iter()
-        .map(|s| format!("<p style='margin: 8px 0; padding: 10px 14px; background: #dff0f7; border-radius: 8px; color: #1a2a33; font-size: 15px; font-weight: 500;'>{}</p>", s))
-        .collect::<Vec<_>>()
-        .join("");
+
 
     tokio::spawn(async move {
         if let Ok(dt) = chrono::NaiveDateTime::parse_from_str(&start_time, "%Y-%m-%d %H:%M:%S") {
@@ -601,9 +632,7 @@ pub async fn api_test_caldav(
         .build()
     {
         Ok(c) => c,
-        Err(e) => return HttpResponse::InternalServerError().json(serde_json::json!({
-            "success": false, "error": format!("HTTP-Client-Fehler: {}", e)
-        })),
+        Err(_) => return super::api::internal_error("create calendar client"),
     };
 
     let full_url = format!("{}/", url.trim_end_matches('/'));
@@ -657,11 +686,11 @@ pub async fn api_test_caldav(
         })),
         Err(e) if e.is_connect() => HttpResponse::Ok().json(serde_json::json!({
             "success": false,
-            "error": format!("Verbindung fehlgeschlagen \u{2013} {}", e)
+            "error": "Verbindung zum Kalender fehlgeschlagen"
         })),
-        Err(e) => HttpResponse::Ok().json(serde_json::json!({
+        Err(_) => HttpResponse::Ok().json(serde_json::json!({
             "success": false,
-            "error": format!("Fehler: {}", e)
+            "error": "Kalenderanfrage fehlgeschlagen"
         })),
     }
 }
@@ -675,6 +704,34 @@ pub struct AdminCreateAppointmentForm {
     pub is_home_visit: Option<bool>,
     pub notes: Option<String>,
     pub appointment_type: Option<String>, // "single", "pack", "blocked"
+}
+
+/// Create the appointment and its financial records in one transaction while the
+/// caller holds the database lock. None means the requested slot is occupied.
+fn record_appointment(
+    conn: &Connection, customer_id: i64, start: &str, end: &str,
+    blocked: bool, home_visit: bool, notes: &str,
+) -> rusqlite::Result<Option<i64>> {
+    let tx = rusqlite::Transaction::new_unchecked(conn, rusqlite::TransactionBehavior::Immediate)?;
+    if !Appointment::is_slot_available(&tx, start, end)? { return Ok(None); }
+    let credits = if blocked { Vec::new() } else { CreditPackage::find_active_by_customer(&tx, customer_id)? };
+    let appointment_type = if blocked { "blocked" } else if credits.is_empty() { "single" } else { "pack" };
+    let id = Appointment::create(&tx, customer_id, start, end, appointment_type, home_visit, notes)?;
+    if !blocked {
+        let surcharge: f64 = SiteSetting::get_or_default(&tx, "home_visit_surcharge", "15").replace(',', ".").parse().unwrap_or(15.0);
+        let price = if let Some(credit) = credits.first() {
+            CreditPackage::use_session(&tx, credit.id)?;
+            tx.execute("UPDATE appointments SET credit_package_id = ?1 WHERE id = ?2", rusqlite::params![credit.id, id])?;
+            credit.price_per_session
+        } else {
+            SiteSetting::get_or_default(&tx, "price_single", "195").replace(',', ".").parse().unwrap_or(195.0)
+        };
+        let amount = price + if home_visit { surcharge } else { 0.0 };
+        if !amount.is_finite() || amount < 0.0 { return Err(rusqlite::Error::InvalidQuery); }
+        Payment::create(&tx, customer_id, Some(id), amount, appointment_type)?;
+    }
+    tx.commit()?;
+    Ok(Some(id))
 }
 
 pub async fn api_create_appointment(
@@ -693,7 +750,7 @@ pub async fn api_create_appointment(
     };
 
     // --- Phase 1: read settings under lock ---
-    let (caldav_auth, calendar_urls, primary_url, duration_min) = {
+    let (mut caldav_auth, calendar_urls, primary_url, duration_min) = {
         let conn = db.lock().unwrap_or_else(|e| e.into_inner());
         let duration_min: i64 = SiteSetting::get_or_default(&conn, "appointment_duration_min", "90").parse().unwrap_or(90);
 
@@ -714,15 +771,18 @@ pub async fn api_create_appointment(
         }
     }; // lock released
 
-    let end = start + chrono::Duration::minutes(duration_min);
+    let end = match chrono::Duration::try_minutes(duration_min).and_then(|duration| start.checked_add_signed(duration)) {
+        Some(end) if (15..=360).contains(&duration_min) => end,
+        _ => return HttpResponse::ServiceUnavailable().json(serde_json::json!({"error":"Die Termindauer ist nicht gültig konfiguriert."})),
+    };
     let start_str = start.format("%Y-%m-%d %H:%M:%S").to_string();
     let end_str   = end.format("%Y-%m-%d %H:%M:%S").to_string();
     let date = start.date();
 
     let is_blocked = form.appointment_type.as_deref() == Some("blocked") || form.customer_id.is_none();
-    let appointment_type = if is_blocked { "blocked" } else {
-        form.appointment_type.as_deref().unwrap_or("single")
-    };
+    if !["single", "pack", "blocked"].contains(&form.appointment_type.as_deref().unwrap_or("single")) {
+        return HttpResponse::BadRequest().json(serde_json::json!({"error":"Ungültige Terminart"}));
+    }
 
     // --- Phase 2: check ALL CalDAV calendars for conflicts (async, outside lock) ---
     if !calendar_urls.is_empty() {
@@ -730,11 +790,15 @@ pub async fn api_create_appointment(
             crate::caldav::CalDavAuth::Bearer(_) => {
                 if let Some(tok) = crate::handlers::oauth_handler::ensure_valid_token(&db).await {
                     crate::caldav::CalDavAuth::Bearer(tok)
-                } else { caldav_auth.clone() }
+                } else { return HttpResponse::ServiceUnavailable().json(serde_json::json!({"error":"Die Kalenderverbindung ist abgelaufen oder wurde getrennt. Bitte versuche es später erneut."})); }
             }
             other => other.clone(),
         };
-        let busy = crate::caldav::fetch_busy_periods_multi(&calendar_urls, &auth, &date).await;
+        caldav_auth = auth.clone();
+        let busy = match crate::caldav::fetch_busy_periods_multi(&calendar_urls, &auth, &date).await {
+            Ok(busy) => busy,
+            Err(_) => return HttpResponse::ServiceUnavailable().json(serde_json::json!({"error":"Der Kalender kann gerade nicht geprüft werden. Bitte versuche es später erneut."})),
+        };
         if crate::caldav::has_conflict(&busy, &start, &end) {
             return HttpResponse::Conflict().json(serde_json::json!({
                 "error": "Dieser Zeitraum ist in einem deiner Nextcloud-Kalender belegt"
@@ -754,26 +818,17 @@ pub async fn api_create_appointment(
     let is_home_visit = form.is_home_visit.unwrap_or(false);
     let notes = form.notes.as_deref().unwrap_or("");
 
-    let appointment_id = match Appointment::create(&conn, customer_id, &start_str, &end_str, appointment_type, is_home_visit, notes) {
-        Ok(id) => id,
-        Err(e) => return HttpResponse::InternalServerError().json(serde_json::json!({"error": format!("{}", e)})),
+    if !matches!(Customer::find_by_id(&conn, customer_id), Ok(Some(_))) {
+        return HttpResponse::NotFound().json(serde_json::json!({"error":"Kunde nicht gefunden"}));
+    }
+    let appointment_id = match record_appointment(&conn, customer_id, &start_str, &end_str, is_blocked, is_home_visit, notes) {
+        Ok(Some(id)) => id,
+        Ok(None) => return HttpResponse::Conflict().json(serde_json::json!({"error":"Dieser Zeitraum ist bereits belegt"})),
+        Err(_) => return HttpResponse::InternalServerError().json(serde_json::json!({"error":"Der Termin konnte nicht gespeichert werden."})),
     };
 
     // For real appointments (not blocked): payment + push to CalDAV + send email
     if !is_blocked {
-        let price_single: f64 = SiteSetting::get_or_default(&conn, "price_single", "195").replace(',', ".").parse().unwrap_or(195.0);
-        let home_surcharge: f64 = SiteSetting::get_or_default(&conn, "home_visit_surcharge", "15").replace(',', ".").parse().unwrap_or(15.0);
-        let active_credits = CreditPackage::find_active_by_customer(&conn, customer_id).unwrap_or_default();
-        if !active_credits.is_empty() {
-            let credit = &active_credits[0];
-            let _ = CreditPackage::use_session(&conn, credit.id);
-            let amount = credit.price_per_session + if is_home_visit { home_surcharge } else { 0.0 };
-            let _ = Payment::create(&conn, customer_id, Some(appointment_id), amount, "pack");
-        } else {
-            let amount = price_single + if is_home_visit { home_surcharge } else { 0.0 };
-            let _ = Payment::create(&conn, customer_id, Some(appointment_id), amount, "single");
-        }
-
         if let Ok(Some(customer)) = Customer::find_by_id(&conn, customer_id) {
             let date_str   = start.format("%d.%m.%Y").to_string();
             let time_str   = start.format("%H:%M").to_string();
@@ -788,7 +843,7 @@ pub async fn api_create_appointment(
             let push_auth  = caldav_auth.clone();
             drop(conn);
             tokio::spawn(async move {
-                es.send_appointment_confirmation(&cust_email, &cust_name, &date_str, &time_str, is_home_visit);
+                es.send_appointment_confirmation(&cust_email, &cust_name, &date_str, &time_str, is_home_visit, duration_min);
                 es.send_admin_booking_notification(&admin_email, &cust_name, &cust_phone, &cust_addr, &date_str, &time_str, &notes_owned, is_home_visit);
                 if !push_url.is_empty() {
                     match &push_auth {
@@ -826,7 +881,7 @@ pub async fn api_update_therapist_notes(
     let conn = db.lock().unwrap_or_else(|e| e.into_inner());
     match Appointment::update_therapist_notes(&conn, appointment_id, &form.notes) {
         Ok(_) => HttpResponse::Ok().json(serde_json::json!({"success": true})),
-        Err(e) => HttpResponse::InternalServerError().json(serde_json::json!({"error": format!("{}", e)})),
+        Err(_) => super::api::internal_error("database operation"),
     }
 }
 
@@ -931,6 +986,68 @@ pub async fn stats_page(
 
     match tmpl.render("admin/stats.html", &ctx) {
         Ok(body) => HttpResponse::Ok().content_type("text/html; charset=utf-8").body(body),
-        Err(e) => HttpResponse::InternalServerError().body(format!("Template error: {}", e)),
+        Err(_) => super::api::internal_error("render page"),
+    }
+}
+
+#[cfg(test)]
+mod security_tests {
+    use super::*;
+
+    #[actix_web::test]
+    async fn malformed_suggestion_cannot_cancel_the_existing_appointment() {
+        let (conn,customer,card) = fixture();
+        let id = record_appointment(&conn,customer,"2030-01-07 16:00:00","2030-01-07 17:30:00",false,false,"").unwrap().unwrap();
+        conn.execute("UPDATE customers SET is_admin=1 WHERE id=?1",[customer]).unwrap();
+        let secret = crate::auth::test_support::SECRET;
+        let token = crate::auth::create_token(customer,"admin-booking@example.com",true,"test",secret,24).unwrap();
+        let db = web::Data::new(Mutex::new(conn));
+        let req = actix_web::test::TestRequest::post().app_data(db.clone()).cookie(actix_web::cookie::Cookie::new("auth_token",token)).to_http_request();
+        let response = api_cancel_with_suggestions(req,web::Json(CancelSuggestForm{appointment_id:id,slots:vec!["<img src=x onerror=alert(1)>".into()]}),db.clone(),web::Data::new(secret.to_owned()),web::Data::new(EmailService::new(&crate::auth::test_support::config()))).await;
+        assert_eq!(response.status(),actix_web::http::StatusCode::BAD_REQUEST);
+        let conn = db.lock().unwrap();
+        assert_eq!(Appointment::find_by_id(&conn,id).unwrap().unwrap().status,"confirmed");
+        assert_eq!(CreditPackage::find_all_by_customer(&conn,customer).unwrap().iter().find(|c|c.id==card).unwrap().used_sessions,1);
+        assert_eq!(Payment::find_by_customer(&conn,customer).unwrap().len(),1);
+    }
+
+    fn fixture() -> (Connection, i64, i64) {
+        let conn = crate::db::test_connection();
+        conn.execute("INSERT INTO customers(email,password_hash) VALUES('admin-booking@example.com','test')", []).unwrap();
+        let customer = conn.last_insert_rowid();
+        let card = CreditPackage::create(&conn, customer, 1, 123.0, "2099-01-01").unwrap();
+        (conn, customer, card)
+    }
+
+    #[test]
+    fn manual_bookings_reject_overlaps_and_record_the_actual_credit_card() {
+        let (conn, customer, card) = fixture();
+        let id = record_appointment(&conn, customer, "2030-01-07 16:00:00", "2030-01-07 17:30:00", false, false, "").unwrap().unwrap();
+        assert!(record_appointment(&conn, customer, "2030-01-07 16:30:00", "2030-01-07 18:00:00", false, false, "").unwrap().is_none());
+        let appointment = Appointment::find_by_id(&conn, id).unwrap().unwrap();
+        assert_eq!(appointment.appointment_type, "pack");
+        let recorded_card: i64 = conn.query_row("SELECT credit_package_id FROM appointments WHERE id=?1", [id], |row| row.get(0)).unwrap();
+        assert_eq!(recorded_card, card);
+        assert_eq!(Payment::find_by_customer(&conn, customer).unwrap().len(), 1);
+        assert_eq!(CreditPackage::find_all_by_customer(&conn, customer).unwrap()[0].used_sessions, 1);
+        assert!(CreditPackage::use_session(&conn, card).is_err());
+    }
+
+    #[test]
+    fn payment_failure_rolls_back_the_booking_and_credit_debit() {
+        let (conn, customer, _) = fixture();
+        conn.execute_batch("CREATE TRIGGER reject_payment BEFORE INSERT ON payments BEGIN SELECT RAISE(ABORT, 'test payment failure'); END;").unwrap();
+        assert!(record_appointment(&conn, customer, "2030-01-07 16:00:00", "2030-01-07 17:30:00", false, false, "").is_err());
+        assert!(Appointment::find_by_customer(&conn, customer).unwrap().is_empty());
+        assert_eq!(CreditPackage::find_all_by_customer(&conn, customer).unwrap()[0].used_sessions, 0);
+    }
+
+    #[test]
+    fn unsafe_numeric_settings_are_rejected_before_saving() {
+        for (key, value) in [("appointment_duration_min", "0"), ("appointment_duration_min", "9223372036854775807"), ("appointment_break_min", "-90"), ("price_single", "NaN"), ("price_pack", "inf"), ("cancellation_hours", "-1")] {
+            assert!(!SiteSetting::valid_value(key, value), "accepted {key}={value}");
+        }
+        assert!(SiteSetting::valid_value("price_pack", "169,90"));
+        assert!(SiteSetting::valid_value("appointment_duration_min", "90"));
     }
 }

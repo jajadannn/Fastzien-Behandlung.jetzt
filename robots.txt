@@ -2,5 +2,10 @@ User-agent: *
 Allow: /
 Disallow: /admin
 Disallow: /api/
+Disallow: /portal
+Disallow: /buchen/bestaetigen/
+Disallow: /reset-password/
+Disallow: /verify-email/
+Disallow: /widerruf/
 
 Sitemap: https://faszienbehandlung.jetzt/sitemap.xml

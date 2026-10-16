@@ -29,7 +29,7 @@ Personal, certified Gantke® fascia and bodywork delivered by Thilo Seifried, wi
 - Cancellation is allowed up to 24 hours before the appointment via the customer portal; customers booking without portal access contact the practitioner by phone or email.
 - Calendar sync via Nextcloud/CalDAV (OAuth2 or app-password), plus a per-customer ICS subscription link.
 - Public booking at `/buchen` requires no registration: choose a slot, enter name/phone/email (address for home visits), and confirm through a 30-minute email link. The slot is not reserved before confirmation. The server rechecks availability and records the appointment, payment and token consumption atomically. Guest bookings do not consume existing package credits. Profile/credential data on existing accounts remains unchanged.
-- New portal accounts must verify their e-mail before full portal access (booking, waitlist, credits) unlocks; profile completion (name/address) is required before booking.
+- New portal accounts must verify their e-mail before full portal access (booking, waitlist, credits) unlocks; profile completion (name) is required before booking; address is required only for a home visit.
 - When the practitioner cancels, he can propose alternative time slots directly in the cancellation e-mail/portal flow.
 - Transactional e-mail is a first-class, technically constrained surface: must render correctly in Outlook desktop and other clients with poor CSS support (inline styles, table-based layout only, no external stylesheets/fonts/SVG, gradients need a solid-color fallback).
 
@@ -66,4 +66,16 @@ Personal, certified Gantke® fascia and bodywork delivered by Thilo Seifried, wi
 
 ## Accessibility & Inclusion
 
-No specific accessibility standard has been mandated by the user (confirmed earlier this session); general web best practice applies (semantic HTML, sufficient color contrast, keyboard-operable controls).
+The October 9, 2026 website guideline request sets WCAG 2.2 AA as the technical test target. The operator confirmed fewer than ten employees and annual revenue below EUR 2 million, so the BFSG service exemption for microenterprises is documented. Automated browser checks are supplemented with keyboard testing; comprehensive screenreader/real-device assessment remains a separate evidence item.
+
+## Website Guidelines — October 9, 2026
+
+- The user confirmed self-hosting by Thilo Seifried, permission for logo/photos/reviews, and an existing VAT ID. The VAT ID is intentionally left for the user to enter under Admin → Settings → Legal information; it is rendered in the Impressum from that field.
+- Consumer information: `/buchungsbedingungen`; two-step, no-login withdrawal: `/widerruf`, including without JavaScript. Withdrawal receipt and timestamp are stored before SMTP delivery; admin reviews identity/contract and handles cancellation/refund.
+- Final booking checks total, duration and card use against the displayed quote. A service within 14 days requires explicit early-start consent. Versioned confirmation and withdrawal notice are persisted with the appointment, then emailed through a retrying outbox.
+- Card allocation currently creates a per-session payment record. Do not claim a card is prepaid unless payment evidence and accounting behavior support that statement.
+- Account erasure keeps necessary accounting data in a separate admin-only archive. Bookkeeping originals, retention exceptions and provider copies remain operational responsibilities.
+- New/changed passwords require at least 12 characters (at most 72 UTF-8 bytes for bcrypt). JWTs carry unique session IDs; explicit POST logout revokes the session on the server.
+- `WEBSITE-RICHTLINIEN-ABNAHME.md` contains the requirement mapping, test evidence and remaining operational evidence. No live deployment is implied by local verification.
+
+- Data export includes recorded booking sources, pending requests, withdrawal processing data and queued contractual receipts. Email ownership must be verified before exporting or reading invoices/calendar data. A guest booking is not linked to a pre-existing unverified signup. Calendar credentials created before verification are replaced on first verification or after an email change; links of already-verified accounts remain stable.

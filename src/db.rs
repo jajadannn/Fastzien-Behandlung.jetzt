@@ -24,6 +24,45 @@ pub fn initialize(db_path: &str, admin_email: &str, admin_password: &str) -> Res
     Ok(conn)
 }
 
+/// All dependent records must be removed together, including the waitlist.
+pub(crate) fn delete_customer(conn: &Connection, customer_id: i64) -> Result<bool> {
+    let tx = rusqlite::Transaction::new_unchecked(conn, rusqlite::TransactionBehavior::Immediate)?;
+    let email: String = tx.query_row(
+        "SELECT email FROM customers WHERE id = ?1 AND is_admin = 0",
+        [customer_id], |row| row.get(0),
+    )?;
+    tx.execute("DELETE FROM booking_requests WHERE email = ?1 COLLATE NOCASE", [email])?;
+    tx.execute("DELETE FROM waitlist WHERE customer_id = ?1", [customer_id])?;
+    // Retain only accounting evidence, never passwords, phone, health or session data.
+    let customer = crate::models::customer::Customer::find_by_id(&tx, customer_id)?.ok_or(rusqlite::Error::QueryReturnedNoRows)?;
+    let payments = crate::models::payment::Payment::find_by_customer(&tx, customer_id)?;
+    let business = crate::models::settings::SiteSetting::get_public(&tx)?;
+    for payment in payments {
+        let appointment = payment.appointment_id.and_then(|id| crate::models::appointment::Appointment::find_by_id(&tx,id).ok().flatten());
+        let service = appointment.map(|a| serde_json::json!({"name":"Gantke® Faszienbehandlung (Wellness- und Körperarbeit)","start":a.start_time,"end":a.end_time,"home_visit":a.is_home_visit,"status":a.status}));
+        let record = serde_json::json!({"payment_id":payment.id,"amount":payment.amount,"payment_type":payment.payment_type,"status":payment.status,"paid_at":payment.paid_at,"created_at":payment.created_at,
+            "recipient":{"name":customer.full_name(),"street":customer.street,"zip_code":customer.zip_code,"city":customer.city},"supplier":business,"service":service});
+        tx.execute("INSERT INTO retained_invoices(payment_id,record_json,retain_until) VALUES(?1,?2,date(?3,'start of year','+9 years'))",params![payment.id,record.to_string(),payment.created_at])?;
+    }
+    tx.execute("DELETE FROM email_outbox WHERE recipient=?1 COLLATE NOCASE AND subject NOT LIKE '%Widerruf%'", [&customer.email])?;
+    tx.execute("DELETE FROM payments WHERE customer_id = ?1", [customer_id])?;
+    tx.execute("DELETE FROM appointments WHERE customer_id = ?1", [customer_id])?;
+    tx.execute("DELETE FROM credit_packages WHERE customer_id = ?1", [customer_id])?;
+    let deleted = tx.execute("DELETE FROM customers WHERE id = ?1 AND is_admin = 0", [customer_id])?;
+    tx.commit()?;
+    Ok(deleted == 1)
+}
+
+#[cfg(test)]
+pub(crate) fn test_connection() -> Connection {
+    let conn = Connection::open_in_memory().unwrap();
+    conn.execute_batch("PRAGMA foreign_keys=ON;").unwrap();
+    create_tables(&conn).unwrap();
+    migrate_existing_db(&conn).unwrap();
+    seed_settings(&conn).unwrap();
+    conn
+}
+
 fn create_tables(conn: &Connection) -> Result<()> {
     conn.execute_batch("
         CREATE TABLE IF NOT EXISTS customers (
@@ -55,6 +94,7 @@ fn create_tables(conn: &Connection) -> Result<()> {
             end_time TEXT NOT NULL,
             status TEXT NOT NULL DEFAULT 'confirmed',
             appointment_type TEXT NOT NULL DEFAULT 'single',
+            credit_package_id INTEGER REFERENCES credit_packages(id),
             is_home_visit INTEGER NOT NULL DEFAULT 0,
             notes TEXT NOT NULL DEFAULT '',
             therapist_notes TEXT NOT NULL DEFAULT '',
@@ -127,6 +167,26 @@ fn create_tables(conn: &Connection) -> Result<()> {
         CREATE TABLE IF NOT EXISTS booking_sources (
             appointment_id INTEGER PRIMARY KEY REFERENCES appointments(id) ON DELETE CASCADE, source TEXT NOT NULL, city TEXT NOT NULL
         );
+        CREATE TABLE IF NOT EXISTS revoked_sessions (jti TEXT PRIMARY KEY, expires_at INTEGER NOT NULL);
+        CREATE TABLE IF NOT EXISTS withdrawals (
+            id TEXT PRIMARY KEY, name TEXT NOT NULL, email TEXT NOT NULL, contract TEXT NOT NULL,
+            created_at TEXT NOT NULL DEFAULT (datetime('now')), processed_at TEXT
+        );
+        CREATE TABLE IF NOT EXISTS email_outbox (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, recipient TEXT NOT NULL, subject TEXT NOT NULL, body TEXT NOT NULL,
+            created_at TEXT NOT NULL DEFAULT (datetime('now')), attempts INTEGER NOT NULL DEFAULT 0,
+            sent_at TEXT, claimed_until TEXT
+        );
+        CREATE TABLE IF NOT EXISTS booking_terms (
+            appointment_id INTEGER PRIMARY KEY REFERENCES appointments(id) ON DELETE CASCADE,
+            version TEXT NOT NULL, early_start_requested INTEGER NOT NULL DEFAULT 0,
+            agreed_total REAL NOT NULL, duration_min INTEGER NOT NULL, terms_text TEXT NOT NULL,
+            created_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+        CREATE TABLE IF NOT EXISTS retained_invoices (
+            payment_id INTEGER PRIMARY KEY, record_json TEXT NOT NULL, retain_until TEXT NOT NULL,
+            archived_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
         CREATE TABLE IF NOT EXISTS site_settings (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             setting_key TEXT NOT NULL UNIQUE,
@@ -154,6 +214,14 @@ fn migrate_existing_db(conn: &Connection) -> Result<()> {
     ];
     for sql in migrations {
         let _ = conn.execute_batch(sql); // ignore "duplicate column" error
+    }
+    // Do not silently ignore migration failures for the credit-to-booking link.
+    let has_credit_link: bool = conn.query_row(
+        "SELECT EXISTS(SELECT 1 FROM pragma_table_info('appointments') WHERE name = 'credit_package_id')",
+        [], |row| row.get(0),
+    )?;
+    if !has_credit_link {
+        conn.execute_batch("ALTER TABLE appointments ADD COLUMN credit_package_id INTEGER REFERENCES credit_packages(id)")?;
     }
     Ok(())
 }
@@ -253,4 +321,57 @@ fn seed_admin(conn: &Connection, email: &str, password: &str) -> Result<()> {
         }
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod security_tests {
+    use super::*;
+
+    fn customer_with_records(conn: &Connection) -> i64 {
+        conn.execute("INSERT INTO customers(email,password_hash) VALUES('delete@example.com','test')", []).unwrap();
+        let id = conn.last_insert_rowid();
+        conn.execute("INSERT INTO waitlist(customer_id,date) VALUES(?1,'2030-01-01')", [id]).unwrap();
+        conn.execute("INSERT INTO appointments(customer_id,start_time,end_time) VALUES(?1,'2030-01-01 16:00:00','2030-01-01 17:30:00')", [id]).unwrap();
+        let appointment_id = conn.last_insert_rowid();
+        conn.execute("INSERT INTO booking_sources(appointment_id,source,city) VALUES(?1,'Google','Test')", [appointment_id]).unwrap();
+        conn.execute("INSERT INTO payments(customer_id,appointment_id,amount) VALUES(?1,?2,100)", params![id,appointment_id]).unwrap();
+        conn.execute("INSERT INTO booking_requests(token,date,time,first_name,last_name,email,phone,expires_at) VALUES('delete-token','2030-01-01','16:00','Test','Test','delete@example.com','123',datetime('now','+1 hour'))", []).unwrap();
+        id
+    }
+
+    #[test]
+    fn account_deletion_removes_waitlist_and_booking_requests_atomically() {
+        let conn = test_connection();
+        let id = customer_with_records(&conn);
+        assert!(delete_customer(&conn, id).unwrap());
+        let record: String = conn.query_row("SELECT record_json FROM retained_invoices",[],|r|r.get(0)).unwrap();
+        assert!(record.contains("2030-01-01"));
+        assert!(!record.contains("password") && !record.contains("therapist_notes"));
+        for table in ["customers", "appointments", "payments", "waitlist", "booking_requests", "booking_sources"] {
+            let count: i64 = conn.query_row(&format!("SELECT COUNT(*) FROM {table}"), [], |row| row.get(0)).unwrap();
+            assert_eq!(count, 0, "remaining rows in {table}");
+        }
+    }
+
+    #[test]
+    fn failed_account_deletion_rolls_back_dependent_records() {
+        let conn = test_connection();
+        let id = customer_with_records(&conn);
+        conn.execute_batch("CREATE TRIGGER prevent_delete BEFORE DELETE ON customers BEGIN SELECT RAISE(ABORT, 'test failure'); END;").unwrap();
+        assert!(delete_customer(&conn, id).is_err());
+        for table in ["customers", "appointments", "payments", "waitlist", "booking_requests", "booking_sources"] {
+            let count: i64 = conn.query_row(&format!("SELECT COUNT(*) FROM {table}"), [], |row| row.get(0)).unwrap();
+            assert_eq!(count, 1, "rollback lost rows in {table}");
+        }
+    }
+
+    #[test]
+    fn credit_link_migration_is_idempotent_for_existing_databases() {
+        let conn = test_connection();
+        conn.execute("ALTER TABLE appointments DROP COLUMN credit_package_id", []).unwrap();
+        migrate_existing_db(&conn).unwrap();
+        migrate_existing_db(&conn).unwrap();
+        let columns: i64 = conn.query_row("SELECT COUNT(*) FROM pragma_table_info('appointments') WHERE name='credit_package_id'", [], |row| row.get(0)).unwrap();
+        assert_eq!(columns, 1);
+    }
 }

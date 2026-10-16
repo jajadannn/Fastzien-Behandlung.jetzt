@@ -5,23 +5,28 @@ edition = "2021"
 description = "Faszienbehandlung.jetzt - Booking & Management System"
 
 [dependencies]
-actix-web = "4"
+ammonia = "4.2.1"
+# HTTP/2 terminates at the reverse proxy. Actix's optional h2 0.3 backend
+# is affected by RUSTSEC-2026-0258 and has no patched 0.3 release.
+actix-web = { version = "4", default-features = false, features = ["macros", "compress-brotli", "compress-gzip", "compress-zstd", "cookies", "unicode", "compat", "ws"] }
 actix-files = "0.6"
 actix-rt = "2"
-rusqlite = { version = "0.31", features = ["bundled"] }
+# Bundle SQLite 3.53.2 or newer, including the upstream security fixes.
+rusqlite = { version = "0.40.2", default-features = false, features = ["bundled", "cache"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 jsonwebtoken = "9"
 bcrypt = "0.15"
-lettre = { version = "0.11", features = ["tokio1-native-tls", "smtp-transport", "builder"] }
+lettre = { version = "0.11.22", features = ["tokio1-native-tls", "smtp-transport", "builder"] }
 tera = "1"
-dotenv = "0.15"
+# Keep the existing import name while replacing the unmaintained crate.
+dotenv = { package = "dotenvy", version = "0.15.7" }
 chrono = { version = "0.4", features = ["serde"] }
 chrono-tz = "0.10"
 uuid = { version = "1", features = ["v4"] }
 log = "0.4"
 env_logger = "0.11"
 tokio = { version = "1", features = ["full"] }
-actix-session = { version = "0.9", features = ["cookie-session"] }
 reqwest = { version = "0.12", default-features = false, features = ["native-tls", "json"] }
+roxmltree = "0.21.1"
 urlencoding = "2"

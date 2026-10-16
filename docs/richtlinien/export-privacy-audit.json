@@ -1,0 +1,44 @@
+[
+  {
+    "width": 320,
+    "route": "/portal/profile",
+    "overflow": false,
+    "violations": []
+  },
+  {
+    "width": 320,
+    "route": "/datenschutz",
+    "overflow": false,
+    "violations": []
+  },
+  {
+    "width": 390,
+    "route": "/portal/profile",
+    "overflow": false,
+    "violations": []
+  },
+  {
+    "width": 390,
+    "route": "/datenschutz",
+    "overflow": false,
+    "violations": []
+  },
+  {
+    "width": 1440,
+    "route": "/portal/profile",
+    "overflow": false,
+    "violations": []
+  },
+  {
+    "width": 1440,
+    "route": "/datenschutz",
+    "overflow": false,
+    "violations": []
+  },
+  {
+    "width": 390,
+    "route": "/portal/profile",
+    "textScale": "200%",
+    "overflow": false
+  }
+]

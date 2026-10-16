@@ -1,0 +1,25 @@
+{
+  "checked_at": "2026-10-09T05:17:07.1390437Z",
+  "domain": "faszienbehandlung.jetzt",
+  "spf": [
+    "v=spf1 include:_spf-eu.ionos.com ~all"
+  ],
+  "dmarc": [],
+  "mx": [
+    {
+      "exchange": "mx01.ionos.de",
+      "preference": 10
+    },
+    {
+      "exchange": "mx00.ionos.de",
+      "preference": 10
+    }
+  ],
+  "errors": [
+    {
+      "query": "_dmarc.faszienbehandlung.jetzt",
+      "type": "TXT",
+      "reason": "DNS_ERROR_RCODE_NAME_ERROR,Microsoft.DnsClient.Commands.ResolveDnsName"
+    }
+  ]
+}

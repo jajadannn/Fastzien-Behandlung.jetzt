@@ -2,3 +2,6 @@
 /data/
 /.env
 /.env.production
+/.env.*
+!/.env.example
+*.log

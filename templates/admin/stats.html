@@ -5,10 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Statistiken – Admin</title>
   <link rel="icon" href="/favicon.v1.ico">
-  <link rel="stylesheet" href="/static/css/main.css?v=3">
+  <link rel="stylesheet" href="/static/css/main.css?v=4">
   <link rel="stylesheet" href="/static/css/admin.css?v=1">
 </head>
 <body>
+  <nav class="skip-navigation" aria-label="Seiteneinstieg"><a class="skip-link" href="#main-content">Zum Inhalt</a></nav>
+
   {% include "_icon_sprite.html" %}
   <nav class="admin-nav">
     <a href="/" class="admin-logo"><picture><source srcset="/Logo.avif" type="image/avif"><img src="/static/images/logo-240.png" alt="" height="30"></picture><span>Admin</span></a>
@@ -17,15 +19,16 @@
       <a href="/admin/customers">Kunden</a>
       <a href="/admin/appointments">Termine</a>
       <a href="/admin/payments">Zahlungen</a>
-      <a href="/admin/stats" class="active">Statistiken</a>
+      <a href="/admin/stats" class="active" aria-current="page">Statistiken</a>
       <a href="/admin/faq">FAQ</a>
       <a href="/admin/reviews">Bewertungen</a>
       <a href="/admin/settings">Einstellungen</a>
-      <a href="/" class="nav-site"><svg class="icon"><use href="#icon-globe" xlink:href="#icon-globe"/></svg></a>
+      <a href="/" class="nav-site" aria-label="Website öffnen"><svg class="icon"><use href="#icon-globe" xlink:href="#icon-globe"/></svg></a>
       <a href="/logout" class="nav-logout" style="text-decoration: none;">Abmelden</a>
     </div>
   </nav>
-  <main class="admin-main">
+  <noscript><p class="script-fallback">Diese Funktion benötigt JavaScript. Für Hilfe und Terminabstimmung erreichst du die Praxis über <a href="/impressum">Telefon oder E-Mail</a>. <a href="/widerruf">Vertrag widerrufen</a> funktioniert auch ohne JavaScript.</p></noscript>
+  <main tabindex="-1" id="main-content" class="admin-main">
     <div class="admin-container">
       <h1>Statistiken</h1>
       <section class="marketing-stats">
@@ -37,27 +40,27 @@
       <div class="stats-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:32px;">
         <div class="stat-card" style="background:white;border-radius:12px;padding:20px;box-shadow:0 1px 4px rgba(0,0,0,0.08);">
           <div style="font-size:28px;font-weight:700;color:#70AECD;">{{ this_month_count }}</div>
-          <div style="color:#6a8fa0;font-size:14px;">Termine diesen Monat</div>
+          <div style="color:var(--text-light);font-size:14px;">Termine diesen Monat</div>
         </div>
         <div class="stat-card" style="background:white;border-radius:12px;padding:20px;box-shadow:0 1px 4px rgba(0,0,0,0.08);">
           <div style="font-size:28px;font-weight:700;color:#964279;">{{ this_month_revenue | round(precision=2) }} €</div>
-          <div style="color:#6a8fa0;font-size:14px;">Umsatz diesen Monat</div>
+          <div style="color:var(--text-light);font-size:14px;">Umsatz diesen Monat</div>
         </div>
         <div class="stat-card" style="background:white;border-radius:12px;padding:20px;box-shadow:0 1px 4px rgba(0,0,0,0.08);">
           <div style="font-size:28px;font-weight:700;color:#3d5a6b;">{{ total_appointments }}</div>
-          <div style="color:#6a8fa0;font-size:14px;">Termine gesamt</div>
+          <div style="color:var(--text-light);font-size:14px;">Termine gesamt</div>
         </div>
         <div class="stat-card" style="background:white;border-radius:12px;padding:20px;box-shadow:0 1px 4px rgba(0,0,0,0.08);">
           <div style="font-size:28px;font-weight:700;color:#3d5a6b;">{{ total_revenue | round(precision=2) }} €</div>
-          <div style="color:#6a8fa0;font-size:14px;">Bezahlter Umsatz gesamt</div>
+          <div style="color:var(--text-light);font-size:14px;">Bezahlter Umsatz gesamt</div>
         </div>
         <div class="stat-card" style="background:white;border-radius:12px;padding:20px;box-shadow:0 1px 4px rgba(0,0,0,0.08);">
-          <div style="font-size:28px;font-weight:700;color:#e67e22;">{{ pending_revenue | round(precision=2) }} €</div>
-          <div style="color:#6a8fa0;font-size:14px;">Offene Zahlungen</div>
+          <div style="font-size:28px;font-weight:700;color:#9a4c09;">{{ pending_revenue | round(precision=2) }} €</div>
+          <div style="color:var(--text-light);font-size:14px;">Offene Zahlungen</div>
         </div>
         <div class="stat-card" style="background:white;border-radius:12px;padding:20px;box-shadow:0 1px 4px rgba(0,0,0,0.08);">
-          <div style="font-size:28px;font-weight:700;color:{% if cancel_rate > 20 %}#e74c3c{% else %}#27ae60{% endif %};">{{ cancel_rate }} %</div>
-          <div style="color:#6a8fa0;font-size:14px;">Stornierungsrate</div>
+          <div style="font-size:28px;font-weight:700;color:{% if cancel_rate > 20 %}#b42b21{% else %}#197943{% endif %};">{{ cancel_rate }} %</div>
+          <div style="color:var(--text-light);font-size:14px;">Stornierungsrate</div>
         </div>
       </div>
 
@@ -79,7 +82,7 @@
             </tbody>
           </table>
           {% else %}
-          <p style="color:#6a8fa0;">Noch keine Daten vorhanden.</p>
+          <p style="color:var(--text-light);">Noch keine Daten vorhanden.</p>
           {% endif %}
         </div>
 
@@ -88,11 +91,11 @@
           <h3 style="margin:0 0 16px;color:#1a2a33;">Terminart</h3>
           <div style="margin-bottom:12px;">
             <span style="font-size:20px;font-weight:600;">{{ home_visit_count }}</span>
-            <span style="color:#6a8fa0;margin-left:8px;">Hausbesuche</span>
+            <span style="color:var(--text-light);margin-left:8px;">Hausbesuche</span>
           </div>
           <div style="margin-bottom:24px;">
             <span style="font-size:20px;font-weight:600;">{{ practice_count }}</span>
-            <span style="color:#6a8fa0;margin-left:8px;">Praxistermine</span>
+            <span style="color:var(--text-light);margin-left:8px;">Praxistermine</span>
           </div>
 
           <h3 style="margin:16px 0;color:#1a2a33;">Beliebteste Buchungszeiten</h3>
@@ -103,15 +106,18 @@
             <div style="flex:1;background:#e8f0f5;border-radius:4px;height:8px;">
               <div style="background:#70AECD;height:8px;border-radius:4px;width:{{ h.count * 20 }}px;max-width:100%;"></div>
             </div>
-            <span style="color:#6a8fa0;min-width:30px;text-align:right;">{{ h.count }}x</span>
+            <span style="color:var(--text-light);min-width:30px;text-align:right;">{{ h.count }}x</span>
           </div>
           {% endfor %}
           {% else %}
-          <p style="color:#6a8fa0;">Noch keine Daten.</p>
+          <p style="color:var(--text-light);">Noch keine Daten.</p>
           {% endif %}
         </div>
       </div>
     </div>
   </main>
+  {% include "_service_footer.html" %}
+  <script src="/static/js/accessibility.js" defer></script>
+  <script src="/static/js/main.js?v=3" defer></script>
 </body>
 </html>

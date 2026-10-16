@@ -9,9 +9,22 @@ pub struct SiteSetting {
 }
 
 impl SiteSetting {
+    pub fn valid_value(key: &str, value: &str) -> bool {
+        match key {
+            "appointment_duration_min" => value.parse::<i64>().is_ok_and(|n| (15..=360).contains(&n)),
+            "appointment_break_min" => value.parse::<i64>().is_ok_and(|n| (0..=120).contains(&n)),
+            "cancellation_hours" => value.parse::<i64>().is_ok_and(|n| (0..=720).contains(&n)),
+            "price_pack_count" => value.parse::<i64>().is_ok_and(|n| (1..=1000).contains(&n)),
+            "price_single" | "price_pack" | "home_visit_surcharge" => value.replace(',', ".").parse::<f64>().is_ok_and(|n| n.is_finite() && (0.0..=1_000_000.0).contains(&n)),
+            "vat_id" => value.is_empty() || (value.len() == 11 && value.starts_with("DE") && value[2..].bytes().all(|b| b.is_ascii_digit())),
+            "business_id" => value.chars().count() <= 30 && !value.chars().any(char::is_control),
+            _ => true,
+        }
+    }
+
     pub fn get_public(conn: &Connection) -> Result<HashMap<String, String>> {
         let mut settings = Self::get_all(conn)?;
-        settings.retain(|key, _| ["price_single", "price_pack", "price_pack_count", "home_visit_surcharge", "appointment_duration_min", "cancellation_hours", "hours_weekday", "hours_saturday", "hours_stripe", "hours_stripe_short", "phone", "phone_raw", "email_contact", "address_street", "address_zip", "address_city", "google_reviews_url"].contains(&key.as_str()));
+        settings.retain(|key, _| ["price_single", "price_pack", "price_pack_count", "home_visit_surcharge", "appointment_duration_min", "cancellation_hours", "hours_weekday", "hours_saturday", "hours_stripe", "hours_stripe_short", "phone", "phone_raw", "email_contact", "address_street", "address_zip", "address_city", "google_reviews_url", "vat_id", "business_id", "hosting_operator", "smtp_provider", "calendar_operator"].contains(&key.as_str()));
         Ok(settings)
     }
     pub fn get(conn: &Connection, key: &str) -> Result<String> {

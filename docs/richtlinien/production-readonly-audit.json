@@ -1,0 +1,144 @@
+{
+  "checked_at": "2026-10-09T05:16:31.378563+00:00",
+  "public_read_only": true,
+  "certificate": {
+    "verified": true,
+    "not_before": "Aug 31 04:55:07 2026 GMT",
+    "not_after": "Nov 29 05:54:50 2026 GMT",
+    "protocol": "TLSv1.3"
+  },
+  "results": [
+    {
+      "path": "/",
+      "status": 403,
+      "final_url": "https://faszienbehandlung.jetzt/",
+      "headers": {
+        "Strict-Transport-Security": "max-age=15552000; includeSubDomains",
+        "Content-Security-Policy": null,
+        "Cache-Control": "private, max-age=0, no-store, no-cache, must-revalidate, post-check=0, pre-check=0",
+        "Referrer-Policy": "same-origin",
+        "X-Content-Type-Options": null,
+        "X-Frame-Options": "SAMEORIGIN"
+      },
+      "application_content_verified": false
+    },
+    {
+      "path": "/impressum",
+      "status": 403,
+      "final_url": "https://faszienbehandlung.jetzt/impressum",
+      "headers": {
+        "Strict-Transport-Security": "max-age=15552000; includeSubDomains",
+        "Content-Security-Policy": null,
+        "Cache-Control": "private, max-age=0, no-store, no-cache, must-revalidate, post-check=0, pre-check=0",
+        "Referrer-Policy": "same-origin",
+        "X-Content-Type-Options": null,
+        "X-Frame-Options": "SAMEORIGIN"
+      },
+      "application_content_verified": false
+    },
+    {
+      "path": "/datenschutz",
+      "status": 403,
+      "final_url": "https://faszienbehandlung.jetzt/datenschutz",
+      "headers": {
+        "Strict-Transport-Security": "max-age=15552000; includeSubDomains",
+        "Content-Security-Policy": null,
+        "Cache-Control": "private, max-age=0, no-store, no-cache, must-revalidate, post-check=0, pre-check=0",
+        "Referrer-Policy": "same-origin",
+        "X-Content-Type-Options": null,
+        "X-Frame-Options": "SAMEORIGIN"
+      },
+      "application_content_verified": false
+    },
+    {
+      "path": "/buchungsbedingungen",
+      "status": 403,
+      "final_url": "https://faszienbehandlung.jetzt/buchungsbedingungen",
+      "headers": {
+        "Strict-Transport-Security": "max-age=15552000; includeSubDomains",
+        "Content-Security-Policy": null,
+        "Cache-Control": "private, max-age=0, no-store, no-cache, must-revalidate, post-check=0, pre-check=0",
+        "Referrer-Policy": "same-origin",
+        "X-Content-Type-Options": null,
+        "X-Frame-Options": "SAMEORIGIN"
+      },
+      "application_content_verified": false
+    },
+    {
+      "path": "/widerruf",
+      "status": 403,
+      "final_url": "https://faszienbehandlung.jetzt/widerruf",
+      "headers": {
+        "Strict-Transport-Security": "max-age=15552000; includeSubDomains",
+        "Content-Security-Policy": null,
+        "Cache-Control": "private, max-age=0, no-store, no-cache, must-revalidate, post-check=0, pre-check=0",
+        "Referrer-Policy": "same-origin",
+        "X-Content-Type-Options": null,
+        "X-Frame-Options": "SAMEORIGIN"
+      },
+      "application_content_verified": false
+    },
+    {
+      "path": "/barrierefreiheit",
+      "status": 403,
+      "final_url": "https://faszienbehandlung.jetzt/barrierefreiheit",
+      "headers": {
+        "Strict-Transport-Security": "max-age=15552000; includeSubDomains",
+        "Content-Security-Policy": null,
+        "Cache-Control": "private, max-age=0, no-store, no-cache, must-revalidate, post-check=0, pre-check=0",
+        "Referrer-Policy": "same-origin",
+        "X-Content-Type-Options": null,
+        "X-Frame-Options": "SAMEORIGIN"
+      },
+      "application_content_verified": false
+    },
+    {
+      "path": "/robots.txt",
+      "status": 403,
+      "final_url": "https://faszienbehandlung.jetzt/robots.txt",
+      "headers": {
+        "Strict-Transport-Security": "max-age=15552000; includeSubDomains",
+        "Content-Security-Policy": null,
+        "Cache-Control": "private, max-age=0, no-store, no-cache, must-revalidate, post-check=0, pre-check=0",
+        "Referrer-Policy": "same-origin",
+        "X-Content-Type-Options": null,
+        "X-Frame-Options": "SAMEORIGIN"
+      },
+      "robots": "error code: 1010\n",
+      "application_content_verified": false
+    },
+    {
+      "path": "/sitemap.xml",
+      "status": 403,
+      "final_url": "https://faszienbehandlung.jetzt/sitemap.xml",
+      "headers": {
+        "Strict-Transport-Security": "max-age=15552000; includeSubDomains",
+        "Content-Security-Policy": null,
+        "Cache-Control": "private, max-age=0, no-store, no-cache, must-revalidate, post-check=0, pre-check=0",
+        "Referrer-Policy": "same-origin",
+        "X-Content-Type-Options": null,
+        "X-Frame-Options": "SAMEORIGIN"
+      },
+      "application_content_verified": false
+    },
+    {
+      "path": "/richtlinien-audit-nicht-vorhanden",
+      "status": 403,
+      "final_url": "https://faszienbehandlung.jetzt/richtlinien-audit-nicht-vorhanden",
+      "headers": {
+        "Strict-Transport-Security": "max-age=15552000; includeSubDomains",
+        "Content-Security-Policy": null,
+        "Cache-Control": "private, max-age=0, no-store, no-cache, must-revalidate, post-check=0, pre-check=0",
+        "Referrer-Policy": "same-origin",
+        "X-Content-Type-Options": null,
+        "X-Frame-Options": "SAMEORIGIN"
+      },
+      "application_content_verified": false
+    }
+  ],
+  "limitations": [
+    "HTTP endpoints returned a blocking 403 response (error code 1010). Observed headers do not establish application headers, deployment version, content or route existence.",
+    "A valid TLS handshake at one point in time does not establish certificate renewal monitoring.",
+    "Public DNS does not prove domain account ownership, the actual outbound From domain, DKIM signing or mailbox delivery."
+  ]
+}

@@ -52,14 +52,14 @@
   font-weight: 500;
 }
 .nav-admin {
-  color: var(--plum-light) !important;
+  color: var(--sky-light);
   display: inline-flex;
   align-items: center;
   gap: 6px;
 }
 .nav-admin svg { width: 14px; height: 14px; }
 .nav-logout {
-  color: rgba(255,255,255,0.4) !important;
+  color: var(--sky-light);
 }
 .portal-main {
   min-height: calc(100vh - 52px);
@@ -509,3 +509,18 @@
 .portal-logo picture{display:block;line-height:0;flex-shrink:0}
 .portal-logo span{white-space:nowrap}
 @media(max-width:480px){.portal-nav{padding:12px 16px}.portal-nav-links a{padding:6px 8px}.booking-calendar{padding:18px}.booking-slots{padding:24px 18px}.portal-welcome .booking-fineprint{font-size:.88rem}}
+
+.calendar-header h2{font-family:'DM Sans',sans-serif;font-size:1.15rem}
+.booking-slots h2{font-size:1.15rem;margin-bottom:16px}
+.cal-nav,.slot-btn,.btn-small{min-height:44px;min-width:44px}
+.cal-day{min-height:44px;border:1px solid transparent}
+.cal-day.selected{background:var(--plum-dark);color:var(--white)}
+.cal-day.today:not(.selected){color:var(--plum-dark);border-color:var(--plum-dark)}
+.calendar-days{gap:4px}
+.portal-main{overflow:visible}
+#reschedule-overlay>div{max-height:calc(100dvh - 32px);overflow-y:auto}
+@media(max-width:480px){.calendar-days{gap:2px}.booking-calendar{padding:16px}.cal-day{min-width:0}.booking-slots{padding:16px}}
+
+.portal-nav-links .nav-admin,.portal-nav-links .nav-logout{color:var(--sky-light)}
+.dash-card-content h2{font-family:'Cormorant Garamond',serif;font-size:1.6rem;line-height:1.2}
+.empty-state h2{font-family:'Cormorant Garamond',serif;font-size:1.5rem;margin-bottom:12px}

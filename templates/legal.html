@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}{% if accessibility %}Zugänglichkeit{% else %}Buchungsbedingungen und Widerruf{% endif %} | Thilo Seifried{% endblock %}
+{% block body %}
+<nav class="topbar" aria-label="Hauptnavigation"><a class="topbar-logo" href="/">Faszienbehandlung Thilo Seifried</a><a href="/buchen">Termin wählen</a></nav>
+<main id="main-content" class="legal-content">
+{% if accessibility %}
+  <h1>Zugänglichkeit dieser Website</h1>
+  <p>Du sollst Informationen, Buchung und Kundenportal mit Tastatur, vergrößerter Schrift und auf kleinen Bildschirmen nutzen können. Als technisches Prüfziel verwenden wir WCAG 2.2 AA.</p>
+  <h2>Bedienung und Alternativen</h2>
+  <p>Mit der Tabulatortaste erreichst du Links und Bedienelemente. Der Link „Zum Inhalt“ überspringt die Navigation. Dialoge lassen sich mit Escape schließen. Die Einstellung für reduzierte Bewegung wird berücksichtigt.</p>
+  <p>Die Terminwahl und das Kundenportal benötigen JavaScript. Informationen und der Online-Widerruf sind auch ohne JavaScript erreichbar. Einen Termin kannst du alternativ telefonisch oder per E-Mail vereinbaren.</p>
+  <h2>Rückmeldung geben</h2>
+  <p>Wenn du auf eine Barriere stößt, teile uns bitte die betroffene Seite und die Aufgabe mit, bei der du Unterstützung brauchst: <a href="mailto:{{ settings.email_contact | default(value='termin@faszienbehandlung.jetzt') }}">{{ settings.email_contact | default(value="termin@faszienbehandlung.jetzt") }}</a> oder <a href="tel:{{ settings.phone_raw | default(value='+4915234007225') }}">{{ settings.phone | default(value="+49 152 34 00 72 25") }}</a>.</p>
+  <p>Nach Angaben des Betreibers beschäftigt das Unternehmen weniger als zehn Personen und erzielt weniger als 2 Millionen Euro Jahresumsatz. Für die angebotenen Dienstleistungen gilt daher die Kleinstunternehmensausnahme nach § 3 Abs. 3 BFSG. Die Website wird trotzdem anhand des genannten technischen Ziels verbessert. Umfassende Tests mit Screenreadern stehen noch aus; eine vollständige Konformität wird nicht behauptet.</p>
+{% else %}
+  <h1>Buchungsbedingungen und Widerruf</h1>
+  <p>Stand: 9. Oktober 2026. Anbieter: Thilo Seifried, {{ settings.address_street | default(value="Sulgauer Straße 24") }}, {{ settings.address_zip | default(value="78713") }} {{ settings.address_city | default(value="Schramberg-Sulgen") }}. Kontakt und Anbieterangaben findest du im <a href="/impressum">Impressum</a>.</p>
+  <h2>Leistung, Preis und Zahlung</h2>
+  <p>Persönliche Gantke® Faszienbehandlung als Wellness- und Körperarbeit, mit Vorgespräch und Übungen, ca. {{ settings.appointment_duration_min | default(value="90") }} Minuten. Die Leistung ersetzt keine ärztliche Diagnose oder Behandlung. Bei Beschwerden mit Krankheitswert bitte vorher ärztlich abklären lassen.</p>
+  <p>Eine Einzelbehandlung kostet {{ settings.price_single | default(value="195") }} €. Für einen Hausbesuch kommen {{ settings.home_visit_surcharge | default(value="15") }} € Fahrtpauschale hinzu. Der jeweilige Gesamtpreis wird unmittelbar vor der Buchung angezeigt. Zahlung bar oder per Überweisung, keine Vorauszahlung. Keine Erstattung durch Krankenkassen oder Versicherungen. Eine Rechnung wird bereitgestellt.</p>
+  <h2>So entsteht deine Buchung</h2>
+  <p>Ohne Konto forderst du zunächst einen Bestätigungslink per E-Mail an. Der Termin ist dann noch nicht reserviert. Auf der Bestätigungsseite prüfst du Termin, Ort und Gesamtpreis. Mit „Termin kostenpflichtig buchen“ schließt du die Buchung verbindlich ab. Im Kundenportal erfolgt der Abschluss mit derselben Schaltfläche. Ein vorhandenes Sitzungskontingent wird dort angezeigt. Bei Verwendung einer Karte gilt der hinterlegte Sitzpreis. Die Buchungsbestätigung wird per E-Mail übermittelt.</p>
+  <p>Die Vertragssprache ist Deutsch. Du kannst deine Angaben vor dem Abschluss korrigieren. Termin und Zahlungsdaten bleiben in der Praxisverwaltung gespeichert; mit Konto sind sie im Portal zugänglich. Ohne Konto erreichst du uns telefonisch oder per E-Mail.</p>
+  <h2>Termin absagen oder ändern</h2>
+  <p>Eine reguläre Absage ist bis {{ settings.cancellation_hours | default(value="24") }} Stunden vor dem Termin im Portal oder telefonisch bzw. per E-Mail möglich. Für spätere Absagen kontaktiere uns bitte direkt. Das gesetzliche Widerrufsrecht bleibt davon unberührt.</p>
+  <h2>Widerrufsbelehrung</h2>
+  <div class="legal-prose">{{ withdrawal_text }}</div>
+  <p><a class="btn-primary" href="/widerruf">Vertrag widerrufen</a></p>
+{% endif %}
+</main>
+{% endblock %}

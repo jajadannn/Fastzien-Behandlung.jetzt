@@ -139,10 +139,11 @@ impl CreditPackage {
     }
 
     pub fn use_session(conn: &Connection, id: i64) -> Result<()> {
-        conn.execute(
-            "UPDATE credit_packages SET used_sessions = used_sessions + 1 WHERE id = ?1",
+        let changed = conn.execute(
+            "UPDATE credit_packages SET used_sessions = used_sessions + 1 WHERE id = ?1 AND used_sessions < total_sessions AND valid_until > datetime('now')",
             params![id],
         )?;
+        if changed != 1 { return Err(rusqlite::Error::QueryReturnedNoRows); }
         Ok(())
     }
 

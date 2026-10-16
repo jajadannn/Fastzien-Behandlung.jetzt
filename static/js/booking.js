@@ -7,6 +7,7 @@
       event.preventDefault();
       const button = confirmationForm.querySelector('button');
       const error = document.getElementById('error-msg');
+      if (button.disabled) return;
       button.disabled = true; button.textContent = 'Termin wird gebucht …'; error.style.display = 'none';
       try {
         const res = await fetch(confirmationForm.action, {method:'POST', body:new URLSearchParams(new FormData(confirmationForm))});
@@ -14,7 +15,7 @@
         if (!res.ok || !data.success) throw new Error(data.error || 'Bitte wähle einen neuen Termin.');
         confirmationForm.hidden = true;
         const success = document.getElementById('success-msg');
-        success.textContent = 'Dein Termin ist verbindlich gebucht. Du erhältst die Buchungsbestätigung per E-Mail. Für Änderungen oder Absagen erreichst du Thilo telefonisch oder per E-Mail.';
+        success.textContent = 'Dein Termin ist verbindlich gebucht. Buchungsnummer: ' + data.appointment_id + '. Die Bestätigung wird per E-Mail übermittelt; bei einer Versandstörung wird der Versand erneut versucht. Für Änderungen oder Absagen erreichst du Thilo telefonisch oder per E-Mail.';
         success.style.display = 'block';
       } catch (err) { error.textContent = err.message || 'Verbindungsfehler. Bitte versuche es erneut.'; error.style.display = 'block'; button.disabled = false; button.textContent = 'Termin kostenpflichtig buchen'; }
     });
@@ -24,6 +25,20 @@
   let requestVersion = 0;
   const detailsForm = document.getElementById('booking-details');
   const homeVisit = document.getElementById('home-visit');
+  const price = Number(document.body.dataset.sessionPrice);
+  const surcharge = Number(document.body.dataset.surcharge.replace(',','.'));
+  const duration = Number(document.body.dataset.duration);
+  const credits = Number(document.body.dataset.credits);
+  const money = value => new Intl.NumberFormat('de-DE',{style:'currency',currency:'EUR'}).format(value);
+  function updatePrice() {
+    const total = price + (homeVisit.checked ? surcharge : 0);
+    const summary = document.getElementById('booking-price');
+    if (summary) summary.textContent = 'Gesamtpreis: ' + money(total) + (credits > 0 ? ' · Eine Sitzung deiner vorhandenen Karte wird verwendet. Abrechnung zum hinterlegten Kartentarif.' : ' · Keine Guthabenverrechnung.');
+    const location = document.getElementById('booking-location');
+    if(location) location.textContent = homeVisit.checked ? 'Ort: Hausbesuch – ' + (document.body.dataset.homeAddress || 'Bitte Adresse im Profil ergänzen.') : 'Ort: Praxis – ' + document.body.dataset.practiceAddress;
+  }
+  homeVisit.addEventListener('change',updatePrice);
+  updatePrice();
   detailsForm.addEventListener('submit', event => { event.preventDefault(); window.confirmBooking(); });
   if (isGuest) homeVisit.addEventListener('change', () => {
     document.getElementById('guest-address').hidden = !homeVisit.checked;
@@ -73,6 +88,8 @@
       btn.type = 'button';
       btn.setAttribute('aria-label', day + '. ' + months[currentMonth] + ' ' + currentYear);
       btn.className = 'cal-day';
+      btn.setAttribute('aria-pressed',String(!!selectedDate && date.toDateString()===selectedDate.toDateString()));
+      btn.dataset.day=String(day);
       btn.textContent = day;
 
       // Sunday disabled
@@ -98,6 +115,7 @@
         selectedDate = new Date(currentYear, currentMonth, day);
         selectedSlot = null;
         renderCalendar();
+        calDays.querySelector('[data-day="' + day + '"]').focus();
         await loadSlots(selectedDate);
       });
 
@@ -185,10 +203,10 @@
     errorMsg.style.display = 'none';
     successMsg.style.display = 'none';
 
-    const payload = { date:dateStr, time:selectedSlot, is_home_visit:homeVisit.checked };
+    const payload = {date:dateStr,time:selectedSlot,is_home_visit:homeVisit.checked,expected_total:price+(homeVisit.checked?surcharge:0),expected_duration:duration,expected_using_credit:credits>0,early_start_requested:!!document.getElementById('early-start')?.checked};
     if (isGuest) {
       const value = id => document.getElementById(id).value.trim();
-      Object.assign(payload, {first_name:value('guest-first-name'),last_name:value('guest-last-name'),email:value('guest-email'),phone:value('guest-phone'),street:homeVisit.checked ? value('guest-street') : '',zip_code:homeVisit.checked ? value('guest-zip') : '',city:homeVisit.checked ? value('guest-city') : '',source:value('guest-source'),privacy_acknowledged:document.getElementById('guest-privacy').checked,website:value('guest-website')});
+      Object.assign(payload, {first_name:value('guest-first-name'),last_name:value('guest-last-name'),email:value('guest-email'),phone:value('guest-phone'),street:homeVisit.checked ? value('guest-street') : '',zip_code:homeVisit.checked ? value('guest-zip') : '',city:homeVisit.checked ? value('guest-city') : '',source:value('guest-source'),website:value('guest-website')});
     } else payload.notes = document.getElementById('booking-notes').value || null;
     try {
       const res = await fetch(isGuest ? '/api/guest-booking/request' : '/api/appointments/book', {
@@ -196,7 +214,7 @@
       });
       const data = await res.json();
       if (res.ok && data.success) {
-        successMsg.textContent = isGuest ? data.message : 'Dein Termin ist verbindlich gebucht. Du erhältst eine Bestätigung per E-Mail.';
+        successMsg.textContent = isGuest ? data.message : 'Dein Termin ist verbindlich gebucht. Buchungsnummer: ' + data.appointment_id + '. Die Bestätigung wird per E-Mail übermittelt; bei einer Versandstörung wird der Versand erneut versucht.';
         successMsg.style.display = 'block';
         bookingOptions.style.display = 'none';
         selectedSlot = null;

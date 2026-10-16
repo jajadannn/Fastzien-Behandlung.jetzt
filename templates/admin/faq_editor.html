@@ -5,11 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FAQ verwalten – Admin</title>
   <link rel="icon" href="/favicon.v1.ico">
-  <link rel="stylesheet" href="/static/css/main.css?v=3">
+  <link rel="stylesheet" href="/static/css/main.css?v=4">
   <link rel="stylesheet" href="/static/css/admin.css?v=1">
-  <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
 </head>
 <body>
+  <nav class="skip-navigation" aria-label="Seiteneinstieg"><a class="skip-link" href="#main-content">Zum Inhalt</a></nav>
+
   {% include "_icon_sprite.html" %}
   <nav class="admin-nav">
     <a href="/" class="admin-logo"><picture><source srcset="/Logo.avif" type="image/avif"><img src="/static/images/logo-240.png" alt="" height="30"></picture><span>Admin</span></a>
@@ -19,37 +20,38 @@
       <a href="/admin/appointments">Termine</a>
       <a href="/admin/payments">Zahlungen</a>
       <a href="/admin/stats">Statistiken</a>
-      <a href="/admin/faq" class="active">FAQ</a>
+      <a href="/admin/faq" class="active" aria-current="page">FAQ</a>
       <a href="/admin/reviews">Bewertungen</a>
       <a href="/admin/settings">Einstellungen</a>
-      <a href="/" class="nav-site"><svg class="icon"><use href="#icon-globe" xlink:href="#icon-globe"/></svg></a>
+      <a href="/" class="nav-site" aria-label="Website öffnen"><svg class="icon"><use href="#icon-globe" xlink:href="#icon-globe"/></svg></a>
       <a href="/logout" class="nav-logout" style="text-decoration: none;">Abmelden</a>
     </div>
   </nav>
-  <main class="admin-main">
+  <noscript><p class="script-fallback">Diese Funktion benötigt JavaScript. Für Hilfe und Terminabstimmung erreichst du die Praxis über <a href="/impressum">Telefon oder E-Mail</a>. <a href="/widerruf">Vertrag widerrufen</a> funktioniert auch ohne JavaScript.</p></noscript>
+  <main tabindex="-1" id="main-content" class="admin-main">
     <div class="admin-container">
       <div class="admin-header-row">
         <h1>FAQ verwalten</h1>
-        <button class="auth-btn" onclick="showFaqForm()">+ Neue Frage</button>
+        <button class="auth-btn" id="new-faq">+ Neue Frage</button>
       </div>
 
       <div id="faq-form-container" class="editor-form" style="display:none">
         <input type="hidden" id="faq-id">
         <div class="form-group">
-          <label>Frage</label>
+          <label for="faq-question">Frage</label>
           <input type="text" id="faq-question" placeholder="Die Frage...">
         </div>
         <div class="form-group">
-          <label>Antwort (mit Formatierung)</label>
-          <div id="faq-editor" class="rich-editor"></div>
+          <label for="faq-editor">Antwort (HTML-Formatierung)</label>
+          <textarea id="faq-editor" class="rich-editor" rows="8" aria-describedby="faq-editor-help"></textarea><small id="faq-editor-help">Erlaubt sind Absätze, Listen, Links und Hervorhebungen: p, br, strong, em, ul, ol, li, a. Aktive Inhalte werden serverseitig entfernt.</small>
         </div>
         <div class="form-row">
-          <div class="form-group"><label>Reihenfolge</label><input type="number" id="faq-order" value="0"></div>
+          <div class="form-group"><label for="faq-order">Reihenfolge</label><input type="number" id="faq-order" value="0"></div>
           <div class="form-group"><label class="checkbox-label"><input type="checkbox" id="faq-active" checked> Aktiv</label></div>
         </div>
         <div class="form-actions">
-          <button class="auth-btn" onclick="saveFaq()">Speichern</button>
-          <button class="btn-secondary-flat" onclick="hideFaqForm()">Abbrechen</button>
+          <button class="auth-btn" id="save-faq">Speichern</button>
+          <button class="btn-secondary-flat" id="cancel-faq">Abbrechen</button>
         </div>
       </div>
 
@@ -63,32 +65,22 @@
           </div>
           <div class="faq-admin-preview">{{ faq.answer_html | safe }}</div>
           <div class="faq-admin-actions">
-            <button onclick='editFaq({{ faq.id }}, `{{ faq.question }}`, `{{ faq.answer_html | escape }}`, {{ faq.sort_order }}, {{ faq.is_active }})' class="btn-small">Bearbeiten</button>
-            <button onclick="deleteFaq({{ faq.id }})" class="btn-small btn-danger">Löschen</button>
+            <button data-faq="{{ faq | json_encode }}" class="btn-small edit-faq">Bearbeiten</button>
+            <button data-faq-id="{{ faq.id }}" class="btn-small btn-danger delete-faq">Löschen</button>
           </div>
         </div>
         {% endfor %}
       </div>
     </div>
   </main>
-  <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
   <script>
-    let quill;
-    function initEditor() {
-      if (quill) return;
-      quill = new Quill('#faq-editor', {
-        theme: 'snow',
-        modules: { toolbar: [['bold', 'italic', 'underline', 'strike'], ['link'], [{ list: 'ordered' }, { list: 'bullet' }], ['clean']] }
-      });
-    }
     function showFaqForm() {
       document.getElementById('faq-form-container').style.display = 'block';
       document.getElementById('faq-id').value = '';
       document.getElementById('faq-question').value = '';
       document.getElementById('faq-order').value = '0';
       document.getElementById('faq-active').checked = true;
-      initEditor();
-      quill.root.innerHTML = '';
+      document.getElementById('faq-editor').value = '';
     }
     function hideFaqForm() { document.getElementById('faq-form-container').style.display = 'none'; }
     function editFaq(id, question, answerHtml, order, active) {
@@ -97,16 +89,15 @@
       document.getElementById('faq-question').value = question;
       document.getElementById('faq-order').value = order;
       document.getElementById('faq-active').checked = active;
-      // Decode HTML entities
-      const txt = document.createElement('textarea');
-      txt.innerHTML = answerHtml;
-      quill.root.innerHTML = txt.value;
+      // The model sanitizes HTML on write and read. Do not decode it again:
+      // encoded markup must remain text when the editor loads existing content.
+      document.getElementById('faq-editor').value = answerHtml;
     }
     async function saveFaq() {
       const id = document.getElementById('faq-id').value;
       const body = {
         question: document.getElementById('faq-question').value,
-        answer_html: quill.root.innerHTML,
+        answer_html: document.getElementById('faq-editor').value,
         sort_order: parseInt(document.getElementById('faq-order').value) || 0,
         is_active: document.getElementById('faq-active').checked,
       };
@@ -119,7 +110,22 @@
       await fetch(`/api/admin/faq/${id}`, { method: 'DELETE' });
       location.reload();
     }
+    document.getElementById('new-faq').addEventListener('click', showFaqForm);
+    document.getElementById('save-faq').addEventListener('click', saveFaq);
+    document.getElementById('cancel-faq').addEventListener('click', hideFaqForm);
+    document.querySelectorAll('.edit-faq').forEach(button => {
+      button.addEventListener('click', () => {
+        const faq = JSON.parse(button.dataset.faq);
+        editFaq(faq.id, faq.question, faq.answer_html, faq.sort_order, faq.is_active);
+      });
+    });
+    document.querySelectorAll('.delete-faq').forEach(button => {
+      button.addEventListener('click', () => deleteFaq(button.dataset.faqId));
+    });
   </script>
   <script src="/static/js/admin.js?v=6"></script>
+  {% include "_service_footer.html" %}
+  <script src="/static/js/accessibility.js" defer></script>
+  <script src="/static/js/main.js?v=3" defer></script>
 </body>
 </html>

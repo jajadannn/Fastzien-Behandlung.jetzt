@@ -21,6 +21,20 @@ fn escape_html(value: &str) -> String {
     value.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;").replace('\"', "&quot;")
 }
 
+fn appointment_duration_text(minutes: i64) -> String {
+    if minutes > 0 { format!("ca. {minutes} Minuten") } else { "Wie in deiner Buchung vereinbart".into() }
+}
+
+pub(crate) fn suggestion_rows(slots: &[String]) -> Result<String, &'static str> {
+    if slots.len() > 8 { return Err("Bitte höchstens acht alternative Termine angeben."); }
+    slots.iter().map(|slot| {
+        let parsed = ["%Y-%m-%dT%H:%M", "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M", "%Y-%m-%d %H:%M:%S"]
+            .iter().find_map(|format| chrono::NaiveDateTime::parse_from_str(slot,format).ok())
+            .ok_or("Bitte gültige Datums- und Uhrzeitangaben für die Vorschläge verwenden.")?;
+        Ok(format!("<p style='margin:8px 0;padding:10px 14px;background:#dff0f7;color:#1a2a33;font-size:15px;'>{} Uhr</p>", parsed.format("%d.%m.%Y %H:%M")))
+    }).collect::<Result<Vec<_>, _>>().map(|rows|rows.join(""))
+}
+
 fn shell(top: &str, bottom: &str, heading: &str, preheader: &str, body: &str) -> String {
     format!(
         r#"<div style="display:none;max-height:0;overflow:hidden;opacity:0;mso-hide:all;font-size:1px;line-height:1px;color:#f7fbfd;">{preheader}</div>
@@ -34,8 +48,8 @@ fn shell(top: &str, bottom: &str, heading: &str, preheader: &str, body: &str) ->
     </div>
     <div style="background-color:#ffffff; border-radius: 0 0 20px 20px; padding: 0 32px 30px;">
         <div style="border-top: 1px solid rgba(112,174,205,0.18); padding-top: 18px; text-align: center;">
-            <p style="color: #6a8fa0; font-size: 12px; margin: 0 0 4px; line-height: 1.6;">Faszienbehandlung Thilo Seifried &middot; Sulgauer Stra&szlig;e 24, 78713 Schramberg-Sulgen</p>
-            <p style="color: #6a8fa0; font-size: 12px; margin: 0; line-height: 1.6;">Tel. +49 152 34 00 72 25 &middot; termin@faszienbehandlung.jetzt</p>
+            <p style="color: #6a8fa0; font-size: 12px; margin: 0 0 4px; line-height: 1.6;">Faszienbehandlung Thilo Seifried</p>
+            <p style="color: #6a8fa0; font-size: 12px; margin: 0; line-height: 1.6;"><a href="https://faszienbehandlung.jetzt/impressum" style="color:#3d5a6b;text-decoration:underline;">Kontakt und aktuelle Anbieterangaben</a></p>
         </div>
     </div>
 </div>"#,
@@ -73,8 +87,39 @@ fn cta_button(url: &str, label: &str) -> String {
         r#"<div style="text-align: center; margin: 34px 0 8px;">
             <a href="{url}" style="display: inline-block; background-color: #964279; color: #ffffff; padding: 15px 40px; border-radius: 50px; text-decoration: none; font-weight: 600; font-size: 15px; letter-spacing: 0.01em;">{label}</a>
         </div>"#,
-        url = url, label = label
+        url = escape_html(url), label = escape_html(label)
     )
+}
+
+
+fn appointment_confirmation_html(name: &str, date: &str, time: &str, is_home_visit: bool, duration_min: i64) -> String {
+        let mut rows = String::new();
+        rows.push_str(&info_row("Datum", &escape_html(date)));
+        rows.push_str(&info_row("Uhrzeit", &escape_html(time)));
+        rows.push_str(&info_row("Dauer", &appointment_duration_text(duration_min)));
+        if is_home_visit {
+            rows.push_str(&info_row(
+                "Hinweis",
+                r#"<span style="color:#964279;font-weight:600;">Hausbesuch – es gelten die vereinbarten Konditionen deiner Buchung</span>"#,
+            ));
+        }
+        let preheader = format!("Dein Termin am {} um {} Uhr ist best\u{e4}tigt.", date, time);
+        let body = shell(
+            SKY_FROM, SKY_TO, "Termin bestätigt", &preheader,
+            &format!(
+                r#"<p style="color: #1a2a33; font-size: 16px; margin: 0 0 12px;">Hallo {},</p>
+                <p style="color: #3d5a6b; font-size: 15px; line-height: 1.7; margin: 0;">
+                    Dein Termin f&uuml;r die Gantke&reg; Faszienbehandlung wurde best&auml;tigt:
+                </p>
+                {}
+                <p style="color: #6a8fa0; font-size: 13px; margin: 0;">
+                    F&uuml;r Absagen und &Auml;nderungen erreichst du mich telefonisch oder per E-Mail. Mit einem eingerichteten Kundenkonto kannst du Termine auch im Portal verwalten.
+                </p>"#,
+                escape_html(name), info_card(&rows)
+            ),
+        );
+
+        body
 }
 
 #[derive(Clone)]
@@ -87,32 +132,17 @@ pub struct EmailService {
     from_name: String,
 }
 
-pub struct BookingDetails {
-    pub name: String,
-    pub date: String,
-    pub time: String,
-    pub location: String,
-    pub duration: i64,
-    pub cancellation_hours: i64,
-    pub amount: f64,
-    pub phone: String,
-    pub contact_email: String,
-}
-
 impl EmailService {
-    pub fn send_booking_confirmation(&self, to: &str, details: &BookingDetails) {
-        let rows = info_row("Datum", &escape_html(&details.date))
-            + &info_row("Uhrzeit", &escape_html(&details.time))
-            + &info_row("Ort", &escape_html(&details.location))
-            + &info_row("Dauer", &format!("ca. {} Minuten", details.duration))
-            + &info_row("Preis", &format!("{} €", format!("{:.2}", details.amount).replace('.', ",")));
-        let body = shell(SKY_FROM, SKY_TO, "Dein Termin ist gebucht", "Datum, Ort und Preis deiner bestätigten Buchung.",
-            &format!(r#"<p style="color:#1a2a33;font-size:16px;line-height:1.7;">Hallo {},</p>
-            <p style="color:#3d5a6b;font-size:15px;line-height:1.7;">dein Termin für die Gantke&reg; Faszienbehandlung ist verbindlich gebucht.</p>{}
-            <p style="color:#3d5a6b;font-size:15px;line-height:1.7;">Zahlung bar oder per Überweisung. Keine Erstattung durch Krankenkassen oder Versicherungen; du erhältst eine Rechnung.</p>
-            <p style="color:#3d5a6b;font-size:15px;line-height:1.7;">Für Änderungen oder eine Absage bis {} Stunden vor dem Termin erreichst du mich unter {} oder {}. Ein eingerichtetes Kundenkonto kannst du zusätzlich zur Terminverwaltung nutzen.</p>"#,
-            escape_html(&details.name), info_card(&rows), details.cancellation_hours, escape_html(&details.phone), escape_html(&details.contact_email)));
-        if let Err(error) = self.send_html(to, "", &format!("Terminbestätigung – {}", details.date), &body) { error!("Failed to send booking confirmation: {}", error); }
+    pub fn send_text(&self, recipient: &str, subject: &str, text: &str) -> Result<(), String> {
+        let message = Message::builder()
+            .from(Mailbox::new(Some(self.from_name.clone()), self.from_address.parse().map_err(|_| "Ungültiger Absender")?))
+            .to(recipient.parse().map_err(|_| "Ungültiger Empfänger")?)
+            .subject(subject).header(ContentType::TEXT_PLAIN).body(text.to_owned()).map_err(|_| "E-Mail konnte nicht erstellt werden")?;
+        let transport = SmtpTransport::relay(&self.smtp_host).map_err(|_| "SMTP-Verbindung fehlgeschlagen")?
+            .port(self.smtp_port).credentials(Credentials::new(self.smtp_user.clone(), self.smtp_pass.clone()))
+            .timeout(Some(std::time::Duration::from_secs(15))).build();
+        transport.send(&message).map_err(|_| "SMTP-Versand fehlgeschlagen")?;
+        Ok(())
     }
     pub fn send_guest_booking_link(&self, to_email: &str, name: &str, date: &str, time: &str, url: &str) -> Result<(), String> {
         let escape = |s: &str| s.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;").replace('"', "&quot;");
@@ -120,7 +150,7 @@ impl EmailService {
             &format!(r#"<p style="color:#1a2a33;font-size:16px;line-height:1.7;">Hallo {},</p>
             <p style="color:#3d5a6b;font-size:15px;line-height:1.7;">du möchtest am <strong>{} um {} Uhr</strong> eine Sitzung buchen. Öffne den folgenden Link und bestätige deine Buchung dort innerhalb von 30 Minuten.</p>
             <p style="color:#3d5a6b;font-size:15px;line-height:1.7;">Bis zur Bestätigung ist der Termin noch nicht reserviert. Es ist keine Registrierung erforderlich.</p>{}
-            <p style="color:#3d5a6b;font-size:13px;line-height:1.7;">Falls du keine Buchung angefragt hast, ignoriere diese E-Mail. Es wird dann kein Termin gebucht.</p>"#, escape(name), escape(date), escape(time), cta_button(&escape(url), "Buchung prüfen")));
+            <p style="color:#3d5a6b;font-size:13px;line-height:1.7;">Falls du keine Buchung angefragt hast, ignoriere diese E-Mail. Es wird dann kein Termin gebucht.</p>"#, escape(name), escape(date), escape(time), cta_button(url, "Buchung prüfen")));
         self.send_html(to_email, "", "Deinen Termin bei Thilo Seifried bestätigen", &body)
     }
     pub fn new(config: &Config) -> Self {
@@ -135,16 +165,8 @@ impl EmailService {
     }
 
     fn send_html(&self, to_email: &str, to_name: &str, subject: &str, html_body: &str) -> Result<(), String> {
-        let from_mailbox: Mailbox = format!("{} <{}>", self.from_name, self.from_address)
-            .parse()
-            .map_err(|e| format!("Invalid from address: {}", e))?;
-        let to_mailbox: Mailbox = if to_name.is_empty() {
-            to_email.parse().map_err(|e| format!("Invalid to address: {}", e))?
-        } else {
-            format!("{} <{}>", to_name, to_email)
-                .parse()
-                .map_err(|e| format!("Invalid to address: {}", e))?
-        };
+        let from_mailbox = Mailbox::new(Some(self.from_name.clone()),self.from_address.parse().map_err(|_| "Invalid from address")?);
+        let to_mailbox = Mailbox::new(if to_name.is_empty() { None } else { Some(to_name.to_owned()) },to_email.parse().map_err(|_| "Invalid to address")?);
 
         let email = Message::builder()
             .from(from_mailbox)
@@ -159,10 +181,11 @@ impl EmailService {
             .map_err(|e| format!("SMTP relay error: {}", e))?
             .port(self.smtp_port)
             .credentials(creds)
+            .timeout(Some(std::time::Duration::from_secs(15)))
             .build();
 
         mailer.send(&email).map_err(|e| format!("SMTP send error: {}", e))?;
-        info!("Email sent to {} - Subject: {}", to_email, subject);
+        info!("Transactional email sent");
         Ok(())
     }
 
@@ -191,33 +214,9 @@ impl EmailService {
         }
     }
 
-    pub fn send_appointment_confirmation(&self, to_email: &str, name: &str, date: &str, time: &str, is_home_visit: bool) {
-        let mut rows = String::new();
-        rows.push_str(&info_row("Datum", date));
-        rows.push_str(&info_row("Uhrzeit", time));
-        rows.push_str(&info_row("Dauer", "ca. 90 Minuten"));
-        if is_home_visit {
-            rows.push_str(&info_row(
-                "Hinweis",
-                r#"<span style="color:#964279;font-weight:600;">Hausbesuch &ndash; Fahrtpauschale: +15&nbsp;&euro;</span>"#,
-            ));
-        }
-        let subject = format!("Terminbest\u{e4}tigung \u{2013} {}", date);
-        let preheader = format!("Dein Termin am {} um {} Uhr ist best\u{e4}tigt.", date, time);
-        let body = shell(
-            SKY_FROM, SKY_TO, "Termin best\u{e4}tigt \u{2713}", &preheader,
-            &format!(
-                r#"<p style="color: #1a2a33; font-size: 16px; margin: 0 0 12px;">Hallo {},</p>
-                <p style="color: #3d5a6b; font-size: 15px; line-height: 1.7; margin: 0;">
-                    Dein Termin f&uuml;r die Gantke&reg; Faszienbehandlung wurde best&auml;tigt:
-                </p>
-                {}
-                <p style="color: #6a8fa0; font-size: 13px; margin: 0;">
-                    F&uuml;r Absagen und &Auml;nderungen erreichst du mich telefonisch oder per E-Mail. Mit einem eingerichteten Kundenkonto kannst du Termine auch im Portal verwalten.
-                </p>"#,
-                escape_html(name), info_card(&rows)
-            ),
-        );
+    pub fn send_appointment_confirmation(&self, to_email: &str, name: &str, date: &str, time: &str, is_home_visit: bool, duration_min: i64) {
+        let subject = format!("Terminbestätigung – {}", date);
+        let body = appointment_confirmation_html(name,date,time,is_home_visit,duration_min);
 
         if let Err(e) = self.send_html(to_email, name, &subject, &body) {
             error!("Failed to send appointment confirmation: {}", e);
@@ -235,7 +234,7 @@ impl EmailService {
                     Dein Termin am {} um {} wurde erfolgreich storniert.
                 </p>
                 {}"#,
-                name, date, time,
+                escape_html(name), escape_html(date), escape_html(time),
                 cta_button("https://faszienbehandlung.jetzt/portal/book", "Neuen Termin buchen")
             ),
         );
@@ -249,18 +248,18 @@ impl EmailService {
         let subject = format!("Wichtige Information zu deinem Termin am {}", date);
         let body = shell(
             PLUM_FROM, PLUM_TO, "Termin\u{e4}nderung n\u{f6}tig",
-            "Ich muss unseren Termin leider verschieben \u{2013} hier zwei Alternativen.",
+            "Ich muss unseren Termin leider verschieben \u{2013} hier alternative Vorschläge.",
             &format!(
                 r#"<p style="color: #1a2a33; font-size: 16px; margin: 0 0 12px;">Hallo {},</p>
                 <p style="color: #3d5a6b; font-size: 15px; line-height: 1.7; margin: 0 0 12px;">
                     Leider muss ich unseren Termin am <strong>{} um {}</strong> kurzfristig absagen.
                 </p>
                 <p style="color: #3d5a6b; font-size: 15px; line-height: 1.7; margin: 0;">
-                    Hier sind zwei alternative Termine, die f&uuml;r mich besser passen w&uuml;rden. Bitte lass mich wissen, ob einer davon f&uuml;r dich in Frage kommt, oder ob wir einen anderen Termin finden sollen:
+                    Hier sind alternative Terminvorschläge, die noch nicht reserviert sind. Bitte lass mich wissen, ob einer davon f&uuml;r dich in Frage kommt, oder ob wir einen anderen Termin finden sollen:
                 </p>
                 <div style="margin: 20px 0;">{}</div>
                 {}"#,
-                name, date, time, slots_html,
+                escape_html(name), escape_html(date), escape_html(time), slots_html,
                 cta_button("https://faszienbehandlung.jetzt/portal/book", "Alternativen Termin buchen")
             ),
         );
@@ -284,7 +283,7 @@ impl EmailService {
                 <p style="color: #6a8fa0; font-size: 13px; margin: 0;">
                     Falls du diese Anfrage nicht gestellt hast, ignoriere diese E-Mail.
                 </p>"#,
-                name, cta_button(reset_url, "Passwort zur\u{fc}cksetzen")
+                escape_html(name), cta_button(reset_url, "Passwort zur\u{fc}cksetzen")
             ),
         );
 
@@ -310,7 +309,7 @@ impl EmailService {
                 {}
                 <p style="color: #6a8fa0; font-size: 13px; text-align: center; line-height: 1.6; margin: 0;">
                     Falls du diese Registrierung nicht vorgenommen hast, ignoriere diese E-Mail.<br>
-                    Bei Fragen erreichst du uns unter +49 152 34 00 72 25
+                    Bei Fragen findest du die aktuellen Kontaktwege in unseren Anbieterangaben.
                 </p>"#,
                 cta_button(verify_url, "E-Mail-Adresse best\u{e4}tigen")
             ),
@@ -339,8 +338,8 @@ impl EmailService {
         rows.push_str(&info_row("Kunde", &escape_html(customer_name)));
         rows.push_str(&info_row("Telefon", &escape_html(customer_phone)));
         rows.push_str(&info_row("Adresse", &escape_html(customer_address)));
-        rows.push_str(&info_row("Datum", date_str));
-        rows.push_str(&info_row("Uhrzeit", time_str));
+        rows.push_str(&info_row("Datum", &escape_html(date_str)));
+        rows.push_str(&info_row("Uhrzeit", &escape_html(time_str)));
         rows.push_str(&info_row("Art", visit_label));
         if !notes.is_empty() {
             rows.push_str(&info_row("Notiz", &escape_html(notes)));
@@ -364,17 +363,17 @@ impl EmailService {
     }
 
     /// 24h reminder sent to customer before appointment.
-    pub fn send_appointment_reminder(&self, to_email: &str, name: &str, date: &str, time: &str, is_home_visit: bool) {
+    pub fn send_appointment_reminder(&self, to_email: &str, name: &str, date: &str, time: &str, is_home_visit: bool, duration_min: i64) {
         let location = if is_home_visit {
             "Hausbesuch \u{2013} Thilo kommt zu dir".to_string()
         } else {
-            "Praxis \u{b7} Sulgauer Stra\u{df}e 24, 78713 Schramberg-Sulgen".to_string()
+            "Praxis – die aktuelle Anschrift findest du in den Anbieterangaben".to_string()
         };
         let mut rows = String::new();
-        rows.push_str(&info_row("Datum", date));
-        rows.push_str(&info_row("Uhrzeit", time));
+        rows.push_str(&info_row("Datum", &escape_html(date)));
+        rows.push_str(&info_row("Uhrzeit", &escape_html(time)));
         rows.push_str(&info_row("Ort", &location));
-        rows.push_str(&info_row("Dauer", "ca. 90 Minuten"));
+        rows.push_str(&info_row("Dauer", &appointment_duration_text(duration_min)));
         let subject = format!("Erinnerung: Dein Termin morgen um {}", time);
         let preheader = format!("Dein Termin ist morgen um {} Uhr.", time);
         let body = shell(
@@ -386,9 +385,9 @@ impl EmailService {
                 </p>
                 {}
                 <p style="color: #6a8fa0; font-size: 13px; margin: 0;">
-                    Bitte trinke am Behandlungstag ausreichend Wasser (mind. 1,5 Liter) und trage bequeme Kleidung.
+                    Trage am Behandlungstag bitte bequeme Kleidung.
                 </p>"#,
-                name, info_card(&rows)
+                escape_html(name), info_card(&rows)
             ),
         );
 
@@ -412,7 +411,7 @@ impl EmailService {
                     Bitte schnell sein &ndash; Termine werden nach dem Erstgebucht-Prinzip vergeben:
                 </p>
                 {}"#,
-                name, date,
+                escape_html(name), escape_html(date),
                 cta_button("https://faszienbehandlung.jetzt/portal/book", "Jetzt Termin buchen")
             ),
         );
@@ -426,15 +425,15 @@ impl EmailService {
         let subject = "Terminvorschl\u{e4}ge \u{2013} Faszienbehandlung Thilo Seifried";
         let body = shell(
             SKY_FROM, SKY_TO, "Terminvorschl\u{e4}ge f\u{fc}r dich",
-            "Ich habe neue Terminvorschl\u{e4}ge f\u{fc}r dich reserviert.",
+            "Unverbindliche Terminvorschläge für dich – die Verfügbarkeit prüfst du im Kalender.",
             &format!(
                 r#"<p style="color: #1a2a33; font-size: 16px; margin: 0 0 12px;">Hallo {},</p>
                 <p style="color: #3d5a6b; font-size: 15px; line-height: 1.7; margin: 0;">
-                    Ich habe folgende Termine f&uuml;r dich reserviert. Bitte buche einen davon &uuml;ber dein Kundenportal:
+                    Die folgenden Termine schlage ich dir vor. Sie sind noch nicht reserviert. Prüfe die Verfügbarkeit im Kalender und buche einen passenden Termin über dein Kundenportal:
                 </p>
                 <div style="margin: 20px 0;">{}</div>
                 {}"#,
-                name, slots_html,
+                escape_html(name), slots_html,
                 cta_button("https://faszienbehandlung.jetzt/portal/book", "Termin buchen")
             ),
         );
@@ -442,5 +441,65 @@ impl EmailService {
         if let Err(e) = self.send_html(to_email, name, subject, &body) {
             error!("Failed to send appointment suggestion: {}", e);
         }
+    }
+}
+
+/// Queue with bounded batches and a lease, safe across server processes. SMTP is
+/// at-least-once: a crash after delivery can repeat a receipt, never a booking.
+pub fn enqueue_text(conn: &rusqlite::Connection, recipient: &str, subject: &str, body: &str) -> rusqlite::Result<()> {
+    conn.execute("INSERT INTO email_outbox(recipient,subject,body) VALUES(?1,?2,?3)", rusqlite::params![recipient,subject,body])?;
+    Ok(())
+}
+
+pub async fn dispatch_outbox(db: actix_web::web::Data<std::sync::Mutex<rusqlite::Connection>>, service: EmailService) {
+    let _ = tokio::task::spawn_blocking(move || {
+        for _ in 0..10 {
+            let queued = {
+                let conn = db.lock().unwrap_or_else(|e| e.into_inner());
+                let Ok(tx) = rusqlite::Transaction::new_unchecked(&conn,rusqlite::TransactionBehavior::Immediate) else { return; };
+                use rusqlite::OptionalExtension;
+                let row = tx.query_row("SELECT id,recipient,subject,body FROM email_outbox WHERE sent_at IS NULL AND (claimed_until IS NULL OR claimed_until < datetime('now')) ORDER BY id LIMIT 1",[],|r| Ok((r.get::<_,i64>(0)?,r.get::<_,String>(1)?,r.get::<_,String>(2)?,r.get::<_,String>(3)?))).optional();
+                let Ok(Some(row)) = row else { return; };
+                if tx.execute("UPDATE email_outbox SET claimed_until=datetime('now','+5 minutes'),attempts=attempts+1 WHERE id=?1",[row.0]).is_err() || tx.commit().is_err() { return; }
+                row
+            };
+            let sent = service.send_text(&queued.1,&queued.2,&queued.3).is_ok();
+            let conn = db.lock().unwrap_or_else(|e| e.into_inner());
+            if sent {
+                let _ = conn.execute("UPDATE email_outbox SET sent_at=datetime('now'),recipient='',subject='',body='',claimed_until=NULL WHERE id=?1",[queued.0]);
+            } else { error!("Outbox delivery failed for message {} (retry queued)",queued.0); }
+        }
+    }).await;
+}
+
+#[cfg(test)]
+mod notice_tests {
+    use super::*;
+
+    #[test]
+    fn rendered_confirmation_uses_actual_duration_and_escapes_contact_data() {
+        let name = "Änne <img src=x onerror=alert(1)> & Familie";
+        let date = "09.10.2026 <script>alert(2)</script>";
+        let html = appointment_confirmation_html(name,date,"16:30",true,45);
+        assert!(html.contains("ca. 45 Minuten"));
+        assert!(html.contains("&lt;img src=x onerror=alert(1)&gt;"));
+        assert!(html.contains("&lt;script&gt;alert(2)&lt;/script&gt;"));
+        assert!(!html.contains("<img src=x") && !html.contains("<script>"));
+        assert!(!html.contains("90 Minuten") && !html.contains("+15"));
+        assert!(!appointment_confirmation_html("Test","09.10.2026","16:30",false,0).contains("ca. 0"));
+        let button = cta_button("https://example.test/?a=1&next=\" onmouseover=\"alert(3)","<b>Prüfen</b>");
+        assert!(button.contains("&quot;"));
+        assert!(!button.contains("href=\"https://example.test/?a=1&next=\""));
+        assert!(button.contains("&lt;b&gt;Prüfen&lt;/b&gt;"));
+    }
+
+    #[test]
+    fn suggestion_input_is_a_bounded_datetime_list_not_html() {
+        let rows = suggestion_rows(&["2026-11-02T16:30".into(),"2026-11-03 17:00:00".into()]).unwrap();
+        assert!(rows.contains("02.11.2026 16:30 Uhr"));
+        assert!(suggestion_rows(&["<img src=x onerror=alert(1)>".into()]).is_err());
+        assert!(suggestion_rows(&["2026-02-30T16:00".into()]).is_err());
+        assert!(suggestion_rows(&vec!["2026-11-02T16:30".into();9]).is_err());
+        assert_eq!(suggestion_rows(&[]).unwrap(),"");
     }
 }

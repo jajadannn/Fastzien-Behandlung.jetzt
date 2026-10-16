@@ -20,8 +20,10 @@ db = sqlite3.connect(args.database)
 prefix = 'marketing-smoke-' + uuid.uuid4().hex[:8]
 
 def call(path, data=None, form=False):
+    if path == '/api/guest-booking/confirm' and data is not None:
+        data = dict(data, expected_total=195, expected_duration=90, early_start_requested="true")
     body = None if data is None else (urllib.parse.urlencode(data).encode() if form else json.dumps(data).encode())
-    request = urllib.request.Request(args.base_url + path, data=body, headers={'Content-Type': 'application/x-www-form-urlencoded' if form else 'application/json'})
+    request = urllib.request.Request(args.base_url + path, data=body, headers={'Origin': args.base_url, 'Content-Type': 'application/x-www-form-urlencoded' if form else 'application/json'})
     try:
         response = urllib.request.urlopen(request, timeout=15)
     except urllib.error.HTTPError as e:

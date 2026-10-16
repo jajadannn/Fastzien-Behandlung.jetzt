@@ -14,12 +14,12 @@ pub async fn index(
     db: web::Data<Mutex<Connection>>,
     jwt_secret: web::Data<String>,
 ) -> HttpResponse {
+    let claims = auth::get_claims(&req, &jwt_secret);
     let conn = db.lock().unwrap_or_else(|e| e.into_inner());
-    let settings = SiteSetting::get_all(&conn).unwrap_or_default();
+    let settings = SiteSetting::get_public(&conn).unwrap_or_default();
     let faqs = Faq::find_active(&conn).unwrap_or_default();
     let reviews = Review::find_active(&conn).unwrap_or_default();
 
-    let claims = auth::get_claims(&req, &jwt_secret);
     let is_logged_in = claims.is_some();
     let is_admin = claims.as_ref().map(|c| c.is_admin).unwrap_or(false);
 
@@ -62,36 +62,36 @@ pub async fn index(
         Ok(body) => HttpResponse::Ok().content_type("text/html; charset=utf-8").body(body),
         Err(e) => {
             log::error!("Template error: {:#}", e);
-            HttpResponse::InternalServerError().body(format!("Template error: {}", e))
+            HttpResponse::InternalServerError().body("Die Seite ist vorübergehend nicht verfügbar.")
         }
     }
 }
 
-pub async fn datenschutz(tmpl: web::Data<Tera>) -> HttpResponse {
-    let ctx = tera::Context::new();
-    match tmpl.render("datenschutz.html", &ctx) {
+pub async fn datenschutz(tmpl: web::Data<Tera>, db: web::Data<Mutex<Connection>>, config: web::Data<crate::config::Config>) -> HttpResponse {
+    let conn = db.lock().unwrap_or_else(|e| e.into_inner());
+    let mut ctx = tera::Context::new();
+    ctx.insert("settings", &SiteSetting::get_public(&conn).unwrap_or_default());
+    ctx.insert("session_hours", &config.jwt_expiry_hours);
+    render_information(&tmpl, "datenschutz.html", &ctx)
+}
+
+pub async fn impressum(tmpl: web::Data<Tera>, db: web::Data<Mutex<Connection>>) -> HttpResponse {
+    let conn = db.lock().unwrap_or_else(|e| e.into_inner());
+    let mut ctx = tera::Context::new();
+    ctx.insert("settings", &SiteSetting::get_public(&conn).unwrap_or_default());
+    render_information(&tmpl, "impressum.html", &ctx)
+}
+
+fn render_information(tmpl: &Tera, name: &str, ctx: &tera::Context) -> HttpResponse {
+    match tmpl.render(name, ctx) {
         Ok(body) => HttpResponse::Ok().content_type("text/html; charset=utf-8").body(body),
-        Err(_) => {
-            // Fallback: serve the original file
-            match std::fs::read_to_string("datenschutz.html") {
-                Ok(content) => HttpResponse::Ok().content_type("text/html; charset=utf-8").body(content),
-                Err(_) => HttpResponse::NotFound().body("Seite nicht gefunden"),
-            }
-        }
+        Err(_) => HttpResponse::InternalServerError().body("Die Seite ist vorübergehend nicht erreichbar."),
     }
 }
 
-pub async fn impressum(tmpl: web::Data<Tera>) -> HttpResponse {
-    let ctx = tera::Context::new();
-    match tmpl.render("impressum.html", &ctx) {
-        Ok(body) => HttpResponse::Ok().content_type("text/html; charset=utf-8").body(body),
-        Err(_) => {
-            match std::fs::read_to_string("impressum.html") {
-                Ok(content) => HttpResponse::Ok().content_type("text/html; charset=utf-8").body(content),
-                Err(_) => HttpResponse::NotFound().body("Seite nicht gefunden"),
-            }
-        }
-    }
+pub async fn not_found(tmpl: web::Data<Tera>) -> HttpResponse {
+    HttpResponse::NotFound().content_type("text/html; charset=utf-8")
+        .body(tmpl.render("404.html", &tera::Context::new()).unwrap_or_else(|_| "Seite nicht gefunden. Zur Startseite: /".into()))
 }
 
 fn script_json(value: &serde_json::Value) -> String {
@@ -113,12 +113,12 @@ pub async fn topic(req: HttpRequest, tmpl: web::Data<Tera>, db: web::Data<Mutex<
     }
 }
 
-pub async fn public_asset(path: web::Path<String>) -> actix_web::Result<actix_files::NamedFile> {
+pub async fn public_asset(path: web::Path<String>, tmpl: web::Data<Tera>) -> actix_web::Result<actix_web::Either<actix_files::NamedFile, HttpResponse>> {
     let name = path.into_inner();
     if !["Logo.png","Logo.avif","Portrait.jpg","Start.avif","og-hero.jpg","favicon.v1.ico","favicon.ico","robots.txt","sitemap.xml"].contains(&name.as_str()) {
-        return Err(actix_web::error::ErrorNotFound("Datei nicht gefunden"));
+        return Ok(actix_web::Either::Right(not_found(tmpl).await));
     }
-    Ok(actix_files::NamedFile::open_async(name).await?)
+    Ok(actix_web::Either::Left(actix_files::NamedFile::open_async(name).await?))
 }
 
 #[cfg(test)]

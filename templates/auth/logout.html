@@ -2,13 +2,14 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
+  <meta name="robots" content="noindex, nofollow">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Abgemeldet – Faszienbehandlung Thilo Seifried</title>
   <link rel="icon" href="/favicon.v1.ico">
   <link rel="preload" href="/fonts/cormorant-garamond-normal-latin.v1.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/fonts/dm-sans-latin.v1.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/static/css/main.css?v=3">
-  <link rel="stylesheet" href="/static/css/auth.css?v=1">
+  <link rel="stylesheet" href="/static/css/main.css?v=4">
+  <link rel="stylesheet" href="/static/css/auth.css?v=2">
   <style>
     .logout-icon {
       margin-bottom: 16px;
@@ -23,19 +24,31 @@
   </style>
 </head>
 <body class="auth-body">
+  <nav class="skip-navigation" aria-label="Seiteneinstieg"><a class="skip-link" href="#main-content">Zum Inhalt</a></nav>
+
   {% include "_icon_sprite.html" %}
-  <div class="auth-container">
+  <main tabindex="-1" id="main-content" class="auth-container">
     <div class="auth-card">
       <div class="logout-icon"><svg class="icon"><use href="#icon-verified" xlink:href="#icon-verified"/></svg></div>
+      {% if logout_confirmation %}
+      <h1>Aus dem Konto abmelden?</h1>
+      <p class="auth-subtitle">Die Sitzung auf diesem Gerät wird beendet.</p>
+      <form method="post" action="/logout"><button class="auth-btn" type="submit">Jetzt abmelden</button></form>
+      <a href="/portal">Zurück zum Portal</a>
+      {% else %}
       <h1>Erfolgreich abgemeldet</h1>
       <p class="auth-subtitle">Du hast dich sicher aus deinem Konto abgemeldet. Bis zum nächsten Mal!</p>
-      
+
       <a href="/login" class="auth-btn" style="text-decoration: none;">
         <span>Zurück zur Anmeldung</span>
       </a>
 
       <a href="/" class="auth-back">← Zur Startseite</a>
+      {% endif %}
     </div>
-  </div>
+  </main>
+  {% include "_service_footer.html" %}
+  <script src="/static/js/accessibility.js" defer></script>
+  <script src="/static/js/main.js?v=3" defer></script>
 </body>
 </html>

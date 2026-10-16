@@ -15,6 +15,8 @@ fn escape_ical(s: &str) -> String {
     s.replace('\\', "\\\\")
      .replace(';', "\\;")
      .replace(',', "\\,")
+     .replace("\r\n", "\n")
+     .replace('\r', "\n")
      .replace('\n', "\\n")
 }
 
@@ -68,7 +70,7 @@ pub async fn customer_calendar_ics(
     let conn = db.lock().unwrap_or_else(|e| e.into_inner());
 
     let customer = match Customer::find_by_calendar_token(&conn, &token) {
-        Ok(Some(c)) => c,
+        Ok(Some(c)) if c.email_verified => c,
         _ => return HttpResponse::NotFound().body("Kalender nicht gefunden"),
     };
 
@@ -93,7 +95,7 @@ pub async fn customer_calendar_ics(
             let mut desc_parts = Vec::new();
             if !a.notes.is_empty() { desc_parts.push(format!("Notiz: {}", a.notes)); }
             if !customer.phone.is_empty() { desc_parts.push(format!("Telefon: {}", customer.phone)); }
-            let description = desc_parts.join("\\n");
+            let description = desc_parts.join("\n");
             let location = if a.is_home_visit {
                 let addr = customer.full_address();
                 format!("Hausbesuch: {}", if addr.is_empty() { "Adresse nicht hinterlegt".to_string() } else { addr })
@@ -108,6 +110,7 @@ pub async fn customer_calendar_ics(
 
     HttpResponse::Ok()
         .content_type("text/calendar; charset=utf-8")
+        .insert_header(("Cache-Control", "private, no-store"))
         .insert_header(("Content-Disposition", "inline; filename=\"termine.ics\""))
         .body(cal)
 }
@@ -151,7 +154,7 @@ pub async fn admin_calendar_ics(
             let mut desc_parts = Vec::new();
             if !a.notes.is_empty() { desc_parts.push(format!("Notiz: {}", a.notes)); }
             if let Some(email) = &a.customer_email { desc_parts.push(format!("E-Mail: {}", email)); }
-            let description = desc_parts.join("\\n");
+            let description = desc_parts.join("\n");
             let location = if a.is_home_visit {
                 // We need customer address – load on demand from customer_id
                 format!("Hausbesuch (Kunde-ID: {})", a.customer_id)
@@ -166,6 +169,47 @@ pub async fn admin_calendar_ics(
 
     HttpResponse::Ok()
         .content_type("text/calendar; charset=utf-8")
+        .insert_header(("Cache-Control", "private, no-store"))
         .insert_header(("Content-Disposition", "inline; filename=\"alle-termine.ics\""))
         .body(cal)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[actix_web::test]
+    async fn verification_replaces_an_unverified_calendar_link_before_private_data_is_available() {
+        let conn = crate::db::test_connection();
+        conn.execute("INSERT INTO customers(email,password_hash,calendar_token) VALUES('calendar@example.test','test','before-proof')",[]).unwrap();
+        let id = conn.last_insert_rowid();
+        Appointment::create(&conn,id,"2030-01-07 16:00:00","2030-01-07 17:30:00","single",false,"").unwrap();
+        let db = web::Data::new(Mutex::new(conn));
+        assert_eq!(customer_calendar_ics(web::Path::from("before-proof".to_owned()),db.clone()).await.status(),actix_web::http::StatusCode::NOT_FOUND);
+        let verified_token = {
+            let conn = db.lock().unwrap();
+            Customer::mark_email_verified(&conn,id).unwrap();
+            Customer::find_by_id(&conn,id).unwrap().unwrap().calendar_token.unwrap()
+        };
+        assert_ne!(verified_token,"before-proof");
+        assert_eq!(customer_calendar_ics(web::Path::from("before-proof".to_owned()),db.clone()).await.status(),actix_web::http::StatusCode::NOT_FOUND);
+        assert_eq!(customer_calendar_ics(web::Path::from(verified_token.clone()),db.clone()).await.status(),actix_web::http::StatusCode::OK);
+        {
+            let conn = db.lock().unwrap();
+            Customer::mark_email_verified(&conn,id).unwrap();
+            assert_eq!(Customer::find_by_id(&conn,id).unwrap().unwrap().calendar_token.as_deref(),Some(verified_token.as_str()));
+            Customer::update_email(&conn,id,"new-calendar@example.test").unwrap();
+        }
+        assert_eq!(customer_calendar_ics(web::Path::from(verified_token.clone()),db.clone()).await.status(),actix_web::http::StatusCode::NOT_FOUND);
+        let conn = db.lock().unwrap();
+        Customer::mark_email_verified(&conn,id).unwrap();
+        assert_ne!(Customer::find_by_id(&conn,id).unwrap().unwrap().calendar_token.as_deref(),Some(verified_token.as_str()));
+    }
+
+    #[test]
+    fn calendar_text_cannot_inject_properties_or_events() {
+        let escaped = escape_ical("name\rATTENDEE:attacker@example.com\r\nBEGIN:VEVENT\nEND:VEVENT");
+        assert!(!escaped.contains(['\r', '\n']));
+        assert_eq!(escaped, "name\\nATTENDEE:attacker@example.com\\nBEGIN:VEVENT\\nEND:VEVENT");
+        assert_eq!(escape_ical("one\ntwo"), "one\\ntwo");
+    }
 }

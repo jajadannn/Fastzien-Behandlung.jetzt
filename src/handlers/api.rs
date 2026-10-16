@@ -4,6 +4,14 @@ use std::sync::Mutex;
 
 use crate::models::settings::SiteSetting;
 
+pub(crate) fn internal_error(operation: &'static str) -> HttpResponse {
+    // Keep SQL, template context, tokens and personal data out of responses/logs.
+    log::error!("Request failed during {}", operation);
+    HttpResponse::InternalServerError().json(serde_json::json!({
+        "error": "Die Anfrage konnte gerade nicht verarbeitet werden. Bitte versuche es später erneut."
+    }))
+}
+
 pub async fn get_settings(
     db: web::Data<Mutex<Connection>>,
 ) -> HttpResponse {

@@ -13,7 +13,7 @@
 
   <link rel="preload" href="/fonts/cormorant-garamond-normal-latin.v1.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/fonts/dm-sans-latin.v1.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/static/css/main.css?v=3">
+  <link rel="stylesheet" href="/static/css/main.css?v=4">
 
   <style>
     .back-link{display:inline-flex;align-items:center;gap:8px;color:rgba(255,255,255,0.85);text-decoration:none;font-size:.86rem;padding:5px 14px;border-radius:50px;transition:all .2s;border:1px solid rgba(255,255,255,0.3)}
@@ -42,6 +42,8 @@
   </style>
 </head>
 <body>
+  <nav class="skip-navigation" aria-label="Seiteneinstieg"><a class="skip-link" href="#main-content">Zum Inhalt</a></nav>
+
 
   <nav class="topbar" aria-label="Hauptnavigation">
     <a class="topbar-logo" href="/">
@@ -55,7 +57,7 @@
     <a class="back-link" href="/">← Zurück zur Startseite</a>
   </nav>
 
-  <main id="main-content">
+  <main tabindex="-1" id="main-content">
   <div class="page-hero">
     <h1>Impressum</h1>
     <p>Angaben gemäß § 5 DDG</p>
@@ -69,8 +71,8 @@
       <address>
         <strong>Thilo Seifried</strong><br>
         Gantke® Faszienbehandlung<br>
-        Sulgauer Straße 24<br>
-        78713 Schramberg-Sulgen<br>
+        {{ settings.address_street | default(value="Sulgauer Straße 24") }}<br>
+        {{ settings.address_zip | default(value="78713") }} {{ settings.address_city | default(value="Schramberg-Sulgen") }}<br>
         Deutschland
       </address>
     </div>
@@ -79,8 +81,8 @@
     <div class="imp-section">
       <h2>Kontakt</h2>
       <p>
-        Telefon: <a href="tel:+4915234007225">+49 152 34 00 72 25</a><br>
-        E-Mail: <a href="mailto:termin&#64;faszienbehandlung.jetzt" aria-label="E-Mail an termin@faszienbehandlung.jetzt">termin&#64;faszienbehandlung.jetzt</a><br>
+        Telefon: <a href="tel:{{ settings.phone_raw | default(value='+4915234007225') }}">{{ settings.phone | default(value="+49 152 34 00 72 25") }}</a><br>
+        E-Mail: <a href="mailto:{{ settings.email_contact | default(value='termin@faszienbehandlung.jetzt') }}">{{ settings.email_contact | default(value='termin@faszienbehandlung.jetzt') }}</a><br>
         Website: <a href="https://faszienbehandlung.jetzt">faszienbehandlung.jetzt</a>
       </p>
     </div>
@@ -88,14 +90,16 @@
     <!-- BERUFSBEZEICHNUNG -->
     <div class="imp-section">
       <h2>Berufsbezeichnung & Zulassung</h2>
-      <p>Thilo Seifried ist zertifizierter Gantke® Faszienbehandler. Die Tätigkeit wird als freiberufliche Dienstleistung im Bereich Gesundheitsförderung und Körperarbeit ausgeübt.</p>
+      <p>Thilo Seifried ist zertifizierter Gantke® Faszienbehandler. Die Tätigkeit wird als Dienstleistung im Bereich Wellness und Körperarbeit ausgeübt.</p>
       <p>Die Gantke® Faszienbehandlung ist keine Heilkunde im Sinne des Heilpraktikergesetzes und ersetzt keine ärztliche Diagnose oder Behandlung.</p>
     </div>
 
     <!-- UMSATZSTEUER -->
     <div class="imp-section">
-      <h2>Umsatzsteuer-ID</h2>
+      <h2>Steuerliche Angaben</h2>
       <p>Gemäß § 19 UStG wird keine Umsatzsteuer berechnet (Kleinunternehmerregelung).</p>
+      {% if settings.vat_id %}<p>Umsatzsteuer-Identifikationsnummer gemäß § 27a UStG: {{ settings.vat_id }}</p>{% endif %}
+      {% if settings.business_id %}<p>Wirtschafts-Identifikationsnummer: {{ settings.business_id }}</p>{% endif %}
     </div>
 
     <!-- STREITSCHLICHTUNG -->
@@ -136,7 +140,7 @@
 
   <footer class="footer">
     <p>
-      © 2025 Thilo Seifried · Gantke® Faszienbehandler · Sulgen
+      © 2026 Thilo Seifried · Gantke® Faszienbehandler · Sulgen
       &nbsp;·
       <a href="/">Startseite</a>
       &nbsp;&middot;&nbsp;
@@ -146,5 +150,8 @@
     </p>
   </footer>
 
+  {% include "_service_footer.html" %}
+  <script src="/static/js/accessibility.js" defer></script>
+  <script src="/static/js/main.js?v=3" defer></script>
 </body>
 </html>

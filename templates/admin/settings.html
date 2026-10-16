@@ -5,10 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Einstellungen – Admin</title>
   <link rel="icon" href="/favicon.v1.ico">
-  <link rel="stylesheet" href="/static/css/main.css?v=3">
+  <link rel="stylesheet" href="/static/css/main.css?v=4">
   <link rel="stylesheet" href="/static/css/admin.css?v=1">
 </head>
 <body>
+  <nav class="skip-navigation" aria-label="Seiteneinstieg"><a class="skip-link" href="#main-content">Zum Inhalt</a></nav>
+
   {% include "_icon_sprite.html" %}
   <nav class="admin-nav">
     <a href="/" class="admin-logo"><picture><source srcset="/Logo.avif" type="image/avif"><img src="/static/images/logo-240.png" alt="" height="30"></picture><span>Admin</span></a>
@@ -20,55 +22,61 @@
       <a href="/admin/stats">Statistiken</a>
       <a href="/admin/faq">FAQ</a>
       <a href="/admin/reviews">Bewertungen</a>
-      <a href="/admin/settings" class="active">Einstellungen</a>
-      <a href="/" class="nav-site"><svg class="icon"><use href="#icon-globe" xlink:href="#icon-globe"/></svg></a>
+      <a href="/admin/settings" class="active" aria-current="page">Einstellungen</a>
+      <a href="/" class="nav-site" aria-label="Website öffnen"><svg class="icon"><use href="#icon-globe" xlink:href="#icon-globe"/></svg></a>
       <a href="/logout" class="nav-logout" style="text-decoration: none;">Abmelden</a>
     </div>
   </nav>
-  <main class="admin-main">
+  <noscript><p class="script-fallback">Diese Funktion benötigt JavaScript. Für Hilfe und Terminabstimmung erreichst du die Praxis über <a href="/impressum">Telefon oder E-Mail</a>. <a href="/widerruf">Vertrag widerrufen</a> funktioniert auch ohne JavaScript.</p></noscript>
+  <main tabindex="-1" id="main-content" class="admin-main">
     <div class="admin-container portal-narrow">
       <h1>Website-Einstellungen</h1>
       <p class="admin-subtitle">Diese Werte werden dynamisch auf der Website angezeigt.</p>
 
-      <div id="msg" class="portal-success" style="display:none"></div>
+      <div id="msg" class="portal-success" style="display:none" role="alert"></div>
 
       <form id="settings-form" class="portal-form">
         <h2>Preise</h2>
         <div class="form-row">
-          <div class="form-group"><label>Einzelbehandlung (€)</label><input type="text" name="price_single" value="{{ settings.price_single | default(value='195') }}"></div>
-          <div class="form-group"><label>10er-Karte pro Sitzung (€)</label><input type="text" name="price_pack" value="{{ settings.price_pack | default(value='169,90') }}"></div>
+          <div class="form-group"><label for="field-price_single">Einzelbehandlung (€)</label><input id="field-price_single" type="text" name="price_single" value="{{ settings.price_single | default(value='195') }}"></div>
+          <div class="form-group"><label for="field-price_pack">10er-Karte pro Sitzung (€)</label><input id="field-price_pack" type="text" name="price_pack" value="{{ settings.price_pack | default(value='169,90') }}"></div>
         </div>
         <div class="form-row">
-          <div class="form-group"><label>Anzahl Sitzungen im Paket</label><input type="text" name="price_pack_count" value="{{ settings.price_pack_count | default(value='10') }}"></div>
-          <div class="form-group"><label>Fahrtpauschale Hausbesuch (€)</label><input type="text" name="home_visit_surcharge" value="{{ settings.home_visit_surcharge | default(value='15') }}"></div>
+          <div class="form-group"><label for="field-price_pack_count">Anzahl Sitzungen im Paket</label><input id="field-price_pack_count" type="text" name="price_pack_count" value="{{ settings.price_pack_count | default(value='10') }}"></div>
+          <div class="form-group"><label for="field-home_visit_surcharge">Fahrtpauschale Hausbesuch (€)</label><input id="field-home_visit_surcharge" type="text" name="home_visit_surcharge" value="{{ settings.home_visit_surcharge | default(value='15') }}"></div>
         </div>
 
         <h2>Öffnungszeiten</h2>
-        <div class="form-group"><label>Wochentags</label><input type="text" name="hours_weekday" value="{{ settings.hours_weekday | default(value='Mo–Fr: 16:00–22:00 Uhr') }}"></div>
-        <div class="form-group"><label>Samstag</label><input type="text" name="hours_saturday" value="{{ settings.hours_saturday | default(value='Sa: 9:00–19:00 Uhr') }}"></div>
-        <div class="form-group"><label>Zeile (Fusszeile)</label><input type="text" name="hours_stripe" value="{{ settings.hours_stripe | default(value='Mo–Fr 16:00–22:00 Uhr · Sa 9:00–19:00 Uhr') }}"></div>
-        <div class="form-group"><label>Kurzform</label><input type="text" name="hours_stripe_short" value="{{ settings.hours_stripe_short | default(value='Mo–Fr 16–22 Uhr · Sa 9–19 Uhr') }}"></div>
-        <div class="form-group"><label>Terminlänge (Minuten)</label><input type="text" name="appointment_duration_min" value="{{ settings.appointment_duration_min | default(value='90') }}"></div>
+        <div class="form-group"><label for="field-hours_weekday">Wochentags</label><input id="field-hours_weekday" type="text" name="hours_weekday" value="{{ settings.hours_weekday | default(value='Mo–Fr: 16:00–22:00 Uhr') }}"></div>
+        <div class="form-group"><label for="field-hours_saturday">Samstag</label><input id="field-hours_saturday" type="text" name="hours_saturday" value="{{ settings.hours_saturday | default(value='Sa: 9:00–19:00 Uhr') }}"></div>
+        <div class="form-group"><label for="field-hours_stripe">Zeile (Fusszeile)</label><input id="field-hours_stripe" type="text" name="hours_stripe" value="{{ settings.hours_stripe | default(value='Mo–Fr 16:00–22:00 Uhr · Sa 9:00–19:00 Uhr') }}"></div>
+        <div class="form-group"><label for="field-hours_stripe_short">Kurzform</label><input id="field-hours_stripe_short" type="text" name="hours_stripe_short" value="{{ settings.hours_stripe_short | default(value='Mo–Fr 16–22 Uhr · Sa 9–19 Uhr') }}"></div>
+        <div class="form-group"><label for="field-appointment_duration_min">Terminlänge (Minuten)</label><input id="field-appointment_duration_min" type="text" name="appointment_duration_min" value="{{ settings.appointment_duration_min | default(value='90') }}"></div>
         <div class="form-group">
-          <label>Pause zwischen Terminen (Minuten) <small style="color:var(--text-light); font-weight:400">– 0 = kein Puffer</small></label>
-          <input type="text" name="appointment_break_min" value="{{ settings.appointment_break_min | default(value='0') }}">
+          <label for="field-appointment_break_min">Pause zwischen Terminen (Minuten) <small style="color:var(--text-light); font-weight:400">– 0 = kein Puffer</small></label>
+          <input id="field-appointment_break_min" type="text" name="appointment_break_min" value="{{ settings.appointment_break_min | default(value='0') }}">
         </div>
 
         <h2>Kontakt</h2>
-        <div class="form-group"><label>Telefon (Anzeige)</label><input type="text" name="phone" value="{{ settings.phone | default(value='+49 152 34 00 72 25') }}"></div>
-        <div class="form-group"><label>Telefon (Link, ohne Leerzeichen)</label><input type="text" name="phone_raw" value="{{ settings.phone_raw | default(value='+4915234007225') }}"></div>
-        <div class="form-group"><label>E-Mail</label><input type="text" name="email_contact" value="{{ settings.email_contact | default(value='termin@faszienbehandlung.jetzt') }}"></div>
+        <div class="form-group"><label for="field-phone">Telefon (Anzeige)</label><input id="field-phone" type="text" name="phone" value="{{ settings.phone | default(value='+49 152 34 00 72 25') }}"></div>
+        <div class="form-group"><label for="field-phone_raw">Telefon (Link, ohne Leerzeichen)</label><input id="field-phone_raw" type="text" name="phone_raw" value="{{ settings.phone_raw | default(value='+4915234007225') }}"></div>
+        <div class="form-group"><label for="field-email_contact">E-Mail</label><input id="field-email_contact" type="text" name="email_contact" value="{{ settings.email_contact | default(value='termin@faszienbehandlung.jetzt') }}"></div>
 
         <div class="form-group"><label for="google-reviews-url">Link zu echten Google-Bewertungen (optional)</label><input type="url" id="google-reviews-url" name="google_reviews_url" value="{{ settings.google_reviews_url | default(value='') }}" placeholder="https://..."><small>Den tatsächlichen Link aus deinem Google-Unternehmensprofil eintragen. Ohne Link wird keine Google-Bewertung angezeigt.</small></div>
+        <h2>Rechtliche Angaben</h2>
+        <div class="form-group"><label for="vat-id">Umsatzsteuer-Identifikationsnummer</label><input id="vat-id" name="vat_id" value="{{ settings.vat_id | default(value='') }}" pattern="DE[0-9]{9}" placeholder="DE…" aria-describedby="vat-help"><small id="vat-help">Du hast eine USt-ID angegeben. Trage sie hier vor Veröffentlichung ein; sie erscheint automatisch im Impressum. Keine persönliche Steuernummer eintragen.</small></div>
+        <div class="form-group"><label for="business-id">Wirtschafts-Identifikationsnummer (falls vorhanden)</label><input id="business-id" name="business_id" value="{{ settings.business_id | default(value='') }}" maxlength="30"></div>
+        <div class="form-group"><label for="smtp-provider">E-Mail-Dienstleister</label><input id="smtp-provider" name="smtp_provider" value="{{ settings.smtp_provider | default(value='mail.de GmbH') }}"><small>Den tatsächlich eingesetzten Dienstleister einschließlich Unternehmensname eintragen. Vertrags- und Standortprüfung separat dokumentieren.</small></div>
+        <div class="form-group"><label for="calendar-operator">Betreiber der Nextcloud-Installation</label><input id="calendar-operator" name="calendar_operator" value="{{ settings.calendar_operator | default(value='Thilo Seifried') }}"><small>Bei einem Dienstleister den tatsächlichen Empfänger eintragen und Datenschutzunterlagen prüfen.</small></div>
         <h2>Adresse</h2>
-        <div class="form-group"><label>Straße</label><input type="text" name="address_street" value="{{ settings.address_street | default(value='Sulgauer Straße 24') }}"></div>
+        <div class="form-group"><label for="field-address_street">Straße</label><input id="field-address_street" type="text" name="address_street" value="{{ settings.address_street | default(value='Sulgauer Straße 24') }}"></div>
         <div class="form-row">
-          <div class="form-group"><label>PLZ</label><input type="text" name="address_zip" value="{{ settings.address_zip | default(value='78713') }}"></div>
-          <div class="form-group"><label>Ort</label><input type="text" name="address_city" value="{{ settings.address_city | default(value='Schramberg-Sulgen') }}"></div>
+          <div class="form-group"><label for="field-address_zip">PLZ</label><input id="field-address_zip" type="text" name="address_zip" value="{{ settings.address_zip | default(value='78713') }}"></div>
+          <div class="form-group"><label for="field-address_city">Ort</label><input id="field-address_city" type="text" name="address_city" value="{{ settings.address_city | default(value='Schramberg-Sulgen') }}"></div>
         </div>
 
         <h2>Stornierung</h2>
-        <div class="form-group"><label>Stornierungsfrist (Stunden)</label><input type="text" name="cancellation_hours" value="{{ settings.cancellation_hours | default(value='24') }}"></div>
+        <div class="form-group"><label for="field-cancellation_hours">Stornierungsfrist (Stunden)</label><input id="field-cancellation_hours" type="text" name="cancellation_hours" value="{{ settings.cancellation_hours | default(value='24') }}"></div>
 
         <h2>Nextcloud Kalender-Verbindung</h2>
 
@@ -84,8 +92,8 @@
 
         {% if settings.nextcloud_all_calendar_urls %}
         <div class="form-group">
-          <label>Primärer Kalender <small style="color:var(--text-light); font-weight:400">– neue Buchungen werden hier eingetragen</small></label>
-          <select name="nextcloud_primary_calendar_url" style="width:100%; padding:10px 14px; border:1.5px solid #dde3ed; border-radius:10px; font-family:inherit; font-size:.95rem; background:#fff;">
+          <label for="field-nextcloud_primary_calendar_url">Primärer Kalender <small style="color:var(--text-light); font-weight:400">– neue Buchungen werden hier eingetragen</small></label>
+          <select id="field-nextcloud_primary_calendar_url" name="nextcloud_primary_calendar_url" style="width:100%; padding:10px 14px; border:1.5px solid #dde3ed; border-radius:10px; font-family:inherit; font-size:.95rem; background:#fff;">
             {% for url in settings.nextcloud_all_calendar_urls | split(pat=",") %}
             {% set url = url | trim %}
             <option value="{{ url }}" {% if url == settings.nextcloud_primary_calendar_url %}selected{% endif %}>
@@ -97,7 +105,7 @@
         {% endif %}
 
         <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-top:8px;">
-          <button type="button" onclick="location.href='/admin/nextcloud/disconnect'"
+          <button type="button" onclick="disconnectNextcloud()"
             style="display:inline-flex; align-items:center; gap:8px; padding:9px 20px; background:#ef4444; color:#fff; border:none; border-radius:50px; font-family:inherit; font-size:.9rem; font-weight:600; cursor:pointer;">
             <svg class="icon" style="width:16px;height:16px"><use href="#icon-plug" xlink:href="#icon-plug"/></svg> Verbindung trennen
           </button>
@@ -110,22 +118,22 @@
           Als Redirect-URI eintragen: <code>https://faszienbehandlung.jetzt/admin/nextcloud/callback</code>
         </p>
         <div class="form-group">
-          <label>Nextcloud-URL</label>
-          <input type="text" name="nextcloud_base_url" value="{{ settings.nextcloud_base_url | default(value='') }}" placeholder="https://cloud.example.com">
+          <label for="field-nextcloud_base_url">Nextcloud-URL</label>
+          <input id="field-nextcloud_base_url" type="text" name="nextcloud_base_url" value="{{ settings.nextcloud_base_url | default(value='') }}" placeholder="https://cloud.example.com">
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label>Client&nbsp;ID</label>
-            <input type="text" name="nextcloud_oauth_client_id" value="{{ settings.nextcloud_oauth_client_id | default(value='') }}" autocomplete="off">
+            <label for="field-nextcloud_oauth_client_id">Client&nbsp;ID</label>
+            <input id="field-nextcloud_oauth_client_id" type="text" name="nextcloud_oauth_client_id" value="{{ settings.nextcloud_oauth_client_id | default(value='') }}" autocomplete="off">
           </div>
           <div class="form-group">
-            <label>Client&nbsp;Secret</label>
-            <input type="password" name="nextcloud_oauth_client_secret" value="{{ settings.nextcloud_oauth_client_secret | default(value='') }}" autocomplete="new-password">
+            <label for="field-nextcloud_oauth_client_secret">Client&nbsp;Secret</label>
+            <input id="field-nextcloud_oauth_client_secret" type="password" name="nextcloud_oauth_client_secret" value="{{ settings.nextcloud_oauth_client_secret | default(value='') }}" autocomplete="new-password">
           </div>
         </div>
         <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
           <button type="button" onclick="connectNextcloud()"
-            style="display:inline-flex; align-items:center; gap:8px; padding:10px 22px; background:var(--sky); color:#fff; border:none; border-radius:50px; font-family:inherit; font-size:.9rem; font-weight:600; cursor:pointer; transition:background .2s;">
+            style="display:inline-flex; align-items:center; gap:8px; padding:10px 22px; background:var(--sky-dark); color:#fff; border:none; border-radius:50px; font-family:inherit; font-size:.9rem; font-weight:600; cursor:pointer; transition:background .2s;">
             <svg class="icon" style="width:16px;height:16px"><use href="#icon-link" xlink:href="#icon-link"/></svg> Mit Nextcloud verbinden
           </button>
           <span id="connect-hint" style="font-size:.85rem; color:var(--text-light);">Einstellungen zuerst speichern, dann verbinden.</span>
@@ -137,10 +145,10 @@
             <p style="font-size:12px; color:var(--text-light);">
               Wenn OAuth2 nicht verfügbar ist, kann auch eine direkte CalDAV-URL mit App-Passwort verwendet werden.
             </p>
-            <div class="form-group"><label>CalDAV-URL</label><input type="text" name="nextcloud_caldav_url" value="{{ settings.nextcloud_caldav_url | default(value='') }}" placeholder="https://cloud.example.com/remote.php/dav/calendars/…"></div>
+            <div class="form-group"><label for="field-nextcloud_caldav_url">CalDAV-URL</label><input id="field-nextcloud_caldav_url" type="text" name="nextcloud_caldav_url" value="{{ settings.nextcloud_caldav_url | default(value='') }}" placeholder="https://cloud.example.com/remote.php/dav/calendars/…"></div>
             <div class="form-row">
-              <div class="form-group"><label>Benutzername</label><input type="text" name="nextcloud_caldav_username" value="{{ settings.nextcloud_caldav_username | default(value='') }}" autocomplete="off"></div>
-              <div class="form-group"><label>App-Passwort</label><input type="password" name="nextcloud_caldav_password" value="{{ settings.nextcloud_caldav_password | default(value='') }}" autocomplete="new-password"></div>
+              <div class="form-group"><label for="field-nextcloud_caldav_username">Benutzername</label><input id="field-nextcloud_caldav_username" type="text" name="nextcloud_caldav_username" value="{{ settings.nextcloud_caldav_username | default(value='') }}" autocomplete="off"></div>
+              <div class="form-group"><label for="field-nextcloud_caldav_password">App-Passwort</label><input id="field-nextcloud_caldav_password" type="password" name="nextcloud_caldav_password" value="{{ settings.nextcloud_caldav_password | default(value='') }}" autocomplete="new-password"></div>
             </div>
             <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
               <button type="button" id="test-caldav-btn" onclick="testCaldav()" style="padding:9px 20px; background:#64748b; color:#fff; border:none; border-radius:50px; font-family:inherit; font-size:.9rem; font-weight:600; cursor:pointer;">
@@ -157,6 +165,11 @@
     </div>
   </main>
   <script>
+    async function disconnectNextcloud() {
+      const response = await fetch('/admin/nextcloud/disconnect', {method: 'POST'});
+      if (response.ok) location.href = '/admin/settings';
+      else alert('Die Verbindung konnte nicht getrennt werden. Bitte lade die Seite erneut.');
+    }
     // Show success/error banners from URL params
     (() => {
       const p = new URLSearchParams(location.search);
@@ -226,5 +239,8 @@
     }
   </script>
   <script src="/static/js/admin.js?v=6"></script>
+  {% include "_service_footer.html" %}
+  <script src="/static/js/accessibility.js" defer></script>
+  <script src="/static/js/main.js?v=3" defer></script>
 </body>
 </html>

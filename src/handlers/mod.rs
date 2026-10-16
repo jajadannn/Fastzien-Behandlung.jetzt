@@ -7,3 +7,4 @@ pub mod calendar_handler;
 pub mod oauth_handler;
 pub mod api;
 pub mod guest_booking;
+pub mod legal;

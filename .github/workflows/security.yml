@@ -1,0 +1,57 @@
+name: Rust checks and security audit
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '18 4 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Test (${{ matrix.os }})
+    if: github.event_name != 'schedule'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Install stable Rust and Clippy
+        run: rustup toolchain install stable --profile minimal --component clippy
+      - name: Test locked dependencies
+        run: cargo +stable test --locked
+      - name: Clippy
+        run: cargo +stable clippy --locked --all-targets
+      - name: Build application for local smoke checks
+        run: cargo +stable build --locked
+      - name: Verify server security and booking flows on a disposable database
+        run: python scripts/verify_security.py
+      - name: Verify consumer withdrawal and privacy flows on a separate disposable database
+        run: python scripts/verify_security.py --compliance
+
+  audit:
+    name: Audit all locked dependencies
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Install stable Rust
+        run: rustup toolchain install stable --profile minimal
+      - name: Install cargo-audit
+        run: cargo +stable install cargo-audit --locked --version 0.22.2
+      - name: Check current RustSec database, including informational warnings
+        run: cargo +stable audit --deny warnings
