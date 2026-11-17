@@ -444,6 +444,7 @@ pub async fn api_save_settings(
     form: web::Json<std::collections::HashMap<String, String>>,
     db: web::Data<Mutex<Connection>>,
     jwt_secret: web::Data<String>,
+    config: web::Data<crate::config::Config>,
 ) -> HttpResponse {
     if let Err(r) = require_admin(&req, &jwt_secret) { return r; }
 
@@ -458,6 +459,10 @@ pub async fn api_save_settings(
         }
     }
     if tx.commit().is_err() { return HttpResponse::InternalServerError().finish(); }
+    // Prices, hours and location appear on every public page.
+    if let Ok(key) = crate::indexnow::ensure_key(&conn) {
+        crate::indexnow::submit_in_background(config.base_url.clone(), key, "Einstellungen gespeichert", false);
+    }
     HttpResponse::Ok().json(serde_json::json!({"success": true}))
 }
 

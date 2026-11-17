@@ -6,6 +6,7 @@ mod caldav;
 mod models;
 mod handlers;
 mod marketing;
+mod indexnow;
 mod security;
 
 use actix_web::{web, App, HttpServer, middleware::from_fn};
@@ -27,6 +28,7 @@ async fn main() -> std::io::Result<()> {
     // Initialize database
     let conn = db::initialize(&config.database_url, &config.admin_email, &config.admin_password)
         .expect("Failed to initialize database");
+    let indexnow_key = indexnow::ensure_key(&conn).map_err(|_| log::warn!("IndexNow: key could not be stored")).ok();
     let db_data = web::Data::new(Mutex::new(conn));
 
     // Initialize templates
@@ -52,6 +54,9 @@ async fn main() -> std::io::Result<()> {
     let jwt_secret = web::Data::new(config.jwt_secret.clone());
     let config_data = web::Data::new(config.clone());
     let auth_limiter = web::Data::new(security::AuthLimiter::default());
+
+    // A deploy may change every public page; let IndexNow search engines know.
+    if let Some(key) = indexnow_key { indexnow::submit_in_background(config.base_url.clone(), key, "Serverstart", true); }
 
     // Persisted confirmations survive SMTP outages and process restarts.
     {

@@ -132,8 +132,12 @@ pub async fn topic(req: HttpRequest, tmpl: web::Data<Tera>, db: web::Data<Mutex<
     }
 }
 
-pub async fn public_asset(path: web::Path<String>, tmpl: web::Data<Tera>) -> actix_web::Result<actix_web::Either<actix_files::NamedFile, HttpResponse>> {
+pub async fn public_asset(path: web::Path<String>, tmpl: web::Data<Tera>, db: web::Data<Mutex<Connection>>) -> actix_web::Result<actix_web::Either<actix_files::NamedFile, HttpResponse>> {
     let name = path.into_inner();
+    let indexnow_key = { let conn = db.lock().unwrap_or_else(|e| e.into_inner()); crate::indexnow::key_file(&conn, &name) };
+    if let Some(key) = indexnow_key {
+        return Ok(actix_web::Either::Right(HttpResponse::Ok().content_type("text/plain; charset=utf-8").body(key)));
+    }
     if !["Logo.png","Logo.avif","Portrait.jpg","Start.avif","og-hero.jpg","favicon.v1.ico","favicon.ico","robots.txt","sitemap.xml"].contains(&name.as_str()) {
         return Ok(actix_web::Either::Right(not_found(tmpl).await));
     }

@@ -21,6 +21,7 @@ impl SiteSetting {
             "geo_lat" => value.is_empty() || value.replace(',', ".").parse::<f64>().is_ok_and(|n| (-90.0..=90.0).contains(&n)),
             "geo_lng" => value.is_empty() || value.replace(',', ".").parse::<f64>().is_ok_and(|n| (-180.0..=180.0).contains(&n)),
             "geo_region" => value.is_empty() || (value.len() <= 6 && value.as_bytes().get(2) == Some(&b'-') && value.bytes().enumerate().all(|(i, b)| i == 2 || b.is_ascii_uppercase() || b.is_ascii_digit())),
+            "indexnow_key" => crate::indexnow::valid_key(value),
             "location_short" | "address_region" | "location_note" | "service_area" | "travel_times" => value.chars().count() <= 200 && !value.chars().any(char::is_control),
             _ => true,
         }
