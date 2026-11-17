@@ -45,7 +45,7 @@ pub async fn index(
     let schema = serde_json::json!({
         "@context":"https://schema.org", "@type":"HealthAndBeautyBusiness", "name":"Faszienbehandlung Thilo Seifried – Gantke® Methode", "url":"https://faszienbehandlung.jetzt/",
         "image":"https://faszienbehandlung.jetzt/static/images/portrait-960.webp", "description":"Persönliche Gantke® Faszienbehandlung als Wellness- und Körperarbeitsleistung für Beweglichkeit, Entspannung und Wohlbefinden.",
-        "address":{"@type":"PostalAddress","streetAddress":get("address_street","Sulgauer Straße 24"),"postalCode":get("address_zip","78713"),"addressLocality":get("address_city","Schramberg-Sulgen"),"addressRegion":get("address_region",""),"addressCountry":"DE"},
+        "address":{"@type":"PostalAddress","streetAddress":get("address_street","Im Kapellenösch 9"),"postalCode":get("address_zip","78628"),"addressLocality":get("address_city","Rottweil"),"addressRegion":get("address_region",""),"addressCountry":"DE"},
         "telephone":get("phone_raw","+4915234007225"),"email":get("email_contact","termin@faszienbehandlung.jetzt"),
         "hasOfferCatalog":{"@type":"OfferCatalog","name":"Gantke® Faszienbehandlung","itemListElement":[{"@type":"Offer","price":get("price_single","195").replace(',',"."),"priceCurrency":"EUR","itemOffered":{"@type":"Service","name":format!("Gantke® Einzelbehandlung (ca. {} Min.)",get("appointment_duration_min","90"))}}]}
     });

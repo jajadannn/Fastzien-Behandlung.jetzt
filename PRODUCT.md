@@ -8,7 +8,7 @@ web
 
 ## Users
 
-Primary users are German-speaking adults (informal "du" address) in Schramberg-Sulgen and the surrounding region who feel tense and want to take time for mobility, relaxation, posture awareness, and wellbeing. They include people with desk-based or physical jobs and active adults. This is a self-pay wellness and bodywork service, not medical care. People with symptoms of disease must seek medical assessment before booking.
+Primary users are German-speaking adults (informal "du" address) in Rottweil and the surrounding region who feel tense and want to take time for mobility, relaxation, posture awareness, and wellbeing. They include people with desk-based or physical jobs and active adults. This is a self-pay wellness and bodywork service, not medical care. People with symptoms of disease must seek medical assessment before booking.
 
 A second user role is the practitioner himself (Thilo Seifried) acting as admin: managing customers, appointments, payments, waitlist, site content (FAQ/reviews/settings), and calendar sync from an admin dashboard.
 
@@ -22,7 +22,7 @@ Personal, certified Gantke® fascia and bodywork delivered by Thilo Seifried, wi
 
 ## Operating Context
 
-- Sessions are ~90 minutes, either in-practice (Sulgauer Straße 24, 78713 Schramberg-Sulgen) or as a home visit (+15 € travel surcharge) within the region.
+- Sessions are ~90 minutes, either in-practice (Im Kapellenösch 9, 78628 Rottweil; moved from Schramberg-Sulgen in November 2026) or as a home visit (+15 € travel surcharge) in the Landkreis Rottweil, Landkreis Tuttlingen and Schwarzwald-Baar-Kreis. All location facts (address, place names, home-visit area, coordinates) are admin settings, not hardcoded copy.
 - Opening hours: Mo–Fr 16:00–22:00, Sa 9:00–19:00 (configurable in admin settings).
 - Pricing: single session (~195 €) or a 10-session credit pack (~169,90 €/session); both configurable in admin settings, not hardcoded truths.
 - No reimbursement by health insurers or other insurers. A receipt/invoice is provided. Payment is cash or bank transfer.

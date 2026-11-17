@@ -7,7 +7,7 @@ pub const FAQS: &[(i32, &str, &str)] = &[
     (4, "Was sollte ich vor der Behandlung beachten?", "Komme in bequemer Kleidung, zum Beispiel einer lockeren Hose und einem T-Shirt. Wenn du gesundheitliche Fragen hast, kläre sie vorab mit deinem Arzt und sprich mich vor der Sitzung darauf an."),
     (5, "Wie viele Termine sind sinnvoll?", "Das besprechen wir individuell. Du kannst zunächst eine einzelne Sitzung buchen und danach in Ruhe entscheiden, ob du weitere Termine möchtest. Eine feste Anzahl oder ein bestimmtes Ergebnis wird nicht versprochen."),
     (6, "Übernehmen Krankenkassen oder Versicherungen die Kosten?", "Die Behandlung ist eine Wellness- und Gesundheitsförderungsleistung und wird von Krankenkassen und Versicherungen nicht erstattet. Du erhältst selbstverständlich eine Rechnung für deine Unterlagen."),
-    (7, "Wo findet die Behandlung statt?", "In der Praxis in Schramberg-Sulgen. Die aktuelle Adresse, Öffnungszeiten und die Route findest du im Abschnitt Anfahrt. Kostenlose Parkplätze befinden sich direkt vor dem Haus. Hausbesuche im bisherigen Einzugsgebiet sind gegen die unter Preise genannte Fahrtpauschale möglich."),
+    (7, "Wo findet die Behandlung statt?", "In der Praxis in Rottweil. Die aktuelle Adresse, Öffnungszeiten und die Route findest du im Abschnitt Anfahrt. Kostenlose Parkplätze befinden sich direkt vor dem Haus. Hausbesuche im Landkreis Rottweil, im Landkreis Tuttlingen und im Schwarzwald-Baar-Kreis sind gegen die unter Preise genannte Fahrtpauschale möglich."),
     (8, "Was unterscheidet die Methode von klassischer Massage?", "Anders als eine auf einzelne Muskelbereiche ausgerichtete Massage arbeitet die Gantke® Methode mit dem gesamten Fasziennetz. Daraus folgt kein Versprechen einer besseren oder länger anhaltenden Wirkung."),
     (9, "Brauche ich ein Konto oder ein Rezept?", "Für die Online-Buchung brauchst du kein Konto und kein Rezept. Wähle einen Termin, gib deine Kontaktdaten an und bestätige die Buchung über die E-Mail. Erst danach ist der Termin verbindlich gebucht. Ein bestehendes Guthaben kannst du im Kundenportal nutzen."),
     (10, "Ist das Vorgespräch ein eigener kostenloser Termin?", "Nein. Das persönliche Vorgespräch ist Teil der gebuchten Sitzung und im angegebenen Behandlungspreis enthalten. Bei Fragen vor der Buchung erreichst du mich telefonisch oder per E-Mail."),
@@ -43,7 +43,7 @@ pub const TOPICS: &[(&str, &str, &str, &[(&str, &str)])] = &[
 
 /// Topic texts use `{ort}` for the practice location so a move only needs the admin settings.
 pub fn localize(text: &str, settings: &std::collections::HashMap<String, String>) -> String {
-    let city = settings.get("address_city").map(|v| v.trim()).filter(|v| !v.is_empty()).unwrap_or("Schramberg-Sulgen");
+    let city = settings.get("address_city").map(|v| v.trim()).filter(|v| !v.is_empty()).unwrap_or("Rottweil");
     text.replace("{ort}", city)
 }
 
@@ -70,8 +70,59 @@ pub fn migrate_content(conn: &Connection) -> Result<()> {
     tx.commit()
 }
 
+const OLD_FAQ_LOCATION: &str = "In der Praxis in Schramberg-Sulgen. Die aktuelle Adresse, Öffnungszeiten und die Route findest du im Abschnitt Anfahrt. Kostenlose Parkplätze befinden sich direkt vor dem Haus. Hausbesuche im bisherigen Einzugsgebiet sind gegen die unter Preise genannte Fahrtpauschale möglich.";
+
+/// Moves the practice from Schramberg-Sulgen to Rottweil (November 2026).
+/// Only values that still hold the old shipped defaults are changed, so later admin edits survive.
+pub fn migrate_location_rottweil(conn: &Connection) -> Result<()> {
+    conn.execute_batch("CREATE TABLE IF NOT EXISTS content_migrations (name TEXT PRIMARY KEY); CREATE TABLE IF NOT EXISTS marketing_content_backup (kind TEXT NOT NULL, record_id INTEGER NOT NULL, content TEXT NOT NULL, PRIMARY KEY(kind, record_id));")?;
+    let done: bool = conn.query_row("SELECT EXISTS(SELECT 1 FROM content_migrations WHERE name='location-rottweil-2026-11')", [], |r| r.get(0))?;
+    if done { return Ok(()); }
+    let tx = conn.unchecked_transaction()?;
+    let changes: &[(&str, &[&str], &str)] = &[
+        ("address_street", &["Sulgauer Straße 24"], "Im Kapellenösch 9"),
+        ("address_zip", &["78713"], "78628"),
+        ("address_city", &["Schramberg-Sulgen"], "Rottweil"),
+        ("location_short", &["Sulgen"], "Rottweil"),
+        ("location_note", &["zentral zwischen Schramberg und Rottweil"], ""),
+        ("service_area", &["Sulgen, Dunningen, Schramberg, Villingendorf"], "Landkreis Rottweil, Landkreis Tuttlingen, Schwarzwald-Baar-Kreis"),
+        ("travel_times", &["Dunningen ca. 3 Min. · Schramberg ca. 8 Min. · Rottweil ca. 15 Min."], ""),
+        ("geo_lat", &["48.2157"], ""),
+        ("geo_lng", &["8.5033"], ""),
+    ];
+    for (key, old_values, new_value) in changes {
+        for old in old_values.iter() {
+            tx.execute("UPDATE site_settings SET setting_value=?1 WHERE setting_key=?2 AND setting_value=?3", params![new_value, key, old])?;
+        }
+    }
+    tx.execute("INSERT OR IGNORE INTO marketing_content_backup SELECT 'faq-location-2026-11', id, answer_html FROM faqs WHERE answer_html=?1", params![OLD_FAQ_LOCATION])?;
+    tx.execute("UPDATE faqs SET answer_html=?1, updated_at=datetime('now') WHERE answer_html=?2", params![FAQS[6].2, OLD_FAQ_LOCATION])?;
+    tx.execute("INSERT INTO content_migrations(name) VALUES('location-rottweil-2026-11')", [])?;
+    tx.commit()
+}
+
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn rottweil_move_updates_only_untouched_defaults_once() {
+        let conn = Connection::open_in_memory().unwrap();
+        conn.execute_batch("CREATE TABLE faqs(id INTEGER PRIMARY KEY, question TEXT, answer_html TEXT, sort_order INTEGER, updated_at TEXT); CREATE TABLE site_settings(setting_key TEXT PRIMARY KEY, setting_value TEXT);").unwrap();
+        conn.execute("INSERT INTO faqs VALUES(1,'Wo findet die Behandlung statt?',?1,7,'')", params![OLD_FAQ_LOCATION]).unwrap();
+        conn.execute_batch("INSERT INTO faqs VALUES(2,'Eigene Frage','Praxis in Sulgen',8,''); INSERT INTO site_settings VALUES('address_street','Sulgauer Straße 24'),('address_zip','78713'),('address_city','Schramberg-Sulgen'),('geo_lat','48.2157'),('service_area','Eigene Orte');").unwrap();
+        migrate_location_rottweil(&conn).unwrap();
+        conn.execute("UPDATE site_settings SET setting_value='Admin-Wert' WHERE setting_key='address_street'", []).unwrap();
+        migrate_location_rottweil(&conn).unwrap();
+        let get = |k: &str| -> String { conn.query_row("SELECT setting_value FROM site_settings WHERE setting_key=?1", [k], |r| r.get(0)).unwrap() };
+        assert_eq!((get("address_street"), get("address_zip"), get("address_city"), get("geo_lat")), ("Admin-Wert".into(), "78628".into(), "Rottweil".into(), String::new()));
+        assert_eq!(get("service_area"), "Eigene Orte");
+        let faq: String = conn.query_row("SELECT answer_html FROM faqs WHERE id=1", [], |r| r.get(0)).unwrap();
+        assert!(faq.starts_with("In der Praxis in Rottweil"));
+        let custom: String = conn.query_row("SELECT answer_html FROM faqs WHERE id=2", [], |r| r.get(0)).unwrap();
+        assert_eq!(custom, "Praxis in Sulgen");
+        let backup: String = conn.query_row("SELECT content FROM marketing_content_backup WHERE kind='faq-location-2026-11'", [], |r| r.get(0)).unwrap();
+        assert_eq!(backup, OLD_FAQ_LOCATION);
+    }
+
     use super::*;
     #[test]
     fn migration_preserves_quotes_and_custom_faqs_and_is_idempotent() {

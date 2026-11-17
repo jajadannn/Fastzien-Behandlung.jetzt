@@ -18,6 +18,7 @@ pub fn initialize(db_path: &str, admin_email: &str, admin_password: &str) -> Res
     seed_settings(&conn)?;
     seed_faqs(&conn)?;
     crate::marketing::migrate_content(&conn)?;
+    crate::marketing::migrate_location_rottweil(&conn)?;
     seed_admin(&conn, admin_email, admin_password)?;
 
     info!("Database initialized at {}", db_path);
@@ -241,17 +242,17 @@ fn seed_settings(conn: &Connection) -> Result<()> {
         ("phone", "+49 152 34 00 72 25"),
         ("phone_raw", "+4915234007225"),
         ("email_contact", "termin@faszienbehandlung.jetzt"),
-        ("address_street", "Sulgauer Straße 24"),
-        ("address_zip", "78713"),
-        ("address_city", "Schramberg-Sulgen"),
+        ("address_street", "Im Kapellenösch 9"),
+        ("address_zip", "78628"),
+        ("address_city", "Rottweil"),
         ("address_region", "Baden-Württemberg"),
-        ("location_short", "Sulgen"),
-        ("location_note", "zentral zwischen Schramberg und Rottweil"),
-        ("service_area", "Sulgen, Dunningen, Schramberg, Villingendorf"),
-        ("travel_times", "Dunningen ca. 3 Min. · Schramberg ca. 8 Min. · Rottweil ca. 15 Min."),
+        ("location_short", "Rottweil"),
+        ("location_note", ""),
+        ("service_area", "Landkreis Rottweil, Landkreis Tuttlingen, Schwarzwald-Baar-Kreis"),
+        ("travel_times", ""),
         ("geo_region", "DE-BW"),
-        ("geo_lat", "48.2157"),
-        ("geo_lng", "8.5033"),
+        ("geo_lat", ""),
+        ("geo_lng", ""),
         ("cancellation_hours", "24"),
         ("google_reviews_url", ""),
         ("nextcloud_caldav_url", ""),

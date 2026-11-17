@@ -534,9 +534,9 @@ pub async fn api_invoice(
 
     let settings = SiteSetting::get_all(&conn);
     let settings = settings.unwrap_or_default();
-    let address_street = settings.get("address_street").map(|s| s.as_str()).unwrap_or("Sulgauer Straße 24");
-    let address_zip = settings.get("address_zip").map(|s| s.as_str()).unwrap_or("78713");
-    let address_city = settings.get("address_city").map(|s| s.as_str()).unwrap_or("Schramberg-Sulgen");
+    let address_street = settings.get("address_street").map(|s| s.as_str()).unwrap_or("Im Kapellenösch 9");
+    let address_zip = settings.get("address_zip").map(|s| s.as_str()).unwrap_or("78628");
+    let address_city = settings.get("address_city").map(|s| s.as_str()).unwrap_or("Rottweil");
     let phone = settings.get("phone").map(|s| s.as_str()).unwrap_or("+49 152 34 00 72 25");
 
     let appointment_info = payment.appointment_id

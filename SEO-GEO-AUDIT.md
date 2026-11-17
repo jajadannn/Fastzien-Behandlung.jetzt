@@ -2,6 +2,8 @@
 
 Stand: 17. November 2026. Grundlage: Skills `seo-audit`, `schema` und `ai-seo` (coreyhaines31/marketingskills), Quellcode im Branch `Rust` und die Live-Seite am selben Tag. Ohne Zugang zu Search Console, Google-Unternehmensprofil oder Rankingdaten. Aussagen zu Rankings und KI-Zitaten sind deshalb Hypothesen, keine Messwerte.
 
+> **Nachtrag November 2026:** Die Praxis ist nach Im Kapellenösch 9, 78628 Rottweil umgezogen. Alle Ortsangaben kommen inzwischen aus den Admin-Einstellungen; ortsbezogene Beispiele unten (Sulgen, Schramberg, Dunningen) beziehen sich auf den alten Standort. Die Prüfanfragen für die KI-Sichtbarkeit sind auf Rottweil aktualisiert.
+
 Geschäftsmodell laut `PRODUCT.md`: lokale Einzelpraxis mit Hausbesuchen (Ladengeschäft und Einzugsgebiet), Selbstzahler-Wellnessleistung, keine Heilkunde.
 
 ## Zusammenfassung
@@ -92,12 +94,12 @@ Suche und Zitate sind erlaubt, Trainingscrawler werden von Cloudflare blockiert.
 
 Diese Anfragen je 3–5 Mal in ChatGPT, Perplexity und Google prüfen und notieren, ob die Praxis genannt wird und welche Quelle zitiert ist:
 
-- „Faszienbehandlung Schramberg“
-- „Gantke Faszienbehandlung in der Nähe von Rottweil“
+- „Faszienbehandlung Rottweil“
+- „Gantke Faszienbehandlung in der Nähe von Tuttlingen“
 - „Was kostet eine Gantke Faszienbehandlung?“
-- „Faszienbehandlung Sulgen Abendtermin“
+- „Faszienbehandlung Rottweil Abendtermin“
 - „Was ist die Gantke Methode?“
-- „Wer bietet Faszienbehandlung mit Hausbesuch in Dunningen an?“
+- „Wer bietet Faszienbehandlung mit Hausbesuch im Schwarzwald-Baar-Kreis an?“
 
 Ergebnisse als Quote festhalten (z. B. „genannt 2/5“), nicht als einzelnen Lauf.
 

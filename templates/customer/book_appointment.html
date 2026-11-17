@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="/static/css/main.css?v=4">
   <link rel="stylesheet" href="/static/css/customer.css?v=4">
 </head>
-<body data-practice-address="{{ settings.address_street | default(value='Sulgauer Straße 24') }}, {{ settings.address_zip | default(value='78713') }} {{ settings.address_city | default(value='Schramberg-Sulgen') }}" data-home-address="{{ customer_address | default(value='') }}" data-session-price="{{ session_price }}" data-duration="{{ settings.appointment_duration_min | default(value='90') }}" data-surcharge="{{ settings.home_visit_surcharge | default(value='15') }}" data-credits="{{ remaining_credits }}" data-guest-booking="{% if is_guest %}true{% else %}false{% endif %}">
+<body data-practice-address="{{ settings.address_street | default(value='Im Kapellenösch 9') }}, {{ settings.address_zip | default(value='78628') }} {{ settings.address_city | default(value='Rottweil') }}" data-home-address="{{ customer_address | default(value='') }}" data-session-price="{{ session_price }}" data-duration="{{ settings.appointment_duration_min | default(value='90') }}" data-surcharge="{{ settings.home_visit_surcharge | default(value='15') }}" data-credits="{{ remaining_credits }}" data-guest-booking="{% if is_guest %}true{% else %}false{% endif %}">
   <nav class="skip-navigation" aria-label="Seiteneinstieg"><a class="skip-link" href="#main-content">Zum Inhalt</a></nav>
 
   {% include "_icon_sprite.html" %}
@@ -55,7 +55,7 @@
         {% if guest_request %}
         <form id="guest-confirm-form" class="booking-confirmation" action="/api/guest-booking/confirm" method="post">
           <h2>Deinen Termin verbindlich buchen</h2>
-          <p>{{ guest_request.date }} · {{ guest_request.time }} Uhr · {% if guest_request.is_home_visit %}Hausbesuch{% else %}Praxis in {{ settings.address_city | default(value="Schramberg-Sulgen") }}{% endif %}</p>
+          <p>{{ guest_request.date }} · {{ guest_request.time }} Uhr · {% if guest_request.is_home_visit %}Hausbesuch{% else %}Praxis in {{ settings.address_city | default(value="Rottweil") }}{% endif %}</p>
           <p><strong>Gesamtpreis: {{ booking_total_display }} €</strong> · ca. {{ settings.appointment_duration_min | default(value="90") }} Minuten, einschließlich Vorgespräch und Übungen{% if guest_request.is_home_visit %} und Fahrtpauschale{% endif %}. Zahlung bar oder per Überweisung. Keine Vorauszahlung.</p>
           <p>Leistung und Anbieter: Thilo Seifried, Gantke® Faszienbehandlung als Wellness- und Körperarbeit. <a href="/buchungsbedingungen" target="_blank" rel="noopener">Buchungsbedingungen, Widerrufsbelehrung und Musterformular (neues Fenster)</a>. Das gesetzliche Widerrufsrecht bleibt von der Stornofrist unberührt.</p>
           <label class="checkbox-label"><input type="checkbox" name="early_start_requested" value="true"><span>Falls der Termin innerhalb von 14 Tagen stattfindet: Ich verlange ausdrücklich den Leistungsbeginn vor Ablauf der Widerrufsfrist. Mir ist bekannt, dass mein Widerrufsrecht bei vollständiger Vertragserfüllung erlischt. Alternativ kann ich einen späteren Termin wählen.</span></label>

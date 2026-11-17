@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  {%- set city = settings.address_city | default(value="Schramberg-Sulgen") %}
+  {%- set city = settings.address_city | default(value="Rottweil") %}
   {%- set short = settings.location_short | default(value="") %}{% if not short %}{% set short = city %}{% endif %}
   {%- set region = settings.address_region | default(value="") %}
   {%- set area = settings.service_area | default(value="") %}
-  {%- set street = settings.address_street | default(value="Sulgauer Straße 24") %}
-  {%- set zip = settings.address_zip | default(value="78713") %}
+  {%- set street = settings.address_street | default(value="Im Kapellenösch 9") %}
+  {%- set zip = settings.address_zip | default(value="78628") %}
   {%- set full_address = street ~ ", " ~ zip ~ " " ~ city %}
 
   <title>Gantke® Faszienbehandlung in {{ city }} | Thilo Seifried</title>
@@ -264,7 +264,7 @@
         <div class="step js-animate"><div class="step-num">3</div><div><h3>Nachgespräch &amp; Übungen</h3><p>Du erhältst individuelle Tipps und Übungen für zu Hause, die du in deinen Alltag einbauen kannst.</p></div></div>
       </div>
       <div style="text-align:center;margin-top:48px">
-        <p style="color:rgba(255,255,255,0.8);margin-bottom:20px;font-size:.95rem">Eine Sitzung dauert ca. {{ settings.appointment_duration_min | default(value="90") }} Minuten{% if area %} · Hausbesuche in {{ area }} möglich{% endif %}</p>
+        <p style="color:rgba(255,255,255,0.8);margin-bottom:20px;font-size:.95rem">Eine Sitzung dauert ca. {{ settings.appointment_duration_min | default(value="90") }} Minuten{% if area %} · Hausbesuche möglich: {{ area }}{% endif %}</p>
         <a class="btn-cta-large" href="{% if is_logged_in %}/portal/book{% else %}/buchen{% endif %}">Termin jetzt buchen</a>
       </div>
     </div>
@@ -315,17 +315,17 @@
   <section class="section-white" id="anfahrt">
     <div class="container">
       <h2 class="section-title">Praxis in<br><em>{{ short }}</em></h2>
-      <p class="section-lead"><strong>Adresse:</strong> {{ settings.address_street | default(value="Sulgauer Straße 24") }}, {{ settings.address_zip | default(value="78713") }} {{ settings.address_city | default(value="Schramberg-Sulgen") }}{% if settings.location_note %} – {{ settings.location_note }}{% endif %}. Kostenlose Parkplätze direkt vor dem Haus.</p>
+      <p class="section-lead"><strong>Adresse:</strong> {{ settings.address_street | default(value="Im Kapellenösch 9") }}, {{ settings.address_zip | default(value="78628") }} {{ settings.address_city | default(value="Rottweil") }}{% if settings.location_note %} – {{ settings.location_note }}{% endif %}. Kostenlose Parkplätze direkt vor dem Haus.</p>
       <div class="anfahrt-grid">
         <a class="anfahrt-map-link js-animate" href="https://maps.google.com/?q={{ full_address | urlencode }}" target="_blank" rel="noopener noreferrer">
           <div class="map-icon"><svg class="icon"><use href="#icon-pin" xlink:href="#icon-pin"/></svg></div>
           <span>Route in Google Maps öffnen</span>
-          <small style="color:var(--text-light);font-size:.78rem">{{ settings.address_street | default(value="Sulgauer Straße 24") }}, {{ settings.address_zip | default(value="78713") }} {{ settings.address_city | default(value="Schramberg-Sulgen") }}</small>
+          <small style="color:var(--text-light);font-size:.78rem">{{ settings.address_street | default(value="Im Kapellenösch 9") }}, {{ settings.address_zip | default(value="78628") }} {{ settings.address_city | default(value="Rottweil") }}</small>
         </a>
         <div class="anfahrt-details">
           <div class="anfahrt-item js-animate"><div class="ai-icon"><svg class="icon"><use href="#icon-parking" xlink:href="#icon-parking"/></svg></div><div><h3>Parken</h3><p>Kostenlose Parkplätze direkt vor dem Haus – keine Parkplatzsuche.</p></div></div>
           {% if settings.travel_times %}<div class="anfahrt-item js-animate"><div class="ai-icon"><svg class="icon"><use href="#icon-car" xlink:href="#icon-car"/></svg></div><div><h3>Mit dem Auto</h3><p>{{ settings.travel_times }}</p></div></div>{% endif %}
-          <div class="anfahrt-item js-animate"><div class="ai-icon"><svg class="icon"><use href="#icon-home" xlink:href="#icon-home"/></svg></div><div><h3>Hausbesuche</h3><p>{% if area %}In {{ area }} – {% endif %}+{{ settings.home_visit_surcharge | default(value="15") }} € Fahrtpauschale.</p></div></div>
+          <div class="anfahrt-item js-animate"><div class="ai-icon"><svg class="icon"><use href="#icon-home" xlink:href="#icon-home"/></svg></div><div><h3>Hausbesuche</h3><p>{% if area %}{{ area }} – {% endif %}+{{ settings.home_visit_surcharge | default(value="15") }} € Fahrtpauschale.</p></div></div>
           <div class="anfahrt-item js-animate"><div class="ai-icon"><svg class="icon"><use href="#icon-clock" xlink:href="#icon-clock"/></svg></div><div><h3>Öffnungszeiten</h3><p>{{ settings.hours_weekday | default(value="Mo–Fr: 16:00–22:00 Uhr") }}<br>{{ settings.hours_saturday | default(value="Sa: 9:00–19:00 Uhr") }}</p></div></div>
         </div>
       </div>
@@ -356,7 +356,7 @@
         <a class="btn-secondary" href="https://wa.me/{{ settings.phone_raw | default(value='+4915234007225') | replace(from='+', to='') }}" target="_blank" rel="noopener noreferrer">Termin per WhatsApp anfragen</a>
         <span><svg class="icon"><use href="#icon-phone" xlink:href="#icon-phone"/></svg> <a href="tel:{{ settings.phone_raw | default(value='+4915234007225') }}">{{ settings.phone | default(value="+49 152 34 00 72 25") }}</a></span>
         <span><svg class="icon"><use href="#icon-mail" xlink:href="#icon-mail"/></svg> <a href="mailto:{{ settings.email_contact | default(value='termin@faszienbehandlung.jetzt') }}">{{ settings.email_contact | default(value="termin@faszienbehandlung.jetzt") }}</a></span>
-        <span><svg class="icon"><use href="#icon-pin" xlink:href="#icon-pin"/></svg> {{ settings.address_street | default(value="Sulgauer Straße 24") }}, {{ settings.address_zip | default(value="78713") }} {{ settings.address_city | default(value="Schramberg-Sulgen") }}</span>
+        <span><svg class="icon"><use href="#icon-pin" xlink:href="#icon-pin"/></svg> {{ settings.address_street | default(value="Im Kapellenösch 9") }}, {{ settings.address_zip | default(value="78628") }} {{ settings.address_city | default(value="Rottweil") }}</span>
       </div>
     </div>
   </section>
@@ -372,8 +372,8 @@
         <h3>Kontakt</h3>
         <address>
           Thilo Seifried<br>
-          {{ settings.address_street | default(value="Sulgauer Straße 24") }}<br>
-          {{ settings.address_zip | default(value="78713") }} {{ settings.address_city | default(value="Schramberg-Sulgen") }}<br><br>
+          {{ settings.address_street | default(value="Im Kapellenösch 9") }}<br>
+          {{ settings.address_zip | default(value="78628") }} {{ settings.address_city | default(value="Rottweil") }}<br><br>
           <a href="tel:{{ settings.phone_raw | default(value='+4915234007225') }}">{{ settings.phone | default(value="+49 152 34 00 72 25") }}</a><br>
           <a href="mailto:{{ settings.email_contact | default(value='termin@faszienbehandlung.jetzt') }}">{{ settings.email_contact | default(value="termin@faszienbehandlung.jetzt") }}</a>
         </address>
@@ -384,7 +384,7 @@
       </div>
       <div class="footer-col">
         <h3>Einzugsgebiet</h3>
-        <p>Praxis: {{ short }}{% if area %}<br>Hausbesuche: {{ area }} &amp; Umgebung{% endif %}</p>
+        <p>Praxis: {{ short }}{% if area %}<br>Hausbesuche: {{ area }}{% endif %}</p>
       </div>
       <div class="footer-col">
         <h3>Navigation</h3>

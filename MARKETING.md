@@ -5,7 +5,7 @@ Stand: 7. Oktober 2026. Arbeitsgrundlage: der vom Inhaber übergebene Marketing-
 ## Im Projekt umgesetzt
 
 - Startseite, Metadaten, strukturierte Daten und FAQ ohne Heilversprechen, garantierte Ergebnisse, Krankheitsbehandlung oder unbelegte Überlegenheitsvergleiche.
-- Einheitliche Adresse: Sulgauer Straße 24, 78713 Schramberg-Sulgen. Das bestehende Angebot bleibt Einzelbehandlung 195 € / ca. 90 Minuten; Werte sind weiterhin administrierbar.
+- Einheitliche Adresse: Im Kapellenösch 9, 78628 Rottweil (Umzug aus Schramberg-Sulgen im November 2026; alle Ortsangaben kommen aus den Admin-Einstellungen). Das bestehende Angebot bleibt Einzelbehandlung 195 € / ca. 90 Minuten; Werte sind weiterhin administrierbar.
 - Klarer Hinweis: Wellness- und Gesundheitsförderungsleistung, keine Erstattung durch Krankenkassen oder Versicherungen, Rechnung für die eigenen Unterlagen. Vorgespräch als Teil der Sitzung, keine separat versprochene kostenlose Beratung.
 - Buchung ohne vorherige Registrierung unter `/buchen`: Terminwahl, Kontaktdaten, Bestätigung per E-Mail. Link 30 Minuten gültig, Termin erst nach Bestätigung gebucht. Guthaben bleibt im Kundenportal. Keine Werbeeinwilligung als Buchungsvoraussetzung.
 - Telefon und WhatsApp als Kontaktalternativen; Datenschutzhinweise an den neuen Ablauf angepasst.
@@ -25,7 +25,7 @@ Stand: 7. Oktober 2026. Arbeitsgrundlage: der vom Inhaber übergebene Marketing-
 
 ## Google-Unternehmensprofil – vorbereiteter Text
 
-> Gantke® Faszienbehandlung bei Thilo Seifried in Schramberg-Sulgen. Persönliche Wellness- und Körperarbeit für Erwachsene, die sich verspannt fühlen und sich Zeit für Beweglichkeit, Haltung und Entspannung nehmen möchten. Eine Sitzung dauert ca. 90 Minuten und umfasst Vorgespräch, manuelle Faszienbehandlung und individuelle Übungen für den Alltag. Abendtermine und Termine am Samstag. Hausbesuche im bisherigen Einzugsgebiet nach Vereinbarung. Einzelbehandlung 195 €, keine Erstattung durch Krankenkassen oder Versicherungen. Online-Terminwahl ohne vorherige Registrierung auf faszienbehandlung.jetzt.
+> Gantke® Faszienbehandlung bei Thilo Seifried in Rottweil. Persönliche Wellness- und Körperarbeit für Erwachsene, die sich verspannt fühlen und sich Zeit für Beweglichkeit, Haltung und Entspannung nehmen möchten. Eine Sitzung dauert ca. 90 Minuten und umfasst Vorgespräch, manuelle Faszienbehandlung und individuelle Übungen für den Alltag. Abendtermine und Termine am Samstag. Hausbesuche im Landkreis Rottweil, Landkreis Tuttlingen und Schwarzwald-Baar-Kreis nach Vereinbarung. Einzelbehandlung 195 €, keine Erstattung durch Krankenkassen oder Versicherungen. Online-Terminwahl ohne vorherige Registrierung auf faszienbehandlung.jetzt.
 
 Name an der tatsächlichen Geschäftsbezeichnung orientieren; keine Suchwortliste in den Namen aufnehmen. Preis, Dauer, Zeiten und Zahlungsarten mit der Website abgleichen. Fotos: tatsächlicher Behandler, Behandlungsraum, Eingang, Parkplatz und Anfahrt. Keine Stockfotos als Praxisfotos ausgeben.
 
@@ -51,10 +51,10 @@ Noch nicht gestartet. Budgetentwurf aus dem Leitfaden: 200–400 € pro Monat, 
 
 | Bestandteil | Entwurf |
 |---|---|
-| Zielregion | Zunächst Schramberg und tatsächlich bediente Umgebung; Radius erst nach Prüfung der Anfahrten festlegen |
+| Zielregion | Zunächst Rottweil und tatsächlich bediente Umgebung (Landkreis Rottweil, Landkreis Tuttlingen und Schwarzwald-Baar-Kreis); Radius erst nach Prüfung der Anfahrten festlegen |
 | Standortoption | Menschen in der Zielregion statt bloßem Interesse daran; verfügbare Einstellung beim Anlegen prüfen |
-| Suchbegriffe | „faszienbehandlung schramberg“, „gantke faszienbehandlung“, „faszienbehandlung sulgen“ |
-| Anzeigentitel | „Gantke® Faszienbehandlung“ / „Schramberg-Sulgen“ / „90 Minuten für deinen Körper“ / „Termin ohne Konto wählen“ |
+| Suchbegriffe | „faszienbehandlung rottweil“, „gantke faszienbehandlung“, „gantke rottweil“ |
+| Anzeigentitel | „Gantke® Faszienbehandlung“ / „Rottweil“ / „90 Minuten für deinen Körper“ / „Termin ohne Konto wählen“ |
 | Beschreibung | „Persönliche Faszien- und Körperarbeit. Ca. 90 Min., 195 €. Auch abends. Termin online wählen.“ |
 | Zweite Beschreibung | „Vorgespräch und Übungen inklusive. Selbstzahlerleistung ohne Kassenerstattung.“ |
 | Zielseite | `https://faszienbehandlung.jetzt/preise-und-ablauf` |
@@ -75,7 +75,7 @@ Alle Beiträge bleiben Entwürfe. Nur reale eigene Fotos oder Videos mit den nö
 
 Vorstellung:
 
-> Hallo, ich bin Thilo. In meiner Praxis in Schramberg-Sulgen nehme ich mir Zeit für persönliche Gantke® Faszien- und Körperarbeit. Für Menschen, die sich verspannt fühlen und Beweglichkeit und Entspannung bewusster in ihren Alltag bringen möchten. Eine Sitzung dauert ca. 90 Minuten. Mehr zu mir, Ablauf und Preis findest du auf faszienbehandlung.jetzt.
+> Hallo, ich bin Thilo. In meiner Praxis in Rottweil nehme ich mir Zeit für persönliche Gantke® Faszien- und Körperarbeit. Für Menschen, die sich verspannt fühlen und Beweglichkeit und Entspannung bewusster in ihren Alltag bringen möchten. Eine Sitzung dauert ca. 90 Minuten. Mehr zu mir, Ablauf und Preis findest du auf faszienbehandlung.jetzt.
 
 Preisbeitrag:
 
@@ -89,15 +89,15 @@ Buchungsbeitrag:
 
 Für persönliche Gespräche mit Trainern, Vereinen und lokalen Netzwerken:
 
-> Ich bin Thilo Seifried, zertifizierter Gantke® Faszienbehandler in Schramberg-Sulgen. Mein Angebot ist persönliche Wellness- und Körperarbeit für Beweglichkeit, Körperwahrnehmung und Entspannung. Es ergänzt den Alltag und ersetzt keine medizinische Versorgung. Ich würde mich gern vorstellen und besprechen, ob sachliche Informationen zu meiner Praxis für eure Mitglieder interessant sind.
+> Ich bin Thilo Seifried, zertifizierter Gantke® Faszienbehandler in Rottweil. Mein Angebot ist persönliche Wellness- und Körperarbeit für Beweglichkeit, Körperwahrnehmung und Entspannung. Es ergänzt den Alltag und ersetzt keine medizinische Versorgung. Ich würde mich gern vorstellen und besprechen, ob sachliche Informationen zu meiner Praxis für eure Mitglieder interessant sind.
 
 Presseidee:
 
-> Persönliche Faszien- und Körperarbeit in Schramberg-Sulgen: Wer Thilo Seifried ist, wie eine Sitzung abläuft und wie Erwachsene Bewegung und Entspannung im Alltag Raum geben können. Keine medizinischen Erfolgsberichte oder erfundenen Kundenzahlen.
+> Persönliche Faszien- und Körperarbeit in Rottweil: Wer Thilo Seifried ist, wie eine Sitzung abläuft und wie Erwachsene Bewegung und Entspannung im Alltag Raum geben können. Keine medizinischen Erfolgsberichte oder erfundenen Kundenzahlen.
 
 B2B-Kontaktentwurf, erst nach Definition des Angebots verwenden:
 
-> Ich würde gern erfahren, ob Körperwahrnehmung, Bewegungspausen und persönliche Wellnessangebote für eure betriebliche Gesundheitsförderung relevant sind. Mein bestehendes Angebot sind individuelle Gantke® Sitzungen in Schramberg-Sulgen. Falls Interesse besteht, können wir gemeinsam prüfen, welches Format organisatorisch passt.
+> Ich würde gern erfahren, ob Körperwahrnehmung, Bewegungspausen und persönliche Wellnessangebote für eure betriebliche Gesundheitsförderung relevant sind. Mein bestehendes Angebot sind individuelle Gantke® Sitzungen in Rottweil. Falls Interesse besteht, können wir gemeinsam prüfen, welches Format organisatorisch passt.
 
 Keine kostenlosen Vorträge, Firmenrabatte oder Kontingente zusagen, bevor Leistung, Aufwand und Konditionen entschieden sind. Es wurden keine Nachrichten versendet.
 
@@ -122,7 +122,7 @@ Dieser Plan ist keine Automation und versendet keine Erinnerungen oder Werbenach
 | Folgekontakte | Tatsächlich vereinbarte weitere Termine | Keine fixe Behandlungszahl als Versprechen |
 | Google-Rezensionen | Tatsächliche Einträge im Unternehmensprofil | Entwicklung beobachten; Sternezahl und Inhalt niemals vorgeben |
 
-Die Website zählt Buchungen, keine Besucher und keine Werbeklicks. Kanalangaben sind freiwillig und liefern keine vollständige Attribution. Lokale Ortsseiten für Rottweil/Oberndorf oder Firmenangebote werden erst nach Bestätigung des tatsächlich bedienten Gebiets bzw. Angebots veröffentlicht.
+Die Website zählt Buchungen, keine Besucher und keine Werbeklicks. Kanalangaben sind freiwillig und liefern keine vollständige Attribution. Lokale Ortsseiten für weitere Orte im Einzugsgebiet oder Firmenangebote werden erst nach Bestätigung des tatsächlich bedienten Gebiets bzw. Angebots veröffentlicht.
 
 ## Neue Angebote – ausdrücklich nicht eingeführt
 

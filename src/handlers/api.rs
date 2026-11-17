@@ -40,11 +40,11 @@ const SITE: &str = "https://faszienbehandlung.jetzt";
 /// positioning: wellness and bodywork, no medical diagnosis, cure or treatment claims.
 fn render_llms_txt(settings: &std::collections::HashMap<String, String>, faqs: &[(String, String)]) -> String {
     let get = |key: &str, default: &str| settings.get(key).map(|v| v.trim()).filter(|v| !v.is_empty()).unwrap_or(default).to_owned();
-    let address = format!("{}, {} {}", get("address_street", "Sulgauer Straße 24"), get("address_zip", "78713"), get("address_city", "Schramberg-Sulgen"));
+    let address = format!("{}, {} {}", get("address_street", "Im Kapellenösch 9"), get("address_zip", "78628"), get("address_city", "Rottweil"));
     let duration = get("appointment_duration_min", "90");
-    let city = get("address_city", "Schramberg-Sulgen");
+    let city = get("address_city", "Rottweil");
     let region = settings.get("address_region").map(|v| v.trim()).filter(|v| !v.is_empty()).map(|v| format!(" ({v})")).unwrap_or_default();
-    let area = settings.get("service_area").map(|v| v.trim()).filter(|v| !v.is_empty()).map(|v| format!("- Hausbesuche in {v} und Umgebung\n")).unwrap_or_default();
+    let area = settings.get("service_area").map(|v| v.trim()).filter(|v| !v.is_empty()).map(|v| format!("- Hausbesuche: {v}\n")).unwrap_or_default();
 
     let mut out = format!(
 "# Faszienbehandlung Thilo Seifried
@@ -123,7 +123,7 @@ mod llms_tests {
     #[test]
     fn llms_txt_stays_within_positioning_and_points_to_public_booking() {
         let mut settings = HashMap::new();
-        settings.insert("address_city".to_owned(), "Schramberg-Sulgen".to_owned());
+        settings.insert("address_city".to_owned(), "Rottweil".to_owned());
         let faqs = vec![("Frage?".to_owned(), "<p>Erste Zeile<br>Zweite <strong>Zeile</strong></p>".to_owned())];
         let text = render_llms_txt(&settings, &faqs);
         let lower = text.to_lowercase();
@@ -131,14 +131,14 @@ mod llms_tests {
             assert!(!lower.contains(forbidden), "unexpected {forbidden:?}");
         }
         assert!(text.contains("https://faszienbehandlung.jetzt/buchen"));
-        assert!(text.contains("Sulgauer Straße 24, 78713 Schramberg-Sulgen"));
+        assert!(text.contains("Im Kapellenösch 9, 78628 Rottweil"));
         assert!(text.contains("Keine Heilkunde"));
         assert!(text.contains("https://faszienbehandlung.jetzt/preise-und-ablauf"));
         assert!(text.contains("### Frage?\nErste Zeile\nZweite Zeile"));
-        assert!(!text.contains("{ort}") && !text.contains("Hausbesuche in"));
+        assert!(!text.contains("{ort}") && !text.contains("Hausbesuche:"));
         settings.insert("address_city".to_owned(), "Rottweil".to_owned());
         settings.insert("service_area".to_owned(), "Rottweil, Zimmern".to_owned());
         let moved = render_llms_txt(&settings, &faqs);
-        assert!(!moved.contains("Sulgen") && moved.contains("in Rottweil") && moved.contains("Hausbesuche in Rottweil, Zimmern"));
+        assert!(!moved.contains("Sulgen") && moved.contains("in Rottweil") && moved.contains("Hausbesuche: Rottweil, Zimmern"));
     }
 }
