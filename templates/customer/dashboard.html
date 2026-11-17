@@ -87,7 +87,7 @@
               <svg class="icon"><use href="#icon-clock" xlink:href="#icon-clock"/></svg> {{ next_appointment.start_time | format_date(format="%H:%M") }} – {{ next_appointment.end_time | format_date(format="%H:%M") }} Uhr
             </div>
             <div class="apt-type">
-              {% if next_appointment.is_home_visit %}<svg class="icon"><use href="#icon-home" xlink:href="#icon-home"/></svg> Hausbesuch{% else %}<svg class="icon"><use href="#icon-clinic" xlink:href="#icon-clinic"/></svg> Praxis Sulgen{% endif %}
+              {% if next_appointment.is_home_visit %}<svg class="icon"><use href="#icon-home" xlink:href="#icon-home"/></svg> Hausbesuch{% else %}<svg class="icon"><use href="#icon-clinic" xlink:href="#icon-clinic"/></svg> Praxis {{ settings.address_city | default(value="Schramberg-Sulgen") }}{% endif %}
               &nbsp;·&nbsp; {{ next_appointment.start_time | format_date(format="%d.%m.%Y") }}
             </div>
             {% if next_appointment.notes != "" %}

@@ -45,10 +45,12 @@ pub async fn index(
     let schema = serde_json::json!({
         "@context":"https://schema.org", "@type":"HealthAndBeautyBusiness", "name":"Faszienbehandlung Thilo Seifried – Gantke® Methode", "url":"https://faszienbehandlung.jetzt/",
         "image":"https://faszienbehandlung.jetzt/static/images/portrait-960.webp", "description":"Persönliche Gantke® Faszienbehandlung als Wellness- und Körperarbeitsleistung für Beweglichkeit, Entspannung und Wohlbefinden.",
-        "address":{"@type":"PostalAddress","streetAddress":get("address_street","Sulgauer Straße 24"),"postalCode":get("address_zip","78713"),"addressLocality":get("address_city","Schramberg-Sulgen"),"addressCountry":"DE"},
+        "address":{"@type":"PostalAddress","streetAddress":get("address_street","Sulgauer Straße 24"),"postalCode":get("address_zip","78713"),"addressLocality":get("address_city","Schramberg-Sulgen"),"addressRegion":get("address_region",""),"addressCountry":"DE"},
         "telephone":get("phone_raw","+4915234007225"),"email":get("email_contact","termin@faszienbehandlung.jetzt"),
         "hasOfferCatalog":{"@type":"OfferCatalog","name":"Gantke® Faszienbehandlung","itemListElement":[{"@type":"Offer","price":get("price_single","195").replace(',',"."),"priceCurrency":"EUR","itemOffered":{"@type":"Service","name":format!("Gantke® Einzelbehandlung (ca. {} Min.)",get("appointment_duration_min","90"))}}]}
     });
+    let mut schema = schema;
+    location_schema(&mut schema, &settings);
     ctx.insert("business_schema", &script_json(&schema));
     let questions: Vec<_> = faqs.iter().map(|f| serde_json::json!({"@type":"Question","name":f.question,"acceptedAnswer":{"@type":"Answer","text":f.answer_html}})).collect();
     ctx.insert("faq_schema", &if questions.is_empty() { String::new() } else { script_json(&serde_json::json!({"@context":"https://schema.org","@type":"FAQPage","mainEntity":questions})) });
@@ -94,6 +96,20 @@ pub async fn not_found(tmpl: web::Data<Tera>) -> HttpResponse {
         .body(tmpl.render("404.html", &tera::Context::new()).unwrap_or_else(|_| "Seite nicht gefunden. Zur Startseite: /".into()))
 }
 
+/// Adds coordinates and the home-visit area from the admin settings; empty values are left out.
+fn location_schema(schema: &mut serde_json::Value, settings: &std::collections::HashMap<String, String>) {
+    let value = |key: &str| settings.get(key).map(|v| v.trim().replace(',', ".")).filter(|v| !v.is_empty());
+    if let (Some(lat), Some(lng)) = (value("geo_lat").and_then(|v| v.parse::<f64>().ok()), value("geo_lng").and_then(|v| v.parse::<f64>().ok())) {
+        schema["geo"] = serde_json::json!({"@type":"GeoCoordinates","latitude":lat,"longitude":lng});
+    }
+    let places: Vec<_> = settings.get("service_area").map(|v| v.split(',').map(str::trim).filter(|p| !p.is_empty())
+        .map(|p| serde_json::json!({"@type":"Place","name":p})).collect()).unwrap_or_default();
+    if !places.is_empty() { schema["areaServed"] = serde_json::Value::Array(places); }
+    if schema["address"]["addressRegion"].as_str().is_some_and(str::is_empty) {
+        if let Some(address) = schema["address"].as_object_mut() { address.remove("addressRegion"); }
+    }
+}
+
 fn script_json(value: &serde_json::Value) -> String {
     value.to_string().replace('<', "\\u003c").replace('>', "\\u003e").replace('&', "\\u0026")
 }
@@ -102,11 +118,14 @@ pub async fn topic(req: HttpRequest, tmpl: web::Data<Tera>, db: web::Data<Mutex<
     let Some((path, title, description, sections)) = crate::marketing::TOPICS.iter().find(|t| t.0 == req.path()) else { return HttpResponse::NotFound().finish(); };
     let conn = db.lock().unwrap_or_else(|e| e.into_inner());
     let mut ctx = tera::Context::new();
+    let settings = SiteSetting::get_public(&conn).unwrap_or_default();
+    let localize = |text: &str| crate::marketing::localize(text, &settings);
+    let sections: Vec<(String, String)> = sections.iter().map(|(heading, body)| (localize(heading), localize(body))).collect();
     ctx.insert("path", path);
-    ctx.insert("title", title);
-    ctx.insert("description", description);
-    ctx.insert("sections", sections);
-    ctx.insert("settings", &SiteSetting::get_public(&conn).unwrap_or_default());
+    ctx.insert("title", &localize(title));
+    ctx.insert("description", &localize(description));
+    ctx.insert("sections", &sections);
+    ctx.insert("settings", &settings);
     match tmpl.render("marketing_topic.html", &ctx) {
         Ok(body) => HttpResponse::Ok().content_type("text/html; charset=utf-8").body(body),
         Err(e) => { log::error!("Topic template: {:#}", e); HttpResponse::InternalServerError().finish() }
@@ -124,6 +143,31 @@ pub async fn public_asset(path: web::Path<String>, tmpl: web::Data<Tera>) -> act
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test] fn location_schema_follows_settings() {
+        let mut settings = std::collections::HashMap::new();
+        settings.insert("geo_lat".to_owned(), "48,1".to_owned());
+        settings.insert("geo_lng".to_owned(), "8.4".to_owned());
+        settings.insert("service_area".to_owned(), "Rottweil, Dunningen, ".to_owned());
+        let mut schema = serde_json::json!({"address":{"addressLocality":"Rottweil","addressRegion":""}});
+        location_schema(&mut schema, &settings);
+        assert_eq!(schema["geo"]["latitude"], 48.1);
+        assert_eq!(schema["areaServed"][1]["name"], "Dunningen");
+        assert_eq!(schema["areaServed"].as_array().unwrap().len(), 2);
+        assert!(schema["address"].get("addressRegion").is_none());
+        let mut empty = serde_json::json!({"address":{}});
+        location_schema(&mut empty, &std::collections::HashMap::new());
+        assert!(empty.get("geo").is_none() && empty.get("areaServed").is_none());
+    }
+    #[test] fn topic_texts_use_configured_location() {
+        let mut settings = std::collections::HashMap::new();
+        settings.insert("address_city".to_owned(), "Rottweil".to_owned());
+        for (_, title, description, sections) in crate::marketing::TOPICS {
+            for text in [*title, *description].into_iter().chain(sections.iter().flat_map(|(h, b)| [*h, *b])) {
+                let localized = crate::marketing::localize(text, &settings);
+                assert!(!localized.contains("Sulgen") && !localized.contains("{ort}"), "{localized}");
+            }
+        }
+    }
     #[test] fn structured_data_is_valid_and_cannot_close_script() {
         let data = serde_json::json!({"text":"Zitat: \"Beweglichkeit\" </script>","price":"169,90"});
         let serialized = script_json(&data);

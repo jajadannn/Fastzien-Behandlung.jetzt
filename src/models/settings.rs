@@ -18,13 +18,17 @@ impl SiteSetting {
             "price_single" | "price_pack" | "home_visit_surcharge" => value.replace(',', ".").parse::<f64>().is_ok_and(|n| n.is_finite() && (0.0..=1_000_000.0).contains(&n)),
             "vat_id" => value.is_empty() || (value.len() == 11 && value.starts_with("DE") && value[2..].bytes().all(|b| b.is_ascii_digit())),
             "business_id" => value.chars().count() <= 30 && !value.chars().any(char::is_control),
+            "geo_lat" => value.is_empty() || value.replace(',', ".").parse::<f64>().is_ok_and(|n| (-90.0..=90.0).contains(&n)),
+            "geo_lng" => value.is_empty() || value.replace(',', ".").parse::<f64>().is_ok_and(|n| (-180.0..=180.0).contains(&n)),
+            "geo_region" => value.is_empty() || (value.len() <= 6 && value.as_bytes().get(2) == Some(&b'-') && value.bytes().enumerate().all(|(i, b)| i == 2 || b.is_ascii_uppercase() || b.is_ascii_digit())),
+            "location_short" | "address_region" | "location_note" | "service_area" | "travel_times" => value.chars().count() <= 200 && !value.chars().any(char::is_control),
             _ => true,
         }
     }
 
     pub fn get_public(conn: &Connection) -> Result<HashMap<String, String>> {
         let mut settings = Self::get_all(conn)?;
-        settings.retain(|key, _| ["price_single", "price_pack", "price_pack_count", "home_visit_surcharge", "appointment_duration_min", "cancellation_hours", "hours_weekday", "hours_saturday", "hours_stripe", "hours_stripe_short", "phone", "phone_raw", "email_contact", "address_street", "address_zip", "address_city", "google_reviews_url", "vat_id", "business_id", "hosting_operator", "smtp_provider", "calendar_operator"].contains(&key.as_str()));
+        settings.retain(|key, _| ["price_single", "price_pack", "price_pack_count", "home_visit_surcharge", "appointment_duration_min", "cancellation_hours", "hours_weekday", "hours_saturday", "hours_stripe", "hours_stripe_short", "phone", "phone_raw", "email_contact", "address_street", "address_zip", "address_city", "address_region", "location_short", "location_note", "service_area", "travel_times", "geo_region", "geo_lat", "geo_lng", "google_reviews_url", "vat_id", "business_id", "hosting_operator", "smtp_provider", "calendar_operator"].contains(&key.as_str()));
         Ok(settings)
     }
     pub fn get(conn: &Connection, key: &str) -> Result<String> {

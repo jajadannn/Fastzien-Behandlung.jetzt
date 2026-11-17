@@ -42,11 +42,14 @@ fn render_llms_txt(settings: &std::collections::HashMap<String, String>, faqs: &
     let get = |key: &str, default: &str| settings.get(key).map(|v| v.trim()).filter(|v| !v.is_empty()).unwrap_or(default).to_owned();
     let address = format!("{}, {} {}", get("address_street", "Sulgauer Straße 24"), get("address_zip", "78713"), get("address_city", "Schramberg-Sulgen"));
     let duration = get("appointment_duration_min", "90");
+    let city = get("address_city", "Schramberg-Sulgen");
+    let region = settings.get("address_region").map(|v| v.trim()).filter(|v| !v.is_empty()).map(|v| format!(" ({v})")).unwrap_or_default();
+    let area = settings.get("service_area").map(|v| v.trim()).filter(|v| !v.is_empty()).map(|v| format!("- Hausbesuche in {v} und Umgebung\n")).unwrap_or_default();
 
     let mut out = format!(
 "# Faszienbehandlung Thilo Seifried
 
-> Persönliche Gantke® Faszienbehandlung bei Thilo Seifried in Schramberg-Sulgen (Baden-Württemberg). Wellness- und Körperarbeit für Erwachsene, die sich Zeit für Beweglichkeit, Entspannung, Haltung und Wohlbefinden nehmen möchten. Keine Heilkunde: Die Sitzung ersetzt keine ärztliche Diagnose oder Behandlung.
+> Persönliche Gantke® Faszienbehandlung bei Thilo Seifried in {city}{region}. Wellness- und Körperarbeit für Erwachsene, die sich Zeit für Beweglichkeit, Entspannung, Haltung und Wohlbefinden nehmen möchten. Keine Heilkunde: Die Sitzung ersetzt keine ärztliche Diagnose oder Behandlung.
 
 ## Über das Angebot
 - Anbieter: Thilo Seifried, zertifizierter Gantke® Faszienbehandler
@@ -71,8 +74,7 @@ fn render_llms_txt(settings: &std::collections::HashMap<String, String>, faqs: &
 ## Ort
 - Praxis: {address}
 - Kostenlose Parkplätze direkt vor dem Haus
-- Hausbesuche in Sulgen, Dunningen, Schramberg, Villingendorf und Umgebung
-
+{area}
 ## Kontakt
 - Telefon: {phone}
 - E-Mail: {email}
@@ -86,6 +88,7 @@ fn render_llms_txt(settings: &std::collections::HashMap<String, String>, faqs: &
         phone = get("phone", "+49 152 34 00 72 25"), email = get("email_contact", "termin@faszienbehandlung.jetzt"),
     );
     for (path, title, description, _) in crate::marketing::TOPICS {
+        let (title, description) = (crate::marketing::localize(title, settings), crate::marketing::localize(description, settings));
         out.push_str(&format!("- [{title}]({SITE}{path}): {description}\n"));
     }
     out.push_str(&format!("- [Termin buchen]({SITE}/buchen): Online-Terminwahl ohne Registrierung\n- [Impressum]({SITE}/impressum)\n- [Datenschutz]({SITE}/datenschutz)\n"));
@@ -132,5 +135,10 @@ mod llms_tests {
         assert!(text.contains("Keine Heilkunde"));
         assert!(text.contains("https://faszienbehandlung.jetzt/preise-und-ablauf"));
         assert!(text.contains("### Frage?\nErste Zeile\nZweite Zeile"));
+        assert!(!text.contains("{ort}") && !text.contains("Hausbesuche in"));
+        settings.insert("address_city".to_owned(), "Rottweil".to_owned());
+        settings.insert("service_area".to_owned(), "Rottweil, Zimmern".to_owned());
+        let moved = render_llms_txt(&settings, &faqs);
+        assert!(!moved.contains("Sulgen") && moved.contains("in Rottweil") && moved.contains("Hausbesuche in Rottweil, Zimmern"));
     }
 }

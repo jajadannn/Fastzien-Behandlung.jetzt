@@ -3,32 +3,39 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  {%- set city = settings.address_city | default(value="Schramberg-Sulgen") %}
+  {%- set short = settings.location_short | default(value="") %}{% if not short %}{% set short = city %}{% endif %}
+  {%- set region = settings.address_region | default(value="") %}
+  {%- set area = settings.service_area | default(value="") %}
+  {%- set street = settings.address_street | default(value="Sulgauer Straße 24") %}
+  {%- set zip = settings.address_zip | default(value="78713") %}
+  {%- set full_address = street ~ ", " ~ zip ~ " " ~ city %}
 
-  <title>Gantke® Faszienbehandlung in Schramberg-Sulgen | Thilo Seifried</title>
-  <meta name="description" content="Gantke® Faszienbehandlung in Schramberg-Sulgen für Beweglichkeit, Entspannung und Wohlbefinden. Persönliche Sitzungen, transparente Preise und Abendtermine.">
+  <title>Gantke® Faszienbehandlung in {{ city }} | Thilo Seifried</title>
+  <meta name="description" content="Gantke® Faszienbehandlung in {{ city }} für Beweglichkeit, Entspannung und Wohlbefinden. Persönliche Sitzungen, transparente Preise und Abendtermine.">
   <meta name="author" content="Thilo Seifried">
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
   <link rel="canonical" href="https://faszienbehandlung.jetzt/">
   <link rel="alternate" type="text/plain" href="/llms.txt" title="Kurzinformationen für KI-Systeme">
   <meta name="theme-color" content="#70AECD">
 
-  <meta name="geo.region" content="DE-BW">
-  <meta name="geo.placename" content="Schramberg-Sulgen, Baden-Württemberg">
-  <meta name="geo.position" content="48.2157;8.5033">
-  <meta name="ICBM" content="48.2157, 8.5033">
+  {% if settings.geo_region %}<meta name="geo.region" content="{{ settings.geo_region }}">{% endif %}
+  <meta name="geo.placename" content="{{ city }}{% if region %}, {{ region }}{% endif %}">
+  {% if settings.geo_lat and settings.geo_lng %}<meta name="geo.position" content="{{ settings.geo_lat | replace(from=',', to='.') }};{{ settings.geo_lng | replace(from=',', to='.') }}">
+  <meta name="ICBM" content="{{ settings.geo_lat | replace(from=',', to='.') }}, {{ settings.geo_lng | replace(from=',', to='.') }}">{% endif %}
 
   <meta property="og:type" content="website">
   <meta property="og:locale" content="de_DE">
   <meta property="og:site_name" content="Faszienbehandlung Thilo Seifried">
-  <meta property="og:title" content="Gantke® Faszienbehandlung Schramberg-Sulgen | Thilo Seifried">
-  <meta property="og:description" content="Zeit für deinen Körper: Gantke® Faszienbehandlung für Beweglichkeit und Wohlbefinden in Schramberg-Sulgen. Jetzt Termin wählen.">
+  <meta property="og:title" content="Gantke® Faszienbehandlung {{ city }} | Thilo Seifried">
+  <meta property="og:description" content="Zeit für deinen Körper: Gantke® Faszienbehandlung für Beweglichkeit und Wohlbefinden in {{ city }}. Jetzt Termin wählen.">
   <meta property="og:url" content="https://faszienbehandlung.jetzt/">
   <meta property="og:image" content="https://faszienbehandlung.jetzt/og-hero.jpg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
 
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Gantke® Faszienbehandlung Schramberg-Sulgen | Thilo Seifried">
+  <meta name="twitter:title" content="Gantke® Faszienbehandlung {{ city }} | Thilo Seifried">
   <meta name="twitter:description" content="Mehr Raum für Beweglichkeit und Entspannung. Jetzt online Termin wählen.">
   <meta name="twitter:image" content="https://faszienbehandlung.jetzt/og-hero.jpg">
 
@@ -115,7 +122,7 @@
         {% endif %}
       {% else %}
       <h1>Endlich wieder<br><em>freier</em> bewegen.</h1>
-      <p class="hero-sub">Gantke® Faszienbehandlung in Schramberg-Sulgen. Ca. {{ settings.appointment_duration_min | default(value="90") }} Minuten persönliche Körperarbeit für Beweglichkeit, Entspannung und Wohlbefinden.</p>
+      <p class="hero-sub">Gantke® Faszienbehandlung in {{ city }}. Ca. {{ settings.appointment_duration_min | default(value="90") }} Minuten persönliche Körperarbeit für Beweglichkeit, Entspannung und Wohlbefinden.</p>
       <div class="hero-cta-group">
         <a class="btn-primary" href="/buchen">Freien Termin wählen</a>
         <a class="btn-secondary" href="tel:{{ settings.phone_raw | default(value='+4915234007225') }}">Persönlich anrufen</a>
@@ -140,7 +147,7 @@
       <h2 class="section-title">Mehr Raum für<br><em>dein Wohlbefinden</em></h2>
       <div class="quick-answer">
 
-        <p>Eine persönliche Wellness- und Körperarbeitsleistung für Erwachsene, die sich verspannt fühlen und ihre Beweglichkeit bewusst unterstützen möchten. Ca. {{ settings.appointment_duration_min | default(value="90") }} Minuten, {{ settings.price_single | default(value="195") }} €, Praxis in Sulgen.</p>
+        <p>Eine persönliche Wellness- und Körperarbeitsleistung für Erwachsene, die sich verspannt fühlen und ihre Beweglichkeit bewusst unterstützen möchten. Ca. {{ settings.appointment_duration_min | default(value="90") }} Minuten, {{ settings.price_single | default(value="195") }} €, Praxis in {{ short }}.</p>
       </div>
       <p class="section-lead">Ob nach einem langen Arbeitstag oder nach dem Sport: Die Sitzung richtet sich nach deinem Körpergefühl und deinen persönlichen Zielen.</p>
       <div class="pain-grid">
@@ -165,7 +172,7 @@
               src="/static/images/portrait-640.webp"
               srcset="/static/images/portrait-640.webp 640w, /static/images/portrait-960.webp 960w"
               sizes="(max-width: 768px) 280px, 320px"
-              alt="Thilo Seifried – Gantke® Faszienbehandler in Sulgen"
+              alt="Thilo Seifried – Gantke® Faszienbehandler in {{ short }}"
               width="240"
               height="280"
               loading="lazy"
@@ -173,13 +180,13 @@
           </div>
           <div class="about-creds">
             <div class="cred-badge"><span class="ci"><svg class="icon"><use href="#icon-verified" xlink:href="#icon-verified"/></svg></span> Gantke® zertifizierter Faszienbehandler</div>
-            <div class="cred-badge"><span class="ci"><svg class="icon"><use href="#icon-pin" xlink:href="#icon-pin"/></svg></span> Sulgen (Schramberg), BW</div>
+            <div class="cred-badge"><span class="ci"><svg class="icon"><use href="#icon-pin" xlink:href="#icon-pin"/></svg></span> {{ city }}{% if region %}, {{ region }}{% endif %}</div>
             <div class="cred-badge"><span class="ci"><svg class="icon"><use href="#icon-home" xlink:href="#icon-home"/></svg></span> Hausbesuche in der Region</div>
           </div>
         </div>
         <div class="about-text js-animate">
           <h3>Hallo, ich bin Thilo.</h3>
-          <p>Als zertifizierter Gantke® Faszienbehandler begleite ich Menschen in Schramberg-Sulgen dabei, sich Zeit für ihren Körper zu nehmen und sich beweglicher und aufrechter zu fühlen.</p>
+          <p>Als zertifizierter Gantke® Faszienbehandler begleite ich Menschen in {{ city }} dabei, sich Zeit für ihren Körper zu nehmen und sich beweglicher und aufrechter zu fühlen.</p>
           <p>Die Gantke® Methode ist eine manuelle Körperarbeit mit dem gesamten Fasziennetz. Ich arbeite mit gezielten Grifftechniken und stimme den Druck auf dein Empfinden ab.</p>
           <p>Jede Behandlung beginnt mit einem persönlichen Gespräch. Ich nehme mir Zeit für dich und passe die Sitzung individuell an deine Ziele und deinen Körper an.</p>
           <div class="fact-row">
@@ -257,7 +264,7 @@
         <div class="step js-animate"><div class="step-num">3</div><div><h3>Nachgespräch &amp; Übungen</h3><p>Du erhältst individuelle Tipps und Übungen für zu Hause, die du in deinen Alltag einbauen kannst.</p></div></div>
       </div>
       <div style="text-align:center;margin-top:48px">
-        <p style="color:rgba(255,255,255,0.8);margin-bottom:20px;font-size:.95rem">Eine Sitzung dauert ca. {{ settings.appointment_duration_min | default(value="90") }} Minuten · Hausbesuche im Raum Sulgen/Schramberg möglich</p>
+        <p style="color:rgba(255,255,255,0.8);margin-bottom:20px;font-size:.95rem">Eine Sitzung dauert ca. {{ settings.appointment_duration_min | default(value="90") }} Minuten{% if area %} · Hausbesuche in {{ area }} möglich{% endif %}</p>
         <a class="btn-cta-large" href="{% if is_logged_in %}/portal/book{% else %}/buchen{% endif %}">Termin jetzt buchen</a>
       </div>
     </div>
@@ -307,18 +314,18 @@
 
   <section class="section-white" id="anfahrt">
     <div class="container">
-      <h2 class="section-title">Praxis in<br><em>Sulgen</em></h2>
-      <p class="section-lead"><strong>Adresse:</strong> {{ settings.address_street | default(value="Sulgauer Straße 24") }}, {{ settings.address_zip | default(value="78713") }} {{ settings.address_city | default(value="Schramberg-Sulgen") }}  – zentral zwischen Schramberg und Rottweil. Kostenlose Parkplätze direkt vor dem Haus.</p>
+      <h2 class="section-title">Praxis in<br><em>{{ short }}</em></h2>
+      <p class="section-lead"><strong>Adresse:</strong> {{ settings.address_street | default(value="Sulgauer Straße 24") }}, {{ settings.address_zip | default(value="78713") }} {{ settings.address_city | default(value="Schramberg-Sulgen") }}{% if settings.location_note %} – {{ settings.location_note }}{% endif %}. Kostenlose Parkplätze direkt vor dem Haus.</p>
       <div class="anfahrt-grid">
-        <a class="anfahrt-map-link js-animate" href="https://maps.google.com/?q=Sulgauer+Strasse+24,+78713+Schramberg-Sulgen" target="_blank" rel="noopener noreferrer">
+        <a class="anfahrt-map-link js-animate" href="https://maps.google.com/?q={{ full_address | urlencode }}" target="_blank" rel="noopener noreferrer">
           <div class="map-icon"><svg class="icon"><use href="#icon-pin" xlink:href="#icon-pin"/></svg></div>
           <span>Route in Google Maps öffnen</span>
           <small style="color:var(--text-light);font-size:.78rem">{{ settings.address_street | default(value="Sulgauer Straße 24") }}, {{ settings.address_zip | default(value="78713") }} {{ settings.address_city | default(value="Schramberg-Sulgen") }}</small>
         </a>
         <div class="anfahrt-details">
           <div class="anfahrt-item js-animate"><div class="ai-icon"><svg class="icon"><use href="#icon-parking" xlink:href="#icon-parking"/></svg></div><div><h3>Parken</h3><p>Kostenlose Parkplätze direkt vor dem Haus – keine Parkplatzsuche.</p></div></div>
-          <div class="anfahrt-item js-animate"><div class="ai-icon"><svg class="icon"><use href="#icon-car" xlink:href="#icon-car"/></svg></div><div><h3>Mit dem Auto</h3><p>Dunningen ca. 3 Min. · Schramberg ca. 8 Min. · Rottweil ca. 15 Min.</p></div></div>
-          <div class="anfahrt-item js-animate"><div class="ai-icon"><svg class="icon"><use href="#icon-home" xlink:href="#icon-home"/></svg></div><div><h3>Hausbesuche</h3><p>In Sulgen, Dunningen, Schramberg, Villingendorf – +{{ settings.home_visit_surcharge | default(value="15") }} € Fahrtpauschale.</p></div></div>
+          {% if settings.travel_times %}<div class="anfahrt-item js-animate"><div class="ai-icon"><svg class="icon"><use href="#icon-car" xlink:href="#icon-car"/></svg></div><div><h3>Mit dem Auto</h3><p>{{ settings.travel_times }}</p></div></div>{% endif %}
+          <div class="anfahrt-item js-animate"><div class="ai-icon"><svg class="icon"><use href="#icon-home" xlink:href="#icon-home"/></svg></div><div><h3>Hausbesuche</h3><p>{% if area %}In {{ area }} – {% endif %}+{{ settings.home_visit_surcharge | default(value="15") }} € Fahrtpauschale.</p></div></div>
           <div class="anfahrt-item js-animate"><div class="ai-icon"><svg class="icon"><use href="#icon-clock" xlink:href="#icon-clock"/></svg></div><div><h3>Öffnungszeiten</h3><p>{{ settings.hours_weekday | default(value="Mo–Fr: 16:00–22:00 Uhr") }}<br>{{ settings.hours_saturday | default(value="Sa: 9:00–19:00 Uhr") }}</p></div></div>
         </div>
       </div>
@@ -377,7 +384,7 @@
       </div>
       <div class="footer-col">
         <h3>Einzugsgebiet</h3>
-        <p>Praxis: Sulgen<br>Hausbesuche: Dunningen, Schramberg,<br>Villingendorf &amp; Umgebung</p>
+        <p>Praxis: {{ short }}{% if area %}<br>Hausbesuche: {{ area }} &amp; Umgebung{% endif %}</p>
       </div>
       <div class="footer-col">
         <h3>Navigation</h3>
@@ -391,7 +398,7 @@
       </div>
     </div>
     <div class="footer-bottom">
-      <span>© 2026 Thilo Seifried · Gantke® Faszienbehandler · Sulgen</span>
+      <span>© 2026 Thilo Seifried · Gantke® Faszienbehandler · {{ short }}</span>
       <span><a href="/datenschutz">Datenschutz</a> &nbsp;·&nbsp; <a href="/impressum">Impressum</a></span>
     </div>
   </footer>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Datenschutz | Thilo Seifried - Gantke&reg; Faszienbehandlung Sulgen</title>
+  <title>Datenschutz | Thilo Seifried - Gantke&reg; Faszienbehandlung {{ settings.address_city | default(value="Schramberg-Sulgen") }}</title>
   <meta name="robots" content="noindex, follow">
   <link rel="canonical" href="https://faszienbehandlung.jetzt/datenschutz">
   <meta name="theme-color" content="#70AECD">
@@ -123,7 +123,7 @@
 
   <footer class="footer">
     <p>
-      &copy; 2026 Thilo Seifried &middot; Gantke&reg; Faszienbehandler &middot; Sulgen
+      &copy; 2026 Thilo Seifried &middot; Gantke&reg; Faszienbehandler &middot; {{ settings.address_city | default(value="Schramberg-Sulgen") }}
       &nbsp;&middot;&nbsp;
       <a href="/">Startseite</a>
       &nbsp;&middot;&nbsp;

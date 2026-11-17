@@ -55,7 +55,7 @@
         {% if guest_request %}
         <form id="guest-confirm-form" class="booking-confirmation" action="/api/guest-booking/confirm" method="post">
           <h2>Deinen Termin verbindlich buchen</h2>
-          <p>{{ guest_request.date }} · {{ guest_request.time }} Uhr · {% if guest_request.is_home_visit %}Hausbesuch{% else %}Praxis in Schramberg-Sulgen{% endif %}</p>
+          <p>{{ guest_request.date }} · {{ guest_request.time }} Uhr · {% if guest_request.is_home_visit %}Hausbesuch{% else %}Praxis in {{ settings.address_city | default(value="Schramberg-Sulgen") }}{% endif %}</p>
           <p><strong>Gesamtpreis: {{ booking_total_display }} €</strong> · ca. {{ settings.appointment_duration_min | default(value="90") }} Minuten, einschließlich Vorgespräch und Übungen{% if guest_request.is_home_visit %} und Fahrtpauschale{% endif %}. Zahlung bar oder per Überweisung. Keine Vorauszahlung.</p>
           <p>Leistung und Anbieter: Thilo Seifried, Gantke® Faszienbehandlung als Wellness- und Körperarbeit. <a href="/buchungsbedingungen" target="_blank" rel="noopener">Buchungsbedingungen, Widerrufsbelehrung und Musterformular (neues Fenster)</a>. Das gesetzliche Widerrufsrecht bleibt von der Stornofrist unberührt.</p>
           <label class="checkbox-label"><input type="checkbox" name="early_start_requested" value="true"><span>Falls der Termin innerhalb von 14 Tagen stattfindet: Ich verlange ausdrücklich den Leistungsbeginn vor Ablauf der Widerrufsfrist. Mir ist bekannt, dass mein Widerrufsrecht bei vollständiger Vertragserfüllung erlischt. Alternativ kann ich einen späteren Termin wählen.</span></label>
@@ -109,7 +109,7 @@
                 <div class="form-group"><label for="guest-zip">Postleitzahl</label><input id="guest-zip" autocomplete="postal-code" inputmode="numeric" pattern="[0-9]{5}" maxlength="5"></div>
                 <div class="form-group"><label for="guest-city">Ort</label><input id="guest-city" autocomplete="address-level2" maxlength="100"></div>
               </div>
-              <p class="booking-fineprint">Hausbesuche im bisherigen Einzugsgebiet: Schramberg, Sulgen, Dunningen und Villingendorf.</p>
+              {% if settings.service_area %}<p class="booking-fineprint">Hausbesuche im Einzugsgebiet: {{ settings.service_area }}.</p>{% endif %}
             </div>
             <div class="form-group"><label for="guest-source">Wie hast du mich gefunden? (optional)</label><select id="guest-source"><option value="">Keine Angabe</option><option>Google</option><option>Empfehlung</option><option>Social Media</option><option>Verein / Netzwerk</option><option>Sonstiges</option></select></div>
             <p class="booking-fineprint">Deine Kontaktdaten verarbeite ich zur Vorbereitung und Durchführung der Buchung. <a href="/datenschutz" target="_blank" rel="noopener noreferrer">Datenschutzhinweise (neues Fenster)</a></p>

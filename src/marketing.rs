@@ -14,22 +14,22 @@ pub const FAQS: &[(i32, &str, &str)] = &[
 ];
 
 pub const TOPICS: &[(&str, &str, &str, &[(&str, &str)])] = &[
-    ("/faszienbehandlung-ruecken", "Zeit für deinen Rücken", "Gantke® Faszienbehandlung bei Rückenverspannungen in Schramberg-Sulgen. Persönliche Körperarbeit, transparente Preise und Abendtermine.", &[
+    ("/faszienbehandlung-ruecken", "Zeit für deinen Rücken", "Gantke® Faszienbehandlung bei Rückenverspannungen in {ort}. Persönliche Körperarbeit, transparente Preise und Abendtermine.", &[
         ("Nach einem langen Tag", "Langes Sitzen, einseitige Bewegungen oder körperliche Arbeit können mit einem Gefühl von Verspannung einhergehen. Die Sitzung bietet dir Zeit, deinen Körper bewusst wahrzunehmen und dich mit deinen Bewegungsgewohnheiten zu beschäftigen."),
         ("Deine persönliche Sitzung", "Wir beginnen mit einem Gespräch über deine Wünsche und betrachten Haltung und Bewegung. Anschließend folgt die manuelle Gantke® Körperarbeit, deren Druck auf dein Empfinden abgestimmt wird. Zum Abschluss besprechen wir Übungen für deinen Alltag."),
         ("Die Grenzen des Angebots", "Die Faszienbehandlung ist eine Wellnessleistung. Sie dient nicht der Diagnose oder Behandlung von Rückenerkrankungen. Bei Schmerzen, Verletzungen oder anderen Beschwerden mit Krankheitswert lasse die Ursache vorab ärztlich abklären."),
     ]),
-    ("/faszienbehandlung-nacken-schulter", "Eine Auszeit für Nacken und Schultern", "Persönliche Gantke® Faszienbehandlung für Menschen mit Verspannungsgefühl in Nacken und Schultern. Praxis in Schramberg-Sulgen.", &[
+    ("/faszienbehandlung-nacken-schulter", "Eine Auszeit für Nacken und Schultern", "Persönliche Gantke® Faszienbehandlung für Menschen mit Verspannungsgefühl in Nacken und Schultern. Praxis in {ort}.", &[
         ("Zwischen Bildschirm und Alltag", "Wenn sich Nacken und Schultern nach konzentrierter Bildschirmarbeit oder einem fordernden Alltag verspannt anfühlen, kann es gut tun, sich bewusst Zeit für den Körper zu nehmen."),
         ("Der ganze Körper im Blick", "Die Gantke® Methode arbeitet mit dem gesamten Fasziennetz. In einem persönlichen Vorgespräch besprechen wir deine Wünsche; während der manuellen Körperarbeit gibst du Rückmeldung zu deinem Empfinden."),
         ("Bewusst entscheiden", "Eine bestimmte Wirkung oder Veränderung wird nicht garantiert. Bei wiederkehrenden Kopfschmerzen, Migräne oder anderen Beschwerden mit Krankheitswert ist eine ärztliche Abklärung erforderlich. Diese Sitzung ersetzt keine medizinische Versorgung."),
     ]),
-    ("/faszienbehandlung-haltung", "Haltung bewusst wahrnehmen", "Gantke® Körperarbeit für Haltung, Beweglichkeit und Körperwahrnehmung in Schramberg-Sulgen. Erfahre mehr über Ablauf und Preis.", &[
+    ("/faszienbehandlung-haltung", "Haltung bewusst wahrnehmen", "Gantke® Körperarbeit für Haltung, Beweglichkeit und Körperwahrnehmung in {ort}. Erfahre mehr über Ablauf und Preis.", &[
         ("Deine Bewegungsgewohnheiten", "Ob am Schreibtisch, im Handwerk oder in der Freizeit: Deine Haltung begleitet dich durch den Tag. In der Sitzung nehmen wir uns Zeit, deine persönlichen Bewegungsgewohnheiten zu betrachten."),
         ("Auf dich abgestimmt", "Die manuelle Faszien- und Körperarbeit wird auf deine Situation und dein Empfinden abgestimmt. Du erhältst individuelle Hinweise und Übungen, die du in deinen Alltag einbauen kannst."),
         ("Ohne Korrekturversprechen", "Das Angebot verspricht keine dauerhafte Haltungskorrektur und behandelt keine Erkrankungen. Bei gesundheitlichen Beschwerden bitte vorab ärztlich abklären, ob diese Wellnessleistung für dich infrage kommt."),
     ]),
-    ("/faszienbehandlung-sport", "Zeit für Regeneration", "Gantke® Faszienbehandlung für sportlich aktive Erwachsene in Schramberg-Sulgen. Körperwahrnehmung und eine bewusste Pause vom Training.", &[
+    ("/faszienbehandlung-sport", "Zeit für Regeneration", "Gantke® Faszienbehandlung für sportlich aktive Erwachsene in {ort}. Körperwahrnehmung und eine bewusste Pause vom Training.", &[
         ("Auch die Pause gehört dazu", "Laufen, Radfahren und andere Sportarten fordern den Körper. Diese Sitzung ist eine bewusste Auszeit für sportlich aktive Erwachsene, die sich mit ihrem Verspannungsgefühl und ihrer Beweglichkeit beschäftigen möchten."),
         ("Persönliche Körperarbeit", "Wir sprechen über deine Aktivitäten und Wünsche. Die Gantke® Körperarbeit betrachtet den Körper als Ganzes; Druck und Grifftechniken werden auf dein Empfinden abgestimmt."),
         ("Keine Sportmedizin", "Die Sitzung verspricht weder eine Leistungssteigerung noch eine schnellere Heilung von Verletzungen. Bei einer Verletzung oder Beschwerden mit Krankheitswert wende dich zuerst an einen Arzt."),
@@ -40,6 +40,12 @@ pub const TOPICS: &[(&str, &str, &str, &[(&str, &str)])] = &[
         ("Selbstzahlerleistung", "Die Behandlung ist eine Wellness- und Gesundheitsförderungsleistung und wird von Krankenkassen und Versicherungen nicht erstattet. Du erhältst eine Rechnung. Die Zahlung erfolgt bar oder per Überweisung; es ist keine Vorauszahlung nötig."),
     ]),
 ];
+
+/// Topic texts use `{ort}` for the practice location so a move only needs the admin settings.
+pub fn localize(text: &str, settings: &std::collections::HashMap<String, String>) -> String {
+    let city = settings.get("address_city").map(|v| v.trim()).filter(|v| !v.is_empty()).unwrap_or("Schramberg-Sulgen");
+    text.replace("{ort}", city)
+}
 
 /// Preserve the original wording for the practice owner; never rewrite quotations.
 pub fn migrate_content(conn: &Connection) -> Result<()> {

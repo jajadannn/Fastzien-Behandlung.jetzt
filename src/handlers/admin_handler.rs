@@ -448,7 +448,7 @@ pub async fn api_save_settings(
     if let Err(r) = require_admin(&req, &jwt_secret) { return r; }
 
     if form.iter().any(|(key, value)| !SiteSetting::valid_value(key, value)) {
-        return HttpResponse::BadRequest().json(serde_json::json!({"error":"Bitte prüfe die Angaben für Preise, Dauer, Pausen und Stornierungsfrist."}));
+        return HttpResponse::BadRequest().json(serde_json::json!({"error":"Bitte prüfe die Angaben für Preise, Dauer, Pausen, Stornierungsfrist und Standort (Koordinaten, Regionscode)."}));
     }
     let conn = db.lock().unwrap_or_else(|e| e.into_inner());
     let tx = match conn.unchecked_transaction() { Ok(tx) => tx, Err(_) => return HttpResponse::InternalServerError().finish() };

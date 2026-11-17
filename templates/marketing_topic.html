@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{ title }} | Gantke® Faszienbehandlung Schramberg-Sulgen</title>
+  <title>{{ title }} | Gantke® Faszienbehandlung {{ settings.address_city | default(value="Schramberg-Sulgen") }}</title>
   <meta name="description" content="{{ description }}">
   <link rel="canonical" href="https://faszienbehandlung.jetzt{{ path }}">
   <link rel="icon" href="/favicon.v1.ico">
@@ -19,7 +19,7 @@
   <main tabindex="-1" id="main-content" class="section-white">
     <article class="container topic-content">
       <h1>{{ title }}</h1>
-      <p class="section-lead">Persönliche Gantke® Faszienbehandlung bei Thilo Seifried in Schramberg-Sulgen.</p>
+      <p class="section-lead">Persönliche Gantke® Faszienbehandlung bei Thilo Seifried in {{ settings.address_city | default(value="Schramberg-Sulgen") }}.</p>
       {% for section in sections %}<section><h2>{{ section.0 }}</h2><p>{{ section.1 }}</p></section>{% endfor %}
       <section>
         <h2>Preis und Termin</h2>
