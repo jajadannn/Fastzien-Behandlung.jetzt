@@ -19,6 +19,8 @@ pub fn initialize(db_path: &str, admin_email: &str, admin_password: &str) -> Res
     seed_faqs(&conn)?;
     crate::marketing::migrate_content(&conn)?;
     crate::marketing::migrate_location_rottweil(&conn)?;
+    crate::marketing::migrate_offer_2026_11(&conn)?;
+    crate::marketing::migrate_google_reviews_2026_11(&conn)?;
     seed_admin(&conn, admin_email, admin_password)?;
 
     info!("Database initialized at {}", db_path);
@@ -230,8 +232,10 @@ fn migrate_existing_db(conn: &Connection) -> Result<()> {
 fn seed_settings(conn: &Connection) -> Result<()> {
     let defaults = vec![
         ("price_single", "195"),
-        ("price_pack", "169,90"),
+        ("price_pack", "169"),
         ("price_pack_count", "10"),
+        ("price_pack_small", "185"),
+        ("price_pack_small_count", "3"),
         ("home_visit_surcharge", "15"),
         ("appointment_duration_min", "90"),
         ("appointment_break_min", "0"),

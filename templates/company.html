@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  {%- set city = settings.address_city | default(value="Rottweil") %}
+  {%- set mail = settings.email_contact | default(value="termin@faszienbehandlung.jetzt") %}
+  <title>Faszien-Tag im Unternehmen | Thilo Seifried · {{ city }}</title>
+  <meta name="description" content="Faszien-Tag im Unternehmen: individuelle manuelle Gantke® Faszienbehandlungen für Ihre Beschäftigten im Betrieb. Auf Anfrage, Umfang und Preis individuell.">
+  <link rel="canonical" href="https://faszienbehandlung.jetzt/unternehmen">
+  <link rel="icon" href="/favicon.v1.ico">
+  <link rel="stylesheet" href="/static/css/main.css?v=21">
+</head>
+<body>
+  <nav class="skip-navigation" aria-label="Seiteneinstieg"><a class="skip-link" href="#main-content">Zum Inhalt</a></nav>
+
+  <nav class="topbar" aria-label="Hauptnavigation">
+    <a class="topbar-logo" href="/"><picture><source srcset="/Logo.avif" type="image/avif"><img src="/static/images/logo-240.png" width="92" height="38" alt="Faszienbehandlung Thilo Seifried"></picture></a>
+    <div class="topbar-right"><a class="topic-nav-link" href="/">Startseite</a><a class="topic-nav-link" href="/ueber-mich">Über mich</a><a class="btn-book" href="#anfrage">Faszien-Tag anfragen</a></div>
+  </nav>
+  <main tabindex="-1" id="main-content" class="section-white">
+    <article class="container topic-content">
+      <h1>Faszien-Tag im Unternehmen</h1>
+      <p class="section-lead">Eine Idee für die Zusammenarbeit mit Ihrem Betrieb, auf Anfrage. Für Geschäftsführungen, Personalverantwortliche und alle, die das betriebliche Gesundheitsmanagement gestalten.</p>
+
+      <section>
+        <h2>Worum es geht</h2>
+        <p>Ich komme in Ihren Betrieb und biete Ihren Beschäftigten individuelle manuelle Behandlungen an. Jede Person erhält eine persönliche Auszeit vom Arbeitsalltag und kann ihrer Körperwahrnehmung Aufmerksamkeit schenken.</p>
+        <p>Für Sie ist der Faszien-Tag eine Möglichkeit, Wertschätzung zu zeigen und Ihr bestehendes Gesundheitsangebot zu ergänzen.</p>
+      </section>
+
+      <section>
+        <h2>Was vor Ort stattfindet</h2>
+        <ul class="fact-list">
+          <li>Wir legen vorab gemeinsam fest, wann der Tag stattfindet und welcher ruhige Raum sich eignet.</li>
+          <li>Ihre Beschäftigten melden sich für feste Zeitfenster an. Die Teilnahme ist freiwillig.</li>
+          <li>Jede Behandlung findet einzeln statt: ein kurzes Gespräch über Wünsche und Körperempfinden, manuelle Gantke® Körperarbeit in Kleidung und ein kurzer Abschluss.</li>
+          <li>Druck und Griffe stimme ich auf die Rückmeldung der jeweiligen Person ab.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Was wir individuell klären</h2>
+        <p>Dauer des Tages, Länge der einzelnen Behandlungen, Zahl der Teilnehmenden, Preis und mögliche Folgetermine stimmen wir auf Ihren Betrieb ab.</p>
+      </section>
+
+      <section>
+        <h2>Wer zu Ihnen kommt</h2>
+        <p>Ich bin Thilo Seifried, Faszien-Behandler mit Zertifikat der Gantke Akademie für ganzheitliche Körperarbeit (fünf Module, 144 Stunden). Acht Jahre lang war ich Einsatzleiter der kommunalen Disposition für den Landkreis Rottweil und habe 60 Mitarbeitende und 25 Fahrzeuge koordiniert. Ich kenne den Arbeitsalltag mit Verantwortung, Schichten und Zeitdruck aus eigener Erfahrung. <a href="/ueber-mich">Mehr über mich</a></p>
+      </section>
+
+      <section id="anfrage">
+        <h2>Faszien-Tag anfragen</h2>
+        <p>Schreiben Sie mir kurz, wie viele Beschäftigte Sie ansprechen möchten und welcher Zeitraum für Sie infrage kommt. Ich melde mich mit einem Vorschlag bei Ihnen.</p>
+        <a class="btn-primary" href="mailto:{{ mail }}?subject=Faszien-Tag%20im%20Unternehmen">Faszien-Tag anfragen</a>
+        <p class="topic-contact">Oder telefonisch: <a href="tel:{{ settings.phone_raw | default(value='+4915234007225') }}">{{ settings.phone | default(value="+49 152 34 00 72 25") }}</a> · <a href="mailto:{{ mail }}?subject=Faszien-Tag%20im%20Unternehmen">{{ mail }}</a></p>
+      </section>
+
+      <p class="situation-more">Langfristig kann ich mir auch Vorträge und Workshops für Unternehmen vorstellen. Das ist heute noch ein Zukunftswunsch und kein buchbares Angebot.</p>
+      <p class="contra-note">Die Gantke® Faszienbehandlung ist eine Wellness- und Körperarbeitsleistung, keine Heilkunde. Sie ersetzt keine medizinische Diagnose oder Behandlung und ist kein Versprechen für weniger Krankheitstage.</p>
+    </article>
+  </main>
+  <footer class="footer"><div class="container"><address>Thilo Seifried · {{ settings.address_street | default(value="Im Kapellenösch 9") }}, {{ settings.address_zip | default(value="78628") }} {{ city }}</address>{% include "_footer_legal.html" %}</div></footer>
+  <script src="/static/js/accessibility.js" defer></script>
+  <script src="/static/js/main.js?v=3" defer></script>
+<!-- impeccable-live-start -->
+<script src="http://localhost:8400/live.js?token=798bf504-d8df-4751-b06a-bd22ae500c5c"></script>
+<!-- impeccable-live-end -->
+</body>
+</html>

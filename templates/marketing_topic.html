@@ -7,7 +7,7 @@
   <meta name="description" content="{{ description }}">
   <link rel="canonical" href="https://faszienbehandlung.jetzt{{ path }}">
   <link rel="icon" href="/favicon.v1.ico">
-  <link rel="stylesheet" href="/static/css/main.css?v=4">
+  <link rel="stylesheet" href="/static/css/main.css?v=21">
 </head>
 <body>
   <nav class="skip-navigation" aria-label="Seiteneinstieg"><a class="skip-link" href="#main-content">Zum Inhalt</a></nav>
@@ -31,9 +31,11 @@
       <nav class="topic-related" aria-label="Weitere Informationen"><a href="/faszienbehandlung-ruecken">Rücken</a><a href="/faszienbehandlung-nacken-schulter">Nacken und Schulter</a><a href="/faszienbehandlung-haltung">Haltung</a><a href="/faszienbehandlung-sport">Sport</a><a href="/preise-und-ablauf">Preise und Ablauf</a></nav>
     </article>
   </main>
-  <footer class="footer"><div class="container"><address>Thilo Seifried · {{ settings.address_street | default(value="Im Kapellenösch 9") }}, {{ settings.address_zip | default(value="78628") }} {{ settings.address_city | default(value="Rottweil") }}</address><p><a href="/impressum">Impressum</a> · <a href="/datenschutz">Datenschutz</a></p></div></footer>
-  {% include "_service_footer.html" %}
+  <footer class="footer"><div class="container"><address>Thilo Seifried · {{ settings.address_street | default(value="Im Kapellenösch 9") }}, {{ settings.address_zip | default(value="78628") }} {{ settings.address_city | default(value="Rottweil") }}</address>{% include "_footer_legal.html" %}</div></footer>
   <script src="/static/js/accessibility.js" defer></script>
   <script src="/static/js/main.js?v=3" defer></script>
+<!-- impeccable-live-start -->
+<script src="http://localhost:8400/live.js?token=798bf504-d8df-4751-b06a-bd22ae500c5c"></script>
+<!-- impeccable-live-end -->
 </body>
 </html>

@@ -111,8 +111,8 @@ h2.section-title em{font-style:italic;font-weight:300}
 .pain-card:hover .pain-icon{transform:translateY(-4px) scale(1.06)}
 .pain-card h3{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:600;color:var(--plum);margin-bottom:8px}
 .pain-card p{font-size:.9rem;color:var(--text-mid);line-height:1.6}
-.contra-note{margin-top:24px;padding:14px 20px;background:#fff8f0;border:1px solid #f5d9b8;border-radius:10px;font-size:.9rem;color:#7a5a30;line-height:1.6}
-.contra-note strong{font-weight:600}
+.contra-note{margin-top:24px;padding:20px 24px;background:var(--white);border:1px solid rgba(26,42,51,0.16);border-radius:12px;font-size:.95rem;font-weight:400;line-height:1.7;color:var(--text-mid);max-width:72ch}
+.contra-note strong{display:block;font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:600;line-height:1.3;color:var(--text);margin-bottom:6px}
 
 /* ===== ABOUT ===== */
 .about-split{display:grid;grid-template-columns:280px 1fr;gap:48px;align-items:flex-start;margin-top:40px}
@@ -537,3 +537,85 @@ input,textarea,select{font-size:1rem!important}
 .hours-stripe p a{color:var(--white);text-decoration:underline}.content-wrap p a,.content-wrap address a{color:var(--plum-dark);text-decoration:underline}
 
 .form-group small{font-size:.875rem;line-height:1.6}.form-group label{line-height:1.6}
+
+/* Premium copy pass (November 2026): tagline, price hierarchy, about and company pages. */
+.hero-tagline{font-family:'Cormorant Garamond',serif;font-style:italic;font-weight:300;font-size:clamp(2.1rem,5.2vw,3.6rem);line-height:1.15;letter-spacing:-.01em;color:rgba(255,255,255,0.95);text-wrap:balance;margin:0 0 14px}
+.hero-price{margin-top:18px;font-size:.95rem;font-weight:600;letter-spacing:.06em;color:var(--white)}
+.situation-list{max-width:68ch}
+.situation-more{max-width:62ch;margin-top:28px;color:var(--text-mid);font-style:italic}
+.about-quote{font-family:'Cormorant Garamond',serif;font-size:clamp(1.5rem,3vw,1.9rem);line-height:1.3;color:var(--plum-dark);margin-bottom:18px;text-wrap:balance}
+.about-actions{display:flex;flex-wrap:wrap;align-items:center;gap:14px 24px;margin-top:24px}
+.text-link{color:var(--plum-dark);font-weight:600;text-underline-offset:.22em}
+.price-grid-single{max-width:420px;margin-left:auto;margin-right:auto}
+.price-grid-packages{max-width:760px;margin:24px auto 0}
+.price-grid-packages .price-amount{font-size:2.4rem}
+.price-hint{margin-top:12px;font-size:.92rem;line-height:1.6;color:var(--text-mid)}
+.price-actions{text-align:center;margin-top:28px}
+.ablauf-footer{text-align:center;margin-top:48px}
+.ablauf-footer p{color:rgba(255,255,255,0.9);margin:0 auto 20px;max-width:60ch;font-size:.98rem}
+.anfahrt-map-link small{color:var(--text-light);font-size:.78rem}
+.company-teaser .section-lead{max-width:68ch;margin-bottom:8px}
+.page-portrait{float:right;width:min(240px,40%);margin:6px 0 20px 28px;border-radius:14px;object-fit:cover}
+.page-quote{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1.35rem;color:var(--plum-dark);margin-bottom:18px}
+.fact-list{list-style:none;padding:0;margin:0 0 18px;display:grid;gap:8px}
+.fact-list li{padding-left:22px;position:relative}
+.fact-list li::before{content:"";position:absolute;left:0;top:.7em;width:8px;height:8px;border-radius:50%;background:var(--sky)}
+.future-note{background:var(--sky-pale);border:1px solid rgba(112,174,205,0.35);border-radius:14px;padding:20px 24px;margin-top:40px}
+.future-note h2{margin-top:0!important}
+@media (max-width:600px){.page-portrait{float:none;display:block;width:200px;margin:0 0 20px}}
+@media(min-width:769px){.topbar-links{flex-wrap:nowrap}.topbar-links a{white-space:nowrap}}
+@media(min-width:769px) and (max-width:1100px){.topbar-brand{display:none}}
+/* Topic list below "Für wen" (accepted in live mode, November 2026). */
+.topic-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:40px;margin-top:36px;border-top:1px solid rgba(150,66,121,0.25)}
+.topic-list a{display:grid;grid-template-columns:1fr auto;grid-template-rows:auto auto;column-gap:16px;align-items:center;padding:18px 4px;border-bottom:1px solid rgba(150,66,121,0.25);color:var(--text);text-decoration:none;transition:color .2s ease,padding-left .25s cubic-bezier(.16,1,.3,1)}
+.topic-list .tl-name{font-family:'Cormorant Garamond',serif;font-size:1.45rem;font-weight:600;line-height:1.2;color:var(--plum-dark)}
+.topic-list .tl-desc{grid-column:1;font-size:.9rem;color:var(--text-mid);line-height:1.5}
+.topic-list .tl-arrow{grid-column:2;grid-row:1 / span 2;color:var(--plum);transition:transform .25s cubic-bezier(.16,1,.3,1)}
+.topic-list a:hover{padding-left:10px}
+.topic-list a:hover .tl-arrow{transform:translateX(4px)}
+.topic-list a:focus-visible{outline:2px solid var(--plum-dark);outline-offset:2px}
+@media (max-width:640px){.topic-list{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){.topic-list a,.topic-list .tl-arrow{transition:none}.topic-list a:hover{padding-left:4px}.topic-list a:hover .tl-arrow{transform:none}}
+/* Facts line under "Für Menschen mit vollen Tagen" (accepted in live mode). */
+.intro-facts{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 0;margin:0 0 32px;padding:14px 0;border-top:1px solid rgba(26,42,51,0.18);border-bottom:1px solid rgba(26,42,51,0.18);max-width:680px}
+.intro-facts span{font-size:1rem;color:var(--text);padding:0 18px;border-left:1px solid rgba(26,42,51,0.18);line-height:1.4}
+.intro-facts span:first-child{padding-left:0;border-left:0;font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:600;color:var(--plum-dark)}
+@media (max-width:560px){.intro-facts span{padding:0 12px}}
+/* Method introduction in serif italic (accepted in live mode). */
+.method-intro{max-width:58ch;margin:0 0 32px}
+.method-intro p{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:clamp(1.35rem,2.6vw,1.65rem);line-height:1.5;color:var(--text)}
+/* Ablauf steps as a 2x2 grid with serif numerals (accepted in live mode). */
+.steps-row.steps-quad{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 56px;margin-top:40px}
+.steps-quad .step{flex-direction:row;align-items:flex-start;gap:20px;padding:28px 0;border-top:1px solid rgba(255,255,255,0.4)}
+.steps-quad .step-num{flex:none;width:auto;height:auto;margin:0;background:none;border:0;border-radius:0;font-size:3.4rem;font-weight:300;line-height:.9;color:rgba(255,255,255,0.8)}
+@media (max-width:760px){.steps-row.steps-quad{grid-template-columns:1fr}}
+/* Contact details in the closing CTA stacked vertically on every screen size. */
+.cta-contact{flex-direction:column;align-items:center;gap:10px}
+.cta-contact a,.cta-contact span{white-space:nowrap}
+/* Legal and service links inside the dark site footer. */
+.footer-legal{display:flex;flex-wrap:wrap;gap:4px 20px;font-size:.85rem}
+.footer-legal a{color:rgba(255,255,255,.85);text-decoration:none;min-height:24px;display:inline-flex;align-items:center}
+.footer-legal a:hover,.footer-legal a:focus-visible{color:var(--white);text-decoration:underline;text-underline-offset:.2em}
+.footer-legal .withdrawal-link{text-decoration:underline;text-underline-offset:.2em;font-weight:500}
+.footer .container .footer-legal{justify-content:center;margin-top:10px}
+@media print{.footer-legal{display:none}}
+/* Keep phone and e-mail in the footer contact block on one line each. */
+.footer-col address a{white-space:nowrap}
+@media (max-width:768px){.footer-grid .footer-col:first-child{grid-column:1 / -1}}
+/* Airier landing footer with column rules (accepted in live mode). */
+.footer-airy{padding:64px 24px 32px}
+.footer-airy .footer-grid{gap:28px 0;margin-bottom:40px}
+.footer-airy .footer-col{padding:0 24px;border-left:1px solid rgba(255,255,255,0.12)}
+.footer-airy .footer-col:first-child{padding-left:0;border-left:0}
+.footer-airy .footer-col h3{color:var(--sky-light);letter-spacing:.14em}
+.footer-airy .footer-col p,.footer-airy .footer-col address{line-height:1.9}
+.footer-airy .footer-bottom{flex-direction:column;align-items:center;gap:12px;text-align:center}
+.footer-airy .footer-legal{justify-content:center}
+@media (max-width:768px){.footer-airy .footer-col{padding:0;border-left:0}}
+/* Compact dark footer for legal, service, portal and admin pages. */
+.footer-compact{padding:36px 24px 28px}
+.footer-compact .footer-bottom{border-top:0;padding-top:0}
+/* Legal page reading rhythm, aligned with Impressum and Datenschutz. */
+.legal-content p{line-height:1.75;max-width:68ch;color:var(--text-mid)}
+.legal-content a:not(.btn-primary):not(.btn-book){text-decoration:underline;text-decoration-color:rgba(122,54,97,0.35);text-underline-offset:.2em}
+.legal-content a:not(.btn-primary):not(.btn-book):hover{text-decoration-color:currentColor}

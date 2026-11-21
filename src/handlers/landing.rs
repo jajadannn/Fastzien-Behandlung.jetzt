@@ -38,16 +38,17 @@ pub async fn index(
     ctx.insert("avg_rating", &format!("{:.1}", avg_rating).replace(",", "."));
     ctx.insert("is_logged_in", &is_logged_in);
     ctx.insert("is_admin", &is_admin);
-    let pack_price: f64 = settings.get("price_pack").map(|s| s.replace(',',".")).unwrap_or_default().parse().unwrap_or(169.90);
-    let pack_count: i32 = settings.get("price_pack_count").and_then(|s| s.parse().ok()).unwrap_or(10);
-    ctx.insert("pack_total", &format!("{:.2}",pack_price * pack_count as f64).replace('.',","));
+    insert_offer(&mut ctx, &settings);
     let get = |key: &str, default: &str| settings.get(key).cloned().unwrap_or_else(|| default.to_owned());
     let schema = serde_json::json!({
         "@context":"https://schema.org", "@type":"HealthAndBeautyBusiness", "name":"Faszienbehandlung Thilo Seifried – Gantke® Methode", "url":"https://faszienbehandlung.jetzt/",
         "image":"https://faszienbehandlung.jetzt/static/images/portrait-960.webp", "description":"Persönliche Gantke® Faszienbehandlung als Wellness- und Körperarbeitsleistung für Beweglichkeit, Entspannung und Wohlbefinden.",
         "address":{"@type":"PostalAddress","streetAddress":get("address_street","Im Kapellenösch 9"),"postalCode":get("address_zip","78628"),"addressLocality":get("address_city","Rottweil"),"addressRegion":get("address_region",""),"addressCountry":"DE"},
         "telephone":get("phone_raw","+4915234007225"),"email":get("email_contact","termin@faszienbehandlung.jetzt"),
-        "hasOfferCatalog":{"@type":"OfferCatalog","name":"Gantke® Faszienbehandlung","itemListElement":[{"@type":"Offer","price":get("price_single","195").replace(',',"."),"priceCurrency":"EUR","itemOffered":{"@type":"Service","name":format!("Gantke® Einzelbehandlung (ca. {} Min.)",get("appointment_duration_min","90"))}}]}
+        "hasOfferCatalog":{"@type":"OfferCatalog","name":"Gantke® Faszienbehandlung","itemListElement":[
+            {"@type":"Offer","price":get("price_single","195").replace(',',"."),"priceCurrency":"EUR","itemOffered":{"@type":"Service","name":format!("Gantke® Einzelbehandlung (ca. {} Min.)",get("appointment_duration_min","90"))}},
+            {"@type":"Offer","price":package_total(&settings, "price_pack_small", "price_pack_small_count", 185.0, 3).0,"priceCurrency":"EUR","itemOffered":{"@type":"Service","name":format!("{} Termine Gantke® Faszienbehandlung",get("price_pack_small_count","3"))}},
+            {"@type":"Offer","price":package_total(&settings, "price_pack", "price_pack_count", 169.0, 10).0,"priceCurrency":"EUR","itemOffered":{"@type":"Service","name":format!("{} Termine Gantke® Faszienbehandlung",get("price_pack_count","10"))}}]}
     });
     let mut schema = schema;
     location_schema(&mut schema, &settings);
@@ -66,6 +67,53 @@ pub async fn index(
             log::error!("Template error: {:#}", e);
             HttpResponse::InternalServerError().body("Die Seite ist vorübergehend nicht verfügbar.")
         }
+    }
+}
+
+/// Package totals (machine value for structured data, German display value for the page).
+fn package_total(settings: &std::collections::HashMap<String, String>, price_key: &str, count_key: &str, price: f64, count: i32) -> (String, String) {
+    let price: f64 = settings.get(price_key).and_then(|s| s.replace(',', ".").parse().ok()).unwrap_or(price);
+    let count: i32 = settings.get(count_key).and_then(|s| s.parse().ok()).unwrap_or(count);
+    let total = price * count as f64;
+    (format!("{total:.2}"), euro(total))
+}
+
+/// German amount: "1.690" for whole euros, "1.699,50" otherwise.
+fn euro(amount: f64) -> String {
+    let cents = (amount * 100.0).round() as i64;
+    let (whole, rest) = (cents / 100, cents % 100);
+    let digits = whole.to_string();
+    let mut grouped = String::new();
+    for (i, c) in digits.chars().enumerate() {
+        if i > 0 && (digits.len() - i) % 3 == 0 { grouped.push('.'); }
+        grouped.push(c);
+    }
+    if rest == 0 { grouped } else { format!("{grouped},{rest:02}") }
+}
+
+/// The practice opens in Rottweil on 1 December 2026; until then pages announce the move.
+fn before_rottweil_opening() -> bool {
+    let today = chrono::Utc::now().with_timezone(&chrono_tz::Europe::Berlin).date_naive();
+    today < chrono::NaiveDate::from_ymd_opt(2026, 12, 1).expect("valid date")
+}
+
+fn insert_offer(ctx: &mut tera::Context, settings: &std::collections::HashMap<String, String>) {
+    ctx.insert("pack_total", &package_total(settings, "price_pack", "price_pack_count", 169.0, 10).1);
+    ctx.insert("pack_small_total", &package_total(settings, "price_pack_small", "price_pack_small_count", 185.0, 3).1);
+    ctx.insert("announce_move", &before_rottweil_opening());
+}
+
+/// Standalone content pages ("Über mich", "Für Unternehmen").
+pub async fn page(req: HttpRequest, tmpl: web::Data<Tera>, db: web::Data<Mutex<Connection>>) -> HttpResponse {
+    let template = match req.path() { "/ueber-mich" => "about.html", "/unternehmen" => "company.html", _ => return HttpResponse::NotFound().finish() };
+    let conn = db.lock().unwrap_or_else(|e| e.into_inner());
+    let settings = SiteSetting::get_public(&conn).unwrap_or_default();
+    let mut ctx = tera::Context::new();
+    insert_offer(&mut ctx, &settings);
+    ctx.insert("settings", &settings);
+    match tmpl.render(template, &ctx) {
+        Ok(body) => HttpResponse::Ok().content_type("text/html; charset=utf-8").body(body),
+        Err(e) => { log::error!("Page template {template}: {:#}", e); HttpResponse::InternalServerError().body("Die Seite ist vorübergehend nicht verfügbar.") }
     }
 }
 
@@ -171,6 +219,16 @@ mod tests {
                 assert!(!localized.contains("Sulgen") && !localized.contains("{ort}"), "{localized}");
             }
         }
+    }
+    #[test] fn package_totals_follow_settings() {
+        assert_eq!(euro(1690.0), "1.690");
+        assert_eq!(euro(555.0), "555");
+        assert_eq!(euro(1699.0), "1.699");
+        assert_eq!(euro(1698.5), "1.698,50");
+        let mut settings = std::collections::HashMap::new();
+        assert_eq!(package_total(&settings, "price_pack", "price_pack_count", 169.0, 10), ("1690.00".into(), "1.690".into()));
+        settings.insert("price_pack_small".to_owned(), "185,5".to_owned());
+        assert_eq!(package_total(&settings, "price_pack_small", "price_pack_small_count", 185.0, 3).1, "556,50");
     }
     #[test] fn structured_data_is_valid_and_cannot_close_script() {
         let data = serde_json::json!({"text":"Zitat: \"Beweglichkeit\" </script>","price":"169,90"});

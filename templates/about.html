@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  {%- set city = settings.address_city | default(value="Rottweil") %}
+  <title>Über mich | Thilo Seifried · Gantke® Faszienbehandlung {{ city }}</title>
+  <meta name="description" content="Thilo Seifried, Faszien-Behandler in {{ city }}: Haltung, Arbeitsweise und Qualifikation (Gantke Akademie, fünf Module, 144 Stunden).">
+  <link rel="canonical" href="https://faszienbehandlung.jetzt/ueber-mich">
+  <link rel="icon" href="/favicon.v1.ico">
+  <link rel="stylesheet" href="/static/css/main.css?v=21">
+</head>
+<body>
+  <nav class="skip-navigation" aria-label="Seiteneinstieg"><a class="skip-link" href="#main-content">Zum Inhalt</a></nav>
+
+  <nav class="topbar" aria-label="Hauptnavigation">
+    <a class="topbar-logo" href="/"><picture><source srcset="/Logo.avif" type="image/avif"><img src="/static/images/logo-240.png" width="92" height="38" alt="Faszienbehandlung Thilo Seifried"></picture></a>
+    <div class="topbar-right"><a class="topic-nav-link" href="/">Startseite</a><a class="topic-nav-link" href="/unternehmen">Für Unternehmen</a><a class="btn-book" href="/buchen">Termin vereinbaren</a></div>
+  </nav>
+  <main tabindex="-1" id="main-content" class="section-white">
+    <article class="container topic-content">
+      <h1>„Ich glaube daran, dass Entwicklung beim Menschen selbst beginnt.“</h1>
+      <img class="page-portrait" src="/static/images/portrait-640.webp" srcset="/static/images/portrait-640.webp 640w, /static/images/portrait-960.webp 960w" sizes="240px" width="240" height="300" alt="Thilo Seifried" decoding="async">
+      <p class="section-lead">Ich bin Thilo Seifried und biete in {{ city }} die Gantke® Faszienbehandlung an. Dieser Satz beschreibt, wie ich arbeite.</p>
+
+      <section>
+        <h2>Wie ich arbeite</h2>
+        <p>Ich höre zu und frage nach. Bevor ich mit den Händen arbeite, möchte ich wissen, was dich beschäftigt, was dir im Alltag oder beim Sport auffällt und was du dir von unserem Termin wünschst.</p>
+        <p>Während der Behandlung lade ich dich ein, eigene Beobachtungen zu machen. Wie fühlt sich eine vertraute Bewegung an? Was nimmst du wahr? Deine Rückmeldung bestimmt, wie ich weiterarbeite.</p>
+        <p>Am Ende gebe ich dir eine Anregung mit, wenn sie passt. Ob du sie aufnimmst, entscheidest du. Ich gebe keine Rezepte vor.</p>
+      </section>
+
+      <section>
+        <h2>Körper. Bewusstsein. Entwicklung.</h2>
+        <p>Die körperliche Erfahrung ist für mich der Ausgangspunkt. Wer seinen Körper aufmerksam wahrnimmt, bemerkt oft auch Gewohnheiten, Grenzen und Muster, die ihn im Alltag begleiten.</p>
+        <p>Ich möchte Menschen ermutigen, körperliche, emotionale und mentale Grenzen wahrzunehmen, eingefahrene Denkmuster zu hinterfragen und neue Handlungsmöglichkeiten auszuprobieren. Dazu gehören für mich Offenheit für andere Sichtweisen, Mut, Eigenverantwortung und Verantwortung für das eigene Umfeld.</p>
+        <p>Wie weit wir über den Körper hinaus sprechen, entscheidest du. Eine Verspannung deute ich nicht als Zeichen für eine bestimmte emotionale Ursache.</p>
+      </section>
+
+      <section>
+        <h2>Meine Qualifikation</h2>
+        <ul class="fact-list">
+          <li>Ausbildung an der Gantke Akademie für ganzheitliche Körperarbeit</li>
+          <li>Fünf Module mit insgesamt 144 Stunden</li>
+          <li>Zertifikat „Faszien-Behandler“ vom 17. Juli 2024</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Woher ich komme</h2>
+        <p>Acht Jahre lang war ich Einsatzleiter der kommunalen Disposition für den Landkreis Rottweil. Ich habe 60 Mitarbeitende und 25 Fahrzeuge koordiniert. Ich weiß aus eigener Erfahrung, wie es ist, Verantwortung zu tragen und dabei den eigenen Körper aus dem Blick zu verlieren. Diese Erfahrung bringe ich in meine Arbeit mit Unternehmern, Selbstständigen und Führungskräften mit.</p>
+      </section>
+
+      <section class="future-note">
+        <h2>Was ich mir für die Zukunft wünsche</h2>
+        <p>Langfristig möchte ich diese Arbeit weiterdenken, vielleicht in Vorträgen und Workshops oder in einer Begleitung für Menschen, die sich persönlich weiterentwickeln möchten. Das ist ein Wunsch für die Zukunft. Heute biete ich dir die Gantke® Faszienbehandlung an.</p>
+      </section>
+
+      <section>
+        <h2>Lernen wir uns kennen</h2>
+        <p>Ein Termin dauert ca. {{ settings.appointment_duration_min | default(value="90") }} Minuten und kostet {{ settings.price_single | default(value="195") }} €. Das Gespräch ist enthalten.{% if announce_move %} Ab 1. Dezember 2026 findest du meine Praxis in Rottweil, {{ settings.address_street | default(value="Im Kapellenösch 9") }}.{% endif %}</p>
+        <a class="btn-primary" href="/buchen">Termin vereinbaren</a>
+        <p class="topic-contact">Lieber vorher sprechen? <a href="tel:{{ settings.phone_raw | default(value='+4915234007225') }}">{{ settings.phone | default(value="+49 152 34 00 72 25") }}</a></p>
+      </section>
+      <p class="contra-note">Die Gantke® Faszienbehandlung ist eine Wellness- und Körperarbeitsleistung. Sie ersetzt keine medizinische Diagnose oder Behandlung. Bei Beschwerden mit Krankheitswert bitte vorher ärztlich abklären.</p>
+    </article>
+  </main>
+  <footer class="footer"><div class="container"><address>Thilo Seifried · {{ settings.address_street | default(value="Im Kapellenösch 9") }}, {{ settings.address_zip | default(value="78628") }} {{ city }}</address>{% include "_footer_legal.html" %}</div></footer>
+  <script src="/static/js/accessibility.js" defer></script>
+  <script src="/static/js/main.js?v=3" defer></script>
+<!-- impeccable-live-start -->
+<script src="http://localhost:8400/live.js?token=798bf504-d8df-4751-b06a-bd22ae500c5c"></script>
+<!-- impeccable-live-end -->
+</body>
+</html>

@@ -15,7 +15,7 @@ static LAST_SUBMISSION: Mutex<Option<Instant>> = Mutex::new(None);
 
 /// Public pages listed in sitemap.xml. A test keeps both in sync.
 pub fn public_paths() -> Vec<&'static str> {
-    std::iter::once("/").chain(crate::marketing::TOPICS.iter().map(|t| t.0)).collect()
+    ["/", "/ueber-mich", "/unternehmen"].into_iter().chain(crate::marketing::TOPICS.iter().map(|t| t.0)).collect()
 }
 
 pub fn valid_key(key: &str) -> bool {

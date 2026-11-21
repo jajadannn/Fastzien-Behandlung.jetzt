@@ -12,7 +12,7 @@
   {%- set full_address = street ~ ", " ~ zip ~ " " ~ city %}
 
   <title>Gantke® Faszienbehandlung in {{ city }} | Thilo Seifried</title>
-  <meta name="description" content="Gantke® Faszienbehandlung in {{ city }} für Beweglichkeit, Entspannung und Wohlbefinden. Persönliche Sitzungen, transparente Preise und Abendtermine.">
+  <meta name="description" content="Gantke® Faszienbehandlung bei Thilo Seifried in {{ city }}: 90 Minuten persönliche Körperarbeit mit Gespräch, abends, samstags und als Hausbesuch. 195 € je Termin.">
   <meta name="author" content="Thilo Seifried">
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
   <link rel="canonical" href="https://faszienbehandlung.jetzt/">
@@ -28,7 +28,7 @@
   <meta property="og:locale" content="de_DE">
   <meta property="og:site_name" content="Faszienbehandlung Thilo Seifried">
   <meta property="og:title" content="Gantke® Faszienbehandlung {{ city }} | Thilo Seifried">
-  <meta property="og:description" content="Zeit für deinen Körper: Gantke® Faszienbehandlung für Beweglichkeit und Wohlbefinden in {{ city }}. Jetzt Termin wählen.">
+  <meta property="og:description" content="90 Minuten Zeit für deinen Körper: Gantke® Faszienbehandlung bei Thilo Seifried in {{ city }}. Körper. Bewusstsein. Entwicklung.">
   <meta property="og:url" content="https://faszienbehandlung.jetzt/">
   <meta property="og:image" content="https://faszienbehandlung.jetzt/og-hero.jpg">
   <meta property="og:image:width" content="1200">
@@ -36,7 +36,7 @@
 
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Gantke® Faszienbehandlung {{ city }} | Thilo Seifried">
-  <meta name="twitter:description" content="Mehr Raum für Beweglichkeit und Entspannung. Jetzt online Termin wählen.">
+  <meta name="twitter:description" content="90 Minuten Zeit für deinen Körper bei Thilo Seifried in {{ city }}. Termin online vereinbaren.">
   <meta name="twitter:image" content="https://faszienbehandlung.jetzt/og-hero.jpg">
 
   <link rel="icon" href="/favicon.v1.ico" sizes="any">
@@ -45,7 +45,7 @@
   <link rel="preload" href="/fonts/cormorant-garamond-normal-latin.v1.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/fonts/cormorant-garamond-italic-latin.v1.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/fonts/dm-sans-latin.v1.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/static/css/main.css?v=4">
+  <link rel="stylesheet" href="/static/css/main.css?v=21">
 
   <script type="application/ld+json">{{ business_schema | safe }}</script>
   {% if faq_schema %}<script type="application/ld+json">{{ faq_schema | safe }}</script>{% endif %}
@@ -56,6 +56,9 @@
 
   {% include "_icon_sprite.html" %}
 
+  {%- set dur = settings.appointment_duration_min | default(value="90") %}
+  {%- set single = settings.price_single | default(value="195") %}
+  {%- set book = "/buchen" %}{% if is_logged_in %}{% set book = "/portal/book" %}{% endif %}
   <nav class="topbar" aria-label="Hauptnavigation">
     <a class="topbar-logo" href="#home">
       <picture><source srcset="/Logo.avif" type="image/avif"><img
@@ -72,10 +75,10 @@
       </button>
       <div class="topbar-links" id="topbar-menu">
       <div class="topbar-links-inner">
-      <a href="#ueber">Über mich</a>
+      <a href="/ueber-mich">Über mich</a>
       <a href="#ablauf">Ablauf</a>
       <a href="#preise">Preise</a>
-      <a href="#anfahrt">Anfahrt</a>
+      <a href="/unternehmen">Unternehmen</a>
       <a href="#faq">FAQ</a>
         </div>
       </div>
@@ -86,7 +89,7 @@
         <a href="/portal" class="btn-book"><svg class="icon"><use href="#icon-user" xlink:href="#icon-user"/></svg> Mein Konto</a>
         {% endif %}
       {% else %}
-      <a href="/buchen" class="btn-book">Termin buchen</a>
+      <a href="/buchen" class="btn-book">Termin vereinbaren</a>
       {% endif %}
     </div>
   </nav>
@@ -114,57 +117,46 @@
       </div>
         {% else %}
       <h1>Schön, dich<br><em>wiederzusehen</em>.</h1>
-      <p class="hero-sub">Bereit für deine nächste Sitzung? Buche direkt oder verwalte deine Termine im Kundenportal.</p>
+      <p class="hero-sub">Bereit für deinen nächsten Termin? Buche direkt oder verwalte deine Termine im Kundenportal.</p>
       <div class="hero-cta-group">
-        <a class="btn-primary" href="/portal/book">Termin buchen</a>
+        <a class="btn-primary" href="/portal/book">Termin vereinbaren</a>
         <a class="btn-secondary" href="/portal">Zum Kundenportal →</a>
       </div>
         {% endif %}
       {% else %}
-      <h1>Endlich wieder<br><em>freier</em> bewegen.</h1>
-      <p class="hero-sub">Gantke® Faszienbehandlung in {{ city }}. Ca. {{ settings.appointment_duration_min | default(value="90") }} Minuten persönliche Körperarbeit für Beweglichkeit, Entspannung und Wohlbefinden.</p>
+      <p class="hero-tagline">Körper. Bewusstsein. Entwicklung.</p>
+      <h1>Gantke® Faszienbehandlung<br>bei <em>Thilo Seifried</em></h1>
+      <p class="hero-sub">{{ dur }} Minuten Zeit für deinen Körper. Wir besprechen, was dir im Alltag oder beim Sport auffällt, und stimmen die Behandlung darauf ab.</p>
       <div class="hero-cta-group">
-        <a class="btn-primary" href="/buchen">Freien Termin wählen</a>
+        <a class="btn-primary" href="/buchen">Termin vereinbaren</a>
         <a class="btn-secondary" href="tel:{{ settings.phone_raw | default(value='+4915234007225') }}">Persönlich anrufen</a>
       </div>
+      <p class="hero-price">{{ dur }} Minuten · {{ single }} €</p>
       {% endif %}
-      {% if not is_logged_in %}<div class="hero-person"><img src="/static/images/portrait-640.webp" alt="Thilo Seifried" width="56" height="70" decoding="async"><p><strong>Thilo Seifried</strong><span>Zertifizierter Gantke® Faszienbehandler</span></p></div>{% endif %}
-      <p class="hero-note">Ohne Konto buchbar &nbsp;·&nbsp; {{ settings.appointment_duration_min | default(value="90") }} Min. · {{ settings.price_single | default(value="195") }} € &nbsp;·&nbsp; Kostenlose Parkplätze</p>
+      {% if not is_logged_in %}<div class="hero-person"><img src="/static/images/portrait-640.webp" alt="Thilo Seifried" width="56" height="70" decoding="async"><p><strong>Thilo Seifried</strong><span>Faszien-Behandler · Gantke Akademie</span></p></div>{% endif %}
+      <p class="hero-note">{% if announce_move %}Ab 1. Dezember 2026 findest du meine Praxis in Rottweil, {{ street }}.{% else %}Praxis in {{ short }} · Hausbesuche in der Region{% endif %}</p>
     </div>
   </section>
 
-  <div class="trust-bar">
-    <div class="trust-bar-inner">
-      <div class="trust-item"><div class="trust-icon"><svg class="icon"><use href="#icon-verified" xlink:href="#icon-verified"/></svg></div><div><div class="trust-label">Gantke® zertifiziert</div><div class="trust-sub">Persönlich bei Thilo Seifried</div></div></div>
-      <div class="trust-item"><div class="trust-icon"><svg class="icon"><use href="#icon-clock" xlink:href="#icon-clock"/></svg></div><div><div class="trust-label">{{ settings.appointment_duration_min | default(value="90") }} Min. Behandlung</div><div class="trust-sub">Ganzheitlich & gründlich</div></div></div>
-      <div class="trust-item"><div class="trust-icon"><svg class="icon"><use href="#icon-spa" xlink:href="#icon-spa"/></svg></div><div><div class="trust-label">Individuell abgestimmt</div><div class="trust-sub">Sanfte Technik</div></div></div>
-      <div class="trust-item"><div class="trust-icon"><svg class="icon"><use href="#icon-parking" xlink:href="#icon-parking"/></svg></div><div><div class="trust-label">Kostenlos parken</div><div class="trust-sub">Direkt vor der Tür</div></div></div>
-    </div>
-  </div>
-
-  <section class="section-white" id="beschwerden">
+  <section class="section-white" id="fuer-wen">
     <div class="container">
-      <h2 class="section-title">Mehr Raum für<br><em>dein Wohlbefinden</em></h2>
-      <div class="quick-answer">
-
-        <p>Eine persönliche Wellness- und Körperarbeitsleistung für Erwachsene, die sich verspannt fühlen und ihre Beweglichkeit bewusst unterstützen möchten. Ca. {{ settings.appointment_duration_min | default(value="90") }} Minuten, {{ settings.price_single | default(value="195") }} €, Praxis in {{ short }}.</p>
+      <h2 class="section-title">Für Menschen mit<br><em>vollen Tagen</em></h2>
+      <div class="intro-facts"><span>Gantke® Faszienbehandlung</span><span>ca. {{ dur }} Minuten</span><span>{{ single }} €</span><span>Praxis in {{ short }} oder Hausbesuch</span></div>
+      <p class="section-lead">Manche möchten nach langen Tagen am Schreibtisch ihrem Körper wieder mehr Aufmerksamkeit geben. Andere treiben viel Sport und möchten genauer wahrnehmen, wie sie sich bewegen. Beides hat hier Platz.</p>
+      <div class="benefit-list situation-list">
+        <div class="benefit-item js-animate"><div class="benefit-dot"></div><div><h3>Zwischen zwei Besprechungen</h3><p>Du sitzt viel, entscheidest viel und kommst selten dazu, auf dich selbst zu achten. Hier hast du {{ dur }} Minuten, in denen niemand etwas von dir will.</p></div></div>
+        <div class="benefit-item js-animate"><div class="benefit-dot"></div><div><h3>Wenn der Beruf dich immer gleich bewegt</h3><p>Ob am Bildschirm, in der Werkstatt oder auf der Baustelle: Wir schauen uns deine Haltung und deine Bewegungsgewohnheiten in Ruhe an.</p></div></div>
+        <div class="benefit-item js-animate"><div class="benefit-dot"></div><div><h3>Nach dem Training</h3><p>Du läufst, fährst Rad oder trainierst regelmäßig und möchtest genauer hinspüren, wie du dich bewegst.</p></div></div>
       </div>
-      <p class="section-lead">Ob nach einem langen Arbeitstag oder nach dem Sport: Die Sitzung richtet sich nach deinem Körpergefühl und deinen persönlichen Zielen.</p>
-      <div class="pain-grid">
-        <div class="pain-card js-animate"><div class="pain-icon"><svg class="icon"><use href="#icon-spine" xlink:href="#icon-spine"/></svg></div><h3><a href="/faszienbehandlung-ruecken">Rückenverspannungen</a></h3><p>Zeit für den Rücken nach langem Sitzen oder körperlicher Arbeit</p></div>
-        <div class="pain-card js-animate"><div class="pain-icon"><svg class="icon"><use href="#icon-headache" xlink:href="#icon-headache"/></svg></div><h3>Beweglichkeit</h3><p>Den eigenen Körper bewusster wahrnehmen und Bewegung Raum geben</p></div>
-        <div class="pain-card js-animate"><div class="pain-icon"><svg class="icon"><use href="#icon-shoulder" xlink:href="#icon-shoulder"/></svg></div><h3><a href="/faszienbehandlung-nacken-schulter">Nacken &amp; Schulter</a></h3><p>Verspannungsgefühl nach Bildschirmarbeit und einseitiger Belastung</p></div>
-        <div class="pain-card js-animate"><div class="pain-icon"><svg class="icon"><use href="#icon-joint" xlink:href="#icon-joint"/></svg></div><h3><a href="/faszienbehandlung-haltung">Haltung im Alltag</a></h3><p>Aufmerksamkeit für Haltung und Bewegungsgewohnheiten</p></div>
-        <div class="pain-card js-animate"><div class="pain-icon"><svg class="icon"><use href="#icon-stress" xlink:href="#icon-stress"/></svg></div><h3>Stress &amp; Anspannung</h3><p>Eine ruhige Auszeit von einem fordernden Alltag</p></div>
-        <div class="pain-card js-animate"><div class="pain-icon"><svg class="icon"><use href="#icon-bandage" xlink:href="#icon-bandage"/></svg></div><h3><a href="/faszienbehandlung-sport">Regeneration im Sport</a></h3><p>Eine bewusste Pause für Läufer, Radfahrer und andere aktive Menschen</p></div>
-      </div>
-      <div class="contra-note"><strong>Kontraindikationen:</strong> Die Behandlung ist nicht geeignet bei akuten Entzündungen, Fieber, Metastasen, frischen Operationswunden oder Thrombosen. Bei Beschwerden mit Krankheitswert bitte vorher ärztlich abklären. Die Sitzung ersetzt keine medizinische Diagnose oder Behandlung.</div>
+      <p class="situation-more">Wer über den Körper hinaus über Gewohnheiten oder neue Perspektiven sprechen möchte, findet dafür Raum. Wie weit das Gespräch geht, entscheidest du.</p>
+      <nav class="topic-list" aria-label="Mehr zu einzelnen Themen"><a href="/faszienbehandlung-ruecken"><span class="tl-name">Rücken</span><span class="tl-desc">Nach langem Sitzen oder körperlicher Arbeit</span><svg class="tl-arrow" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a><a href="/faszienbehandlung-nacken-schulter"><span class="tl-name">Nacken und Schulter</span><span class="tl-desc">Zwischen Bildschirm und Alltag</span><svg class="tl-arrow" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a><a href="/faszienbehandlung-haltung"><span class="tl-name">Haltung</span><span class="tl-desc">Bewegungsgewohnheiten bewusst wahrnehmen</span><svg class="tl-arrow" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a><a href="/faszienbehandlung-sport"><span class="tl-name">Sport</span><span class="tl-desc">Auch die Pause gehört zum Training</span><svg class="tl-arrow" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a></nav>
+      <div class="contra-note"><strong>Kontraindikationen</strong><p>Die Behandlung ist nicht geeignet bei akuten Entzündungen, Fieber, Metastasen, frischen Operationswunden oder Thrombosen. Bei Beschwerden mit Krankheitswert bitte vorher ärztlich abklären. Die Sitzung ersetzt keine medizinische Diagnose oder Behandlung.</p></div>
     </div>
   </section>
 
   <section class="section-pale" id="ueber">
     <div class="container">
-      <h2 class="section-title">Dein Behandler –<br><em>Mensch &amp; Fachmann</em></h2>
+      <h2 class="section-title">Hallo, ich bin<br><em>Thilo Seifried</em></h2>
       <div class="about-split">
         <div class="about-photo-wrap js-animate">
           <div class="about-photo">
@@ -178,24 +170,13 @@
               loading="lazy"
               decoding="async">
           </div>
-          <div class="about-creds">
-            <div class="cred-badge"><span class="ci"><svg class="icon"><use href="#icon-verified" xlink:href="#icon-verified"/></svg></span> Gantke® zertifizierter Faszienbehandler</div>
-            <div class="cred-badge"><span class="ci"><svg class="icon"><use href="#icon-pin" xlink:href="#icon-pin"/></svg></span> {{ city }}{% if region %}, {{ region }}{% endif %}</div>
-            <div class="cred-badge"><span class="ci"><svg class="icon"><use href="#icon-home" xlink:href="#icon-home"/></svg></span> Hausbesuche in der Region</div>
-          </div>
         </div>
         <div class="about-text js-animate">
-          <h3>Hallo, ich bin Thilo.</h3>
-          <p>Als zertifizierter Gantke® Faszienbehandler begleite ich Menschen in {{ city }} dabei, sich Zeit für ihren Körper zu nehmen und sich beweglicher und aufrechter zu fühlen.</p>
-          <p>Die Gantke® Methode ist eine manuelle Körperarbeit mit dem gesamten Fasziennetz. Ich arbeite mit gezielten Grifftechniken und stimme den Druck auf dein Empfinden ab.</p>
-          <p>Jede Behandlung beginnt mit einem persönlichen Gespräch. Ich nehme mir Zeit für dich und passe die Sitzung individuell an deine Ziele und deinen Körper an.</p>
-          <div class="fact-row">
-            <div class="fact-item"><div class="fact-val">{{ settings.appointment_duration_min | default(value="90") }} Min.</div><div class="fact-desc">Behandlungsdauer je Sitzung</div></div>
-            <div class="fact-item"><div class="fact-val">{{ settings.price_single | default(value="195") }} €</div><div class="fact-desc">Einzelbehandlung inkl. Beratung</div></div>
-            <div class="fact-item"><div class="fact-val">Mo–Sa</div><div class="fact-desc">{{ settings.hours_stripe_short | default(value="Mo–Fr 16–22 Uhr · Sa 9–19 Uhr") }}</div></div>
-            <div class="fact-item"><div class="fact-val">+{{ settings.home_visit_surcharge | default(value="15") }} €</div><div class="fact-desc">Fahrtpauschale für Hausbesuche</div></div>
-          </div>
-          <div style="margin-top:24px"><a class="btn-primary" href="{% if is_logged_in %}/portal/book{% else %}/buchen{% endif %}">Termin vereinbaren →</a></div>
+          <p class="about-quote">„Ich glaube daran, dass Entwicklung beim Menschen selbst beginnt.“</p>
+          <p>Deshalb höre ich zu, frage nach und lade dich ein, eigene Beobachtungen zu machen. Welche Anregung zu dir passt, entscheidest du.</p>
+          <p>Meine Ausbildung habe ich an der Gantke Akademie für ganzheitliche Körperarbeit gemacht: fünf Module mit insgesamt 144 Stunden. Mein Zertifikat als Faszien-Behandler trägt das Datum 17. Juli 2024.</p>
+          <p>Davor war ich acht Jahre Einsatzleiter der kommunalen Disposition für den Landkreis Rottweil und habe 60 Mitarbeitende und 25 Fahrzeuge koordiniert. Ich kenne Tage, an denen man vor lauter Verantwortung den eigenen Körper vergisst.</p>
+          <p class="about-actions"><a class="btn-primary" href="{{ book }}">Termin vereinbaren</a> <a class="text-link" href="/ueber-mich">Mehr über mich</a></p>
         </div>
       </div>
     </div>
@@ -204,68 +185,30 @@
   <section class="section-white" id="methode">
     <div class="container">
       <h2 class="section-title">Was ist die<br><em>Gantke® Faszienbehandlung?</em></h2>
-      <div class="quick-answer">
-
-        <p>Die Gantke® Methode ist eine manuelle Form der Faszien- und Körperarbeit, entwickelt von Robert Gantke. Die Sitzung betrachtet den Körper als Ganzes und wird individuell auf dich abgestimmt.</p>
+      <div class="method-intro">
+        <p>Die Gantke® Methode ist eine manuelle Form der Faszien- und Körperarbeit, entwickelt von Robert Gantke. Sie betrachtet den Körper als Ganzes und wird individuell auf dich abgestimmt.</p>
       </div>
-      <p class="section-lead">Faszien bilden ein Bindegewebsnetz im Körper. Bei der Gantke® Faszienbehandlung steht die Arbeit mit diesem Netzwerk im Mittelpunkt – ohne Geräte und in ruhiger Atmosphäre.</p>
-
-      <div class="method-diagram">
-        <div class="method-diagram-item">
-          <svg viewBox="0 0 100 100" class="icon" aria-hidden="true">
-            <circle cx="50" cy="50" r="16" fill="var(--sky-pale)" stroke="currentColor" stroke-width="1.6"/>
-            <line x1="50" y1="34" x2="50" y2="24" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-            <line x1="66" y1="50" x2="76" y2="50" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-            <line x1="50" y1="66" x2="50" y2="76" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-            <line x1="34" y1="50" x2="24" y2="50" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-          </svg>
-          <p class="method-diagram-label">Klassische Massage<br><span>Häufig auf einzelne Bereiche ausgerichtet</span></p>
-        </div>
-        <div class="method-diagram-arrow" aria-hidden="true">→</div>
-        <div class="method-diagram-item">
-          <svg viewBox="0 0 100 100" class="icon" aria-hidden="true">
-            <line x1="50" y1="18" x2="50" y2="48" stroke="currentColor" stroke-width="1.2" opacity=".55"/>
-            <line x1="26" y1="36" x2="50" y2="48" stroke="currentColor" stroke-width="1.2" opacity=".55"/>
-            <line x1="74" y1="36" x2="50" y2="48" stroke="currentColor" stroke-width="1.2" opacity=".55"/>
-            <line x1="50" y1="48" x2="30" y2="74" stroke="currentColor" stroke-width="1.2" opacity=".55"/>
-            <line x1="50" y1="48" x2="70" y2="74" stroke="currentColor" stroke-width="1.2" opacity=".55"/>
-            <line x1="30" y1="74" x2="50" y2="92" stroke="currentColor" stroke-width="1.2" opacity=".55"/>
-            <line x1="70" y1="74" x2="50" y2="92" stroke="currentColor" stroke-width="1.2" opacity=".55"/>
-            <line x1="26" y1="36" x2="70" y2="74" stroke="currentColor" stroke-width="1.2" opacity=".35"/>
-            <line x1="74" y1="36" x2="30" y2="74" stroke="currentColor" stroke-width="1.2" opacity=".35"/>
-            <circle cx="50" cy="18" r="4.5" fill="var(--white)" stroke="currentColor" stroke-width="1.6"/>
-            <circle cx="26" cy="36" r="4.5" fill="var(--white)" stroke="currentColor" stroke-width="1.6"/>
-            <circle cx="74" cy="36" r="4.5" fill="var(--white)" stroke="currentColor" stroke-width="1.6"/>
-            <circle cx="50" cy="48" r="4.5" fill="var(--sky-pale)" stroke="currentColor" stroke-width="1.6"/>
-            <circle cx="30" cy="74" r="4.5" fill="var(--white)" stroke="currentColor" stroke-width="1.6"/>
-            <circle cx="70" cy="74" r="4.5" fill="var(--white)" stroke="currentColor" stroke-width="1.6"/>
-            <circle cx="50" cy="92" r="4.5" fill="var(--white)" stroke="currentColor" stroke-width="1.6"/>
-          </svg>
-          <p class="method-diagram-label">Gantke® Methode<br><span>Manuelle Arbeit mit dem ganzen Netz</span></p>
-        </div>
-      </div>
-
+      <p class="section-lead">Faszien bilden ein Bindegewebsnetz, das den ganzen Körper durchzieht. Mit diesem Netz arbeite ich: mit den Händen, ohne Geräte und in ruhiger Atmosphäre.</p>
       <div class="benefit-list">
-        <div class="benefit-item js-animate"><div class="benefit-dot"></div><div><h3>Auf dein Empfinden abgestimmt</h3><p>Manuelle Grifftechniken ohne Geräte. Du sagst mir, wie sich der Druck anfühlt; ich passe ihn entsprechend an.</p></div></div>
-        <div class="benefit-item js-animate"><div class="benefit-dot"></div><div><h3>Ganzheitlicher Ansatz</h3><p>Faszien bilden ein körperweites Netzwerk. Die Gantke® Körperarbeit bezieht verschiedene Körperbereiche und deine Bewegungsgewohnheiten ein.</p></div></div>
-        <div class="benefit-item js-animate"><div class="benefit-dot"></div><div><h3>Arbeit mit dem Fasziennetz</h3><p>Anders als eine auf einzelne Muskelbereiche ausgerichtete Massage arbeitet die Gantke® Methode mit dem gesamten Fasziennetz.</p></div></div>
-        <div class="benefit-item js-animate"><div class="benefit-dot"></div><div><h3>Für Erwachsene</h3><p>Die Sitzung richtet sich nach deiner Situation – ob du im Beruf viel sitzt, körperlich arbeitest oder sportlich aktiv bist.</p></div></div>
+        <div class="benefit-item js-animate"><div class="benefit-dot"></div><div><h3>Mit den Händen</h3><p>Ich arbeite mit manuellen Grifftechniken. Du sagst mir, wie sich der Druck anfühlt, und ich stimme ihn darauf ab.</p></div></div>
+        <div class="benefit-item js-animate"><div class="benefit-dot"></div><div><h3>Der ganze Körper im Blick</h3><p>Ich beziehe verschiedene Körperbereiche und deine Bewegungsgewohnheiten ein, nicht nur die Stelle, die dir gerade auffällt.</p></div></div>
+        <div class="benefit-item js-animate"><div class="benefit-dot"></div><div><h3>Körperarbeit, keine Heilkunde</h3><p>Die Behandlung ist eine Wellness- und Körperarbeitsleistung. Sie stellt keine Diagnose und verspricht kein bestimmtes Ergebnis.</p></div></div>
       </div>
     </div>
   </section>
 
   <section class="section-sky" id="ablauf">
     <div class="container">
-      <h2 class="section-title">Deine Behandlung in<br><em>3 einfachen Schritten</em></h2>
-      <p class="section-lead">Unkompliziert, persönlich und auf dich abgestimmt.</p>
-      <div class="steps-row">
-        <div class="step js-animate"><div class="step-num">1</div><div><h3>Vorgespräch &amp; Haltung</h3><p>Wir besprechen deine Wünsche und betrachten deine Haltung und Bewegungsgewohnheiten. Das Gespräch ist Teil der gebuchten Sitzung.</p></div></div>
-        <div class="step js-animate"><div class="step-num">2</div><div><h3>Gantke® Faszienbehandlung</h3><p>Du liegst bekleidet auf einer komfortablen Liege. Ich arbeite mit manuellen Grifftechniken und passe den Druck an dein Empfinden an.</p></div></div>
-        <div class="step js-animate"><div class="step-num">3</div><div><h3>Nachgespräch &amp; Übungen</h3><p>Du erhältst individuelle Tipps und Übungen für zu Hause, die du in deinen Alltag einbauen kannst.</p></div></div>
+      <h2 class="section-title">So läuft<br><em>dein Termin ab</em></h2>
+      <p class="section-lead">{{ dur }} Minuten, die nur dir gehören. Es gibt keine parallelen Termine.</p>
+      <div class="steps-row steps-quad">
+        <div class="step js-animate"><div class="step-num">1</div><div><h3>Ankommen und Gespräch</h3><p>Ich frage nach deinen Wünschen, deinem Körperempfinden und deinen Zielen. Das Gespräch ist Teil des Termins.</p></div></div>
+        <div class="step js-animate"><div class="step-num">2</div><div><h3>Hinschauen</h3><p>Ich betrachte deine Haltung und deine Bewegungsgewohnheiten und erkläre dir, was mir auffällt.</p></div></div>
+        <div class="step js-animate"><div class="step-num">3</div><div><h3>Manuelle Arbeit</h3><p>Du liegst auf einer bequemen Liege. Für die Behandlung empfehle ich möglichst wenig Kleidung. Du entscheidest, wie viel du anbehältst, damit du dich wohlfühlst. Wie fest ich arbeite, bestimmst du mit: Sag mir jederzeit, wie sich der Druck für dich anfühlt.</p></div></div>
+        <div class="step js-animate"><div class="step-num">4</div><div><h3>Abschluss</h3><p>Zum Schluss schauen wir gemeinsam auf deine Körperstruktur und Körperausrichtung: Wie stehst du jetzt, was nimmst du wahr? Dazu bekommst du Übungen, die du leicht in deinen Alltag einbauen kannst.</p></div></div>
       </div>
-      <div style="text-align:center;margin-top:48px">
-        <p style="color:rgba(255,255,255,0.8);margin-bottom:20px;font-size:.95rem">Eine Sitzung dauert ca. {{ settings.appointment_duration_min | default(value="90") }} Minuten{% if area %} · Hausbesuche möglich: {{ area }}{% endif %}</p>
-        <a class="btn-cta-large" href="{% if is_logged_in %}/portal/book{% else %}/buchen{% endif %}">Termin jetzt buchen</a>
+      <div class="ablauf-footer">
+        <a class="btn-cta-large" href="{{ book }}">Termin vereinbaren</a>
       </div>
     </div>
   </section>
@@ -288,51 +231,64 @@
 
   <section class="section-pale" id="preise">
     <div class="container">
-      <h2 class="section-title">Transparente<br><em>Preise</em></h2>
-      <p class="section-lead">Keine versteckten Kosten. Zahlung bar oder per Überweisung.</p>
-      <div class="price-grid">
-        <div class="price-card js-animate">
-          <div class="price-label">Einzelbehandlung</div>
-          <div class="price-amount">{{ settings.price_single | default(value="195") }} €</div>
-          <div class="price-duration">ca. {{ settings.appointment_duration_min | default(value="90") }} Minuten</div>
-          <ul class="price-perks"><li>Ausführliches Erstgespräch</li><li>Gantke® Faszienbehandlung</li><li>Individuelle Übungen</li><li>Rechnung für deine Unterlagen</li></ul>
-        </div>
+      <h2 class="section-title">Preise und<br><em>Häufigkeit</em></h2>
+      <p class="section-lead">Gespräch, Körperarbeit und Abschluss sind in den {{ dur }} Minuten enthalten. Du zahlst bar oder per Überweisung und erhältst eine Rechnung.</p>
+      <div class="price-grid price-grid-single">
         <div class="price-card featured js-animate">
-
-          <div class="price-label">{{ settings.price_pack_count | default(value="10") }}er-Karte · pro Sitzung</div>
-          <div class="price-amount">{{ settings.price_pack | default(value="169,90") }} €</div>
-          <div class="price-duration">Gesamtpreis: {{ pack_total }} € für {{ settings.price_pack_count | default(value="10") }} Sitzungen<br>Übertragbar · 12 Monate gültig</div>
-          <ul class="price-perks"><li>Ermäßigter Preis je Sitzung</li><li>Flexibel übertragbar</li><li>1 Jahr Gültigkeit</li><li>Rechnung für deine Unterlagen</li></ul>
+          <div class="price-label">Einzeltermin</div>
+          <div class="price-amount">{{ single }} €</div>
+          <div class="price-duration">ca. {{ dur }} Minuten</div>
+          <ul class="price-perks"><li>Gespräch über Wünsche und Ziele</li><li>Gantke® Faszienbehandlung</li><li>Abschluss mit Anregung für den Alltag</li><li>Rechnung für deine Unterlagen</li></ul>
         </div>
       </div>
-      <h3 class="price-explanation">Warum dieser Preis?</h3>
-      <p class="price-note-text">Du buchst eine ausführliche, persönliche Sitzung: Vorgespräch, Gantke® Faszienbehandlung und individuelle Übungen für zu Hause. Die Zeit gehört dir – ohne parallele Termine. <a href="/preise-und-ablauf">Preis und Leistungsumfang im Detail</a>.</p>
-      <p class="price-note-text">Die Behandlung ist eine Wellness- und Gesundheitsförderungsleistung und wird von Krankenkassen und Versicherungen nicht erstattet. Du erhältst selbstverständlich eine Rechnung.</p>
-      <div style="text-align:center;margin-top:28px"><a class="btn-primary" href="{% if is_logged_in %}/portal/book{% else %}/buchen{% endif %}">Jetzt Termin buchen</a></div>
+      <div class="price-grid price-grid-packages">
+        <div class="price-card js-animate">
+          <div class="price-label">{{ settings.price_pack_small_count | default(value="3") }} Termine</div>
+          <div class="price-amount">{{ pack_small_total }} €</div>
+          <div class="price-duration">{{ settings.price_pack_small | default(value="185") }} € je Termin</div>
+          <p class="price-hint">Mein Vorschlag zum Kennenlernen, möglichst innerhalb von acht Wochen.</p>
+        </div>
+        <div class="price-card js-animate">
+          <div class="price-label">{{ settings.price_pack_count | default(value="10") }} Termine</div>
+          <div class="price-amount">{{ pack_total }} €</div>
+          <div class="price-duration">{{ settings.price_pack | default(value="169") }} € je Termin</div>
+          <p class="price-hint">Übertragbar und 12 Monate gültig.</p>
+        </div>
+      </div>
+      <p class="price-note-text">Ein einzelner Termin ist jederzeit möglich. Wenn du die Arbeit in Ruhe kennenlernen möchtest, empfehle ich dir drei Termine. Über weitere Termine entscheidest du selbst. <a href="/preise-und-ablauf">Preis und Ablauf im Detail</a>.</p>
+      <p class="price-note-text">Die Behandlung ist eine Wellness- und Gesundheitsförderungsleistung und wird von Krankenkassen und Versicherungen nicht erstattet.</p>
+      <div class="price-actions"><a class="btn-primary" href="{{ book }}">Termin vereinbaren</a></div>
     </div>
   </section>
 
-  <section class="section-white" id="anfahrt">
+  <section class="section-white" id="unternehmen">
+    <div class="container company-teaser">
+      <h2 class="section-title">Für<br><em>Unternehmen</em></h2>
+      <p class="section-lead">Der Faszien-Tag im Unternehmen ist eine Idee für eine Zusammenarbeit auf Anfrage: Ich komme in Ihren Betrieb und biete Ihren Beschäftigten individuelle manuelle Behandlungen an. Eine persönliche Auszeit im Arbeitsalltag, mit der Sie Wertschätzung zeigen und Ihr Gesundheitsangebot ergänzen.</p>
+      <p class="about-actions"><a class="btn-primary" href="/unternehmen#anfrage">Faszien-Tag anfragen</a> <a class="text-link" href="/unternehmen">So läuft ein Faszien-Tag ab</a></p>
+    </div>
+  </section>
+
+  <section class="section-pale" id="anfahrt">
     <div class="container">
       <h2 class="section-title">Praxis in<br><em>{{ short }}</em></h2>
-      <p class="section-lead"><strong>Adresse:</strong> {{ settings.address_street | default(value="Im Kapellenösch 9") }}, {{ settings.address_zip | default(value="78628") }} {{ settings.address_city | default(value="Rottweil") }}{% if settings.location_note %} – {{ settings.location_note }}{% endif %}. Kostenlose Parkplätze direkt vor dem Haus.</p>
+      <p class="section-lead">{% if announce_move %}Ab 1. Dezember 2026 findest du meine Praxis in Rottweil, {{ street }}.{% else %}<strong>Adresse:</strong> {{ full_address }}{% if settings.location_note %} – {{ settings.location_note }}{% endif %}.{% endif %} Parkplätze gibt es direkt vor dem Haus.</p>
       <div class="anfahrt-grid">
         <a class="anfahrt-map-link js-animate" href="https://maps.google.com/?q={{ full_address | urlencode }}" target="_blank" rel="noopener noreferrer">
           <div class="map-icon"><svg class="icon"><use href="#icon-pin" xlink:href="#icon-pin"/></svg></div>
           <span>Route in Google Maps öffnen</span>
-          <small style="color:var(--text-light);font-size:.78rem">{{ settings.address_street | default(value="Im Kapellenösch 9") }}, {{ settings.address_zip | default(value="78628") }} {{ settings.address_city | default(value="Rottweil") }}</small>
+          <small>{{ full_address }}</small>
         </a>
         <div class="anfahrt-details">
-          <div class="anfahrt-item js-animate"><div class="ai-icon"><svg class="icon"><use href="#icon-parking" xlink:href="#icon-parking"/></svg></div><div><h3>Parken</h3><p>Kostenlose Parkplätze direkt vor dem Haus – keine Parkplatzsuche.</p></div></div>
           {% if settings.travel_times %}<div class="anfahrt-item js-animate"><div class="ai-icon"><svg class="icon"><use href="#icon-car" xlink:href="#icon-car"/></svg></div><div><h3>Mit dem Auto</h3><p>{{ settings.travel_times }}</p></div></div>{% endif %}
-          <div class="anfahrt-item js-animate"><div class="ai-icon"><svg class="icon"><use href="#icon-home" xlink:href="#icon-home"/></svg></div><div><h3>Hausbesuche</h3><p>{% if area %}{{ area }} – {% endif %}+{{ settings.home_visit_surcharge | default(value="15") }} € Fahrtpauschale.</p></div></div>
-          <div class="anfahrt-item js-animate"><div class="ai-icon"><svg class="icon"><use href="#icon-clock" xlink:href="#icon-clock"/></svg></div><div><h3>Öffnungszeiten</h3><p>{{ settings.hours_weekday | default(value="Mo–Fr: 16:00–22:00 Uhr") }}<br>{{ settings.hours_saturday | default(value="Sa: 9:00–19:00 Uhr") }}</p></div></div>
+          <div class="anfahrt-item js-animate"><div class="ai-icon"><svg class="icon"><use href="#icon-home" xlink:href="#icon-home"/></svg></div><div><h3>Hausbesuche</h3><p>Ich komme auch zu dir nach Hause{% if area %}: {{ area }}{% endif %}. Dafür berechne ich {{ settings.home_visit_surcharge | default(value="15") }} € Fahrtpauschale.</p></div></div>
+          <div class="anfahrt-item js-animate"><div class="ai-icon"><svg class="icon"><use href="#icon-clock" xlink:href="#icon-clock"/></svg></div><div><h3>Termine</h3><p>{{ settings.hours_weekday | default(value="Mo–Fr: 16:00–22:00 Uhr") }}<br>{{ settings.hours_saturday | default(value="Sa: 9:00–19:00 Uhr") }}</p></div></div>
         </div>
       </div>
     </div>
   </section>
 
-  {% if faqs | length > 0 %}<section class="section-pale" id="faq">
+  {% if faqs | length > 0 %}<section class="section-white" id="faq">
     <div class="container">
       <h2 class="section-title">Deine Fragen –<br><em>meine Antworten</em></h2>
       <div class="faq-list">
@@ -348,64 +304,54 @@
 
   <section class="cta-section" id="buchen">
     <div class="cta-inner container">
-      <h2>Bereit für mehr<br><em style="font-style:italic;font-weight:300">Beweglichkeit</em> und Leichtigkeit?</h2>
-      <p>Wähle deinen Termin und gib deine Kontaktdaten an. Deine Buchung wird nach der Bestätigung per E-Mail verbindlich – eine vorherige Registrierung ist nicht nötig.</p>
-      <a class="btn-cta-large" href="{% if is_logged_in %}/portal/book{% else %}/buchen{% endif %}">Jetzt Termin buchen</a>
-      <p class="cta-micro">Vorgespräch in der Sitzung enthalten · Keine Vorauszahlung</p>
+      <h2>Nimm dir<br><em style="font-style:italic;font-weight:300">die {{ dur }} Minuten.</em></h2>
+      <p>Wähle deinen Termin und gib deine Kontaktdaten an. Die Buchung wird verbindlich, sobald du sie per E-Mail bestätigst.</p>
+      <a class="btn-cta-large" href="{{ book }}">Termin vereinbaren</a>
+      <p class="cta-micro">{{ dur }} Minuten · {{ single }} €</p>
       <div class="cta-contact">
         <a class="btn-secondary" href="https://wa.me/{{ settings.phone_raw | default(value='+4915234007225') | replace(from='+', to='') }}" target="_blank" rel="noopener noreferrer">Termin per WhatsApp anfragen</a>
         <span><svg class="icon"><use href="#icon-phone" xlink:href="#icon-phone"/></svg> <a href="tel:{{ settings.phone_raw | default(value='+4915234007225') }}">{{ settings.phone | default(value="+49 152 34 00 72 25") }}</a></span>
         <span><svg class="icon"><use href="#icon-mail" xlink:href="#icon-mail"/></svg> <a href="mailto:{{ settings.email_contact | default(value='termin@faszienbehandlung.jetzt') }}">{{ settings.email_contact | default(value="termin@faszienbehandlung.jetzt") }}</a></span>
-        <span><svg class="icon"><use href="#icon-pin" xlink:href="#icon-pin"/></svg> {{ settings.address_street | default(value="Im Kapellenösch 9") }}, {{ settings.address_zip | default(value="78628") }} {{ settings.address_city | default(value="Rottweil") }}</span>
+        <span><svg class="icon"><use href="#icon-pin" xlink:href="#icon-pin"/></svg> {% if announce_move %}Ab 1. Dezember 2026: {% endif %}{{ full_address }}</span>
       </div>
     </div>
   </section>
 
   <div class="hours-stripe">
-    <p><strong>Öffnungszeiten:</strong> {{ settings.hours_stripe | default(value="Mo–Fr 16:00–22:00 Uhr · Sa 9:00–19:00 Uhr") }} &nbsp;|&nbsp; <a href="tel:{{ settings.phone_raw | default(value='+4915234007225') }}">{{ settings.phone | default(value="+49 152 34 00 72 25") }}</a></p>
+    <p><strong>Termine:</strong> {{ settings.hours_stripe | default(value="Mo–Fr 16:00–22:00 Uhr · Sa 9:00–19:00 Uhr") }} &nbsp;|&nbsp; <a href="tel:{{ settings.phone_raw | default(value='+4915234007225') }}">{{ settings.phone | default(value="+49 152 34 00 72 25") }}</a></p>
   </div>
   </main>
 
-  <footer class="footer">
-    <div class="footer-grid">
-      <div class="footer-col">
-        <h3>Kontakt</h3>
-        <address>
-          Thilo Seifried<br>
-          {{ settings.address_street | default(value="Im Kapellenösch 9") }}<br>
-          {{ settings.address_zip | default(value="78628") }} {{ settings.address_city | default(value="Rottweil") }}<br><br>
-          <a href="tel:{{ settings.phone_raw | default(value='+4915234007225') }}">{{ settings.phone | default(value="+49 152 34 00 72 25") }}</a><br>
-          <a href="mailto:{{ settings.email_contact | default(value='termin@faszienbehandlung.jetzt') }}">{{ settings.email_contact | default(value="termin@faszienbehandlung.jetzt") }}</a>
-        </address>
+  <footer class="footer footer-airy">
+      <div class="footer-grid">
+        <div class="footer-col"><h3>Kontakt</h3><address>
+            Thilo Seifried<br>
+            {{ street }}<br>
+            {{ zip }} {{ city }}<br><br>
+            <a href="tel:{{ settings.phone_raw | default(value='+4915234007225') }}">{{ settings.phone | default(value="+49 152 34 00 72 25") }}</a><br>
+            <a href="mailto:{{ settings.email_contact | default(value='termin@faszienbehandlung.jetzt') }}">{{ settings.email_contact | default(value="termin@faszienbehandlung.jetzt") }}</a>
+          </address></div>
+        <div class="footer-col"><h3>Termine</h3><p>{{ settings.hours_weekday | default(value="Mo–Fr: 16:00–22:00 Uhr") }}<br>{{ settings.hours_saturday | default(value="Sa: 9:00–19:00 Uhr") }}<br>So: geschlossen</p></div>
+        <div class="footer-col"><h3>Einzugsgebiet</h3><p>Praxis: {{ short }}{% if area %}<br>Hausbesuche: {{ area }}{% endif %}</p></div>
+        <div class="footer-col"><h3>Navigation</h3><p>
+            <a href="/ueber-mich">Über mich</a><br>
+            <a href="#ablauf">Ablauf</a><br>
+            <a href="#preise">Preise</a><br>
+            <a href="/unternehmen">Unternehmen</a><br>
+            <a href="#faq">FAQ</a>
+          </p></div>
       </div>
-      <div class="footer-col">
-        <h3>Öffnungszeiten</h3>
-        <p>{{ settings.hours_weekday | default(value="Mo–Fr: 16:00–22:00 Uhr") }}<br>{{ settings.hours_saturday | default(value="Sa: 9:00–19:00 Uhr") }}<br>So: geschlossen</p>
+      <div class="footer-bottom">
+        <span>© 2026 Thilo Seifried · Gantke® Faszienbehandlung · {{ short }}</span>
+        {% include "_footer_legal.html" %}
       </div>
-      <div class="footer-col">
-        <h3>Einzugsgebiet</h3>
-        <p>Praxis: {{ short }}{% if area %}<br>Hausbesuche: {{ area }}{% endif %}</p>
-      </div>
-      <div class="footer-col">
-        <h3>Navigation</h3>
-        <p>
-          <a href="#beschwerden">Wohlbefinden</a><br>
-          <a href="#ueber">Über mich</a><br>
-          <a href="#preise">Preise</a><br>
-          <a href="#anfahrt">Anfahrt</a><br>
-          <a href="#faq">FAQ</a>
-        </p>
-      </div>
-    </div>
-    <div class="footer-bottom">
-      <span>© 2026 Thilo Seifried · Gantke® Faszienbehandler · {{ short }}</span>
-      <span><a href="/datenschutz">Datenschutz</a> &nbsp;·&nbsp; <a href="/impressum">Impressum</a></span>
-    </div>
-  </footer>
+    </footer>
 
 
   <script src="/static/js/main.js?v=2" defer></script>
-  {% include "_service_footer.html" %}
   <script src="/static/js/accessibility.js" defer></script>
+<!-- impeccable-live-start -->
+<script src="http://localhost:8400/live.js?token=798bf504-d8df-4751-b06a-bd22ae500c5c"></script>
+<!-- impeccable-live-end -->
 </body>
 </html>

@@ -1,0 +1,37 @@
+# Website-Prompt für faszienbehandlung.jetzt
+
+Erstelle eine deutschsprachige, mobil gut nutzbare Website für **Thilo Seifried und seine individuelle Gantke® Faszienbehandlung**. Schreibe die fertigen Seitentexte. Eine Person, die auf Empfehlung kommt, soll auf dem ersten Bildschirm erkennen, bei wem sie ist, was ein Termin beinhaltet, was er kostet und wie sie ihn vereinbart. Für Firmen gibt es einen eigenen Weg zur Anfrage.
+
+## Positionierung und Sprache
+
+Die Leitidee lautet **„Körper. Bewusstsein. Entwicklung.“** Der konkrete Einstieg ist manuelle Körperarbeit. Manche Menschen möchten nach langen Tagen am Schreibtisch ihrem Körper wieder mehr Aufmerksamkeit geben. Andere treiben viel Sport und möchten genauer wahrnehmen, wie sie sich bewegen. Beide sollen sich angesprochen fühlen. Wer sich darüber hinaus mit persönlichen Gewohnheiten oder neuen Perspektiven beschäftigen möchte, findet dafür Raum. Wie weit das Gespräch geht, entscheidet die Person selbst.
+
+Schreibe aus Thilos Ich-Perspektive und sprich Privatpersonen mit „du“ an. Sprich Entscheider auf der Unternehmensseite mit „Sie“ an. Schreibe kurze, konkrete Sätze. Zeige die Qualität an der Zeit für das Gespräch, der individuellen Behandlung und Thilos Qualifikation. Nutze eine ruhige Gestaltung mit großzügigen Abständen, gut lesbarer Schrift und echten, freigegebenen Aufnahmen von Thilo, seinen Händen bei der Arbeit und dem Praxisraum, soweit vorhanden.
+
+## Startseite und Terminvereinbarung
+
+1. **Einstieg.** Nenne Thilo Seifried und die Gantke® Faszienbehandlung ausdrücklich in der Hauptüberschrift. Nutze die Leitidee als kurze Begleitzeile. Ein möglicher Einstieg lautet „90 Minuten Zeit für deinen Körper. Wir besprechen, was dir im Alltag oder beim Sport auffällt, und stimmen die Behandlung darauf ab.“ Zeige **90 Minuten · 195 €** neben der Hauptaktion **„Termin vereinbaren“**.
+2. **Für wen die Behandlung gedacht ist.** Beschreibe zwei bis drei wiedererkennbare Situationen, etwa langes Sitzen zwischen Besprechungen, einseitige Belastung im Beruf oder das Bedürfnis, nach dem Training genauer hinzuspüren. Erreiche damit auch Unternehmer, Selbstständige, Führungskräfte und körperlich aktive Menschen. Erzähle vom Alltag der Besucher, ohne ihnen Beschwerden zuzuschreiben.
+3. **So läuft dein Termin ab.** Beim Ankommen fragt Thilo nach Wünschen, Körperempfinden und Zielen. Er betrachtet Haltung und Bewegungsgewohnheiten, erklärt seine Beobachtungen und stimmt die manuelle Arbeit auf die Rückmeldung seines Gegenübers ab. Zum Abschluss fragt er, was sich bei einer vertrauten Bewegung für die Person wahrnehmbar verändert hat. Wenn es passt, gibt er eine Anregung für den Alltag mit. Das persönliche Empfinden leitet das Gespräch über Fortschritte.
+4. **Preise und Häufigkeit.** Stelle die Einzelbehandlung mit 195 € in den Vordergrund. Gespräch, Körperarbeit und Abschluss sind in den 90 Minuten enthalten. Zeige darunter übersichtlich drei Termine für **555 €** (185 € je Termin) und zehn Termine für **1.690 €** (169 € je Termin). Ein Einzeltermin ist möglich. Als Einstieg empfiehlt Thilo bei Interesse drei Termine möglichst innerhalb von acht Wochen. Über weitere Termine entscheidet der Kunde selbst.
+5. **Kontakt.** Wiederhole „Termin vereinbaren“ nach Ablauf und Preisen. Verknüpfe die Aktion mit dem bestätigten Buchungsweg. Führt sie zu einer unverbindlichen Kontaktanfrage, beschrifte sie mit „Termin anfragen“. Zeige die Adresse neben der Terminvereinbarung. Für Termine ab dem **1. Dezember 2026** gilt **Kapellenösch 9, Rottweil**.
+
+## Über Thilo und seine Haltung
+
+Eröffne die Seite „Über mich“ mit Thilos Gedanken „Ich glaube daran, dass Entwicklung beim Menschen selbst beginnt.“ Zeige anhand seiner Arbeitsweise, was das bedeutet. Er hört zu, fragt nach und lädt Menschen ein, eigene Beobachtungen zu machen und für sich zu entscheiden, welche Anregung zu ihnen passt.
+
+Füge seine nachgewiesene Qualifikation knapp ein. Thilo absolvierte an der **Gantke Akademie für ganzheitliche Körperarbeit** fünf Module mit insgesamt **144 Stunden**. Sein Zertifikat vom **17. Juli 2024** trägt die Bezeichnung **„Faszien-Behandler“**. Eine biografische Brücke zur Zielgruppe ist seine achtjährige Arbeit als Einsatzleiter der kommunalen Disposition für den Landkreis Rottweil. Aus dieser Zeit kennt er die Verantwortung für die Koordination von 60 Mitarbeitenden und 25 Fahrzeugen aus eigener Erfahrung.
+
+Vertiefe die Leitidee bei Bedarf auf einer kurzen Philosophieseite. Thilo möchte Menschen ermutigen, körperliche, emotionale und mentale Grenzen wahrzunehmen, eingefahrene Denkmuster zu hinterfragen und neue Handlungsmöglichkeiten zu erproben. Zu seiner Haltung gehören Offenheit für andere Sichtweisen, Mut, Eigenverantwortung und die Verantwortung für das eigene Umfeld. Die körperliche Erfahrung ist der Ausgangspunkt. Aus einer Verspannung lässt sich keine bestimmte emotionale Ursache ablesen.
+
+## Für Unternehmen
+
+Gib Geschäftsführungen, Personalverantwortlichen und Verantwortlichen für betriebliches Gesundheitsmanagement einen eigenen Einstieg. Beschreibe den **„Faszien-Tag im Unternehmen“ als Idee für eine Zusammenarbeit auf Anfrage**. Thilo kommt für individuelle manuelle Behandlungen in den Betrieb. Beschäftigte erhalten eine persönliche Auszeit und können ihrer Körperwahrnehmung im Arbeitsalltag Aufmerksamkeit schenken. Unternehmen können damit Wertschätzung ausdrücken und ihr bestehendes Gesundheitsangebot ergänzen. Erkläre konkret, was vor Ort stattfindet. Verwende die Aktion **„Faszien-Tag anfragen“**. Dauer, Teilnehmerzahl, Preise und mögliche Folgetermine werden individuell geklärt.
+
+## Lokale Auffindbarkeit und redaktionelle Grenzen
+
+- **Praxisstandort und Anfahrt.** Verwende vor dem Umzug den Hinweis „Ab 1. Dezember 2026 findest du meine Praxis in Rottweil, Kapellenösch 9.“ Ab diesem Datum lautet die Standortangabe „Kapellenösch 9, Rottweil“. Verwende Rottweil dann auch im Seitentitel und in den lokalen Suchangaben.
+- Das geplante Einzugsgebiet umfasst den Raum Rottweil und Schramberg sowie unter anderem Dunningen, Deißlingen, Villingen-Schwenningen, Spaichingen, Trossingen, den Heuberg, Tuttlingen und Balingen. Erwähne Orte nur, wo sie Besuchern bei der Orientierung helfen. Fehlt der Buchungsweg, verwende im Entwurf `[Buchungslink oder Kontaktweg]` und vermerke ihn in der Übergabenotiz.
+- Beschreibe Faszienbehandlung als manuelle Körperarbeit. Faszien-Training gehört nicht zum Angebot. Übernimm vorhandene fachlich freigegebene Hinweise zu den Grenzen der Behandlung, zu Kontraindikationen und zur medizinischen Abklärung. Verzichte auf Diagnosen, Heil- und Erfolgsgarantien sowie Behauptungen über weniger Krankheitstage. Verwende ausschließlich belegte Qualifikationen, freigegebene Bewertungen und bestätigte Angaben für Impressum und Datenschutz.
+- Eine eigene Methode, Einzelbegleitung zur Persönlichkeitsentwicklung, Vorträge, Workshops, Angebote für Schulen und Vereine, Onlinekurse sowie die spätere Ausbildung weiterer Anwender gehören zur langfristigen Vision. Falls du diese Perspektive aufgreifst, kennzeichne sie mit Thilos Worten als Zukunftswunsch. Auch Informationsabende und Kennenlernaktionen erscheinen erst mit einem bestätigten Termin.
+- Die kaufmännischen Planwerte, privaten Angaben, Förderfragen und unbestätigten Wettbewerbsdaten aus dem Businessplan sind interne Arbeitsgrundlagen. Öffentliche Texte konzentrieren sich auf das, was Interessierte für ihre Entscheidung brauchen.

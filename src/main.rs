@@ -124,6 +124,8 @@ async fn main() -> std::io::Result<()> {
             .route("/faszienbehandlung-haltung", web::get().to(handlers::landing::topic))
             .route("/faszienbehandlung-sport", web::get().to(handlers::landing::topic))
             .route("/preise-und-ablauf", web::get().to(handlers::landing::topic))
+            .route("/ueber-mich", web::get().to(handlers::landing::page))
+            .route("/unternehmen", web::get().to(handlers::landing::page))
             .route("/datenschutz", web::get().to(handlers::landing::datenschutz))
             .route("/impressum", web::get().to(handlers::landing::impressum))
             // Consumer information and guest-accessible withdrawal, including without JavaScript.

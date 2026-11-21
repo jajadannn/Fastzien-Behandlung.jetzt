@@ -9,6 +9,21 @@ use actix_web::{
 use crate::config::Config;
 use std::{collections::HashMap, net::IpAddr, sync::Mutex, time::{Duration, Instant}};
 
+const CSP: &str = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self'";
+
+/// Debug builds started with `IMPECCABLE_LIVE=1` also allow the local
+/// impeccable live helper (design tooling). Release builds always send `CSP`.
+fn content_security_policy() -> &'static str {
+    #[cfg(debug_assertions)]
+    {
+        static LIVE: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+        if *LIVE.get_or_init(|| std::env::var("IMPECCABLE_LIVE").is_ok_and(|v| v == "1")) {
+            return "default-src 'self'; script-src 'self' 'unsafe-inline' http://localhost:8400; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: http://localhost:8400; font-src 'self'; connect-src 'self' http://localhost:8400; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self'";
+        }
+    }
+    CSP
+}
+
 #[derive(Default)]
 pub struct AuthLimiter(Mutex<HashMap<IpAddr, (Instant, u32)>>);
 
@@ -107,7 +122,7 @@ pub async fn protect<B: MessageBody>(
         ("x-content-type-options", "nosniff"),
         ("x-frame-options", "DENY"),
         ("referrer-policy", "no-referrer"),
-        ("content-security-policy", "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self'"),
+        ("content-security-policy", content_security_policy()),
     ] {
         headers.insert(HeaderName::from_static(name), HeaderValue::from_static(value));
     }

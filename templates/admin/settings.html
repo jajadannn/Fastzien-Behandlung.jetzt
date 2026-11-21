@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Einstellungen – Admin</title>
   <link rel="icon" href="/favicon.v1.ico">
-  <link rel="stylesheet" href="/static/css/main.css?v=4">
+  <link rel="stylesheet" href="/static/css/main.css?v=21">
   <link rel="stylesheet" href="/static/css/admin.css?v=1">
 </head>
 <body>
@@ -39,11 +39,16 @@
         <h2>Preise</h2>
         <div class="form-row">
           <div class="form-group"><label for="field-price_single">Einzelbehandlung (€)</label><input id="field-price_single" type="text" name="price_single" value="{{ settings.price_single | default(value='195') }}"></div>
-          <div class="form-group"><label for="field-price_pack">10er-Karte pro Sitzung (€)</label><input id="field-price_pack" type="text" name="price_pack" value="{{ settings.price_pack | default(value='169,90') }}"></div>
+          <div class="form-group"><label for="field-price_pack">Großes Paket: Preis je Termin (€)</label><input id="field-price_pack" type="text" name="price_pack" value="{{ settings.price_pack | default(value='169') }}"></div>
         </div>
         <div class="form-row">
-          <div class="form-group"><label for="field-price_pack_count">Anzahl Sitzungen im Paket</label><input id="field-price_pack_count" type="text" name="price_pack_count" value="{{ settings.price_pack_count | default(value='10') }}"></div>
+          <div class="form-group"><label for="field-price_pack_count">Großes Paket: Anzahl Termine</label><input id="field-price_pack_count" type="text" name="price_pack_count" value="{{ settings.price_pack_count | default(value='10') }}"></div>
           <div class="form-group"><label for="field-home_visit_surcharge">Fahrtpauschale Hausbesuch (€)</label><input id="field-home_visit_surcharge" type="text" name="home_visit_surcharge" value="{{ settings.home_visit_surcharge | default(value='15') }}"></div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group"><label for="field-price_pack_small">Einstiegspaket: Preis je Termin (€)</label><input id="field-price_pack_small" type="text" name="price_pack_small" value="{{ settings.price_pack_small | default(value='185') }}"></div>
+          <div class="form-group"><label for="field-price_pack_small_count">Einstiegspaket: Anzahl Termine</label><input id="field-price_pack_small_count" type="text" name="price_pack_small_count" value="{{ settings.price_pack_small_count | default(value='3') }}"></div>
         </div>
 
         <h2>Öffnungszeiten</h2>
@@ -258,5 +263,8 @@
   {% include "_service_footer.html" %}
   <script src="/static/js/accessibility.js" defer></script>
   <script src="/static/js/main.js?v=3" defer></script>
+<!-- impeccable-live-start -->
+<script src="http://localhost:8400/live.js?token=798bf504-d8df-4751-b06a-bd22ae500c5c"></script>
+<!-- impeccable-live-end -->
 </body>
 </html>

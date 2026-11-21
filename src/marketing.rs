@@ -5,7 +5,7 @@ pub const FAQS: &[(i32, &str, &str)] = &[
     (2, "Für wen ist die Faszienbehandlung geeignet?", "Für Erwachsene, die sich verspannt fühlen und sich Zeit für Beweglichkeit, Entspannung und Wohlbefinden nehmen möchten – etwa nach Bildschirmarbeit, körperlicher Arbeit oder Sport.<br><br>Bei Beschwerden mit Krankheitswert bitte vorher ärztlich abklären. Bei akuten Entzündungen, Fieber, frischen Operationswunden oder Thrombosen findet keine Sitzung statt."),
     (3, "Wie fühlt sich die Behandlung an?", "Der Druck wird auf dein Empfinden abgestimmt. Bitte sage mir jederzeit, wenn sich etwas unangenehm anfühlt; ich passe die Grifftechnik dann an. Ein bestimmtes Empfinden oder Ergebnis kann nicht garantiert werden."),
     (4, "Was sollte ich vor der Behandlung beachten?", "Komme in bequemer Kleidung, zum Beispiel einer lockeren Hose und einem T-Shirt. Wenn du gesundheitliche Fragen hast, kläre sie vorab mit deinem Arzt und sprich mich vor der Sitzung darauf an."),
-    (5, "Wie viele Termine sind sinnvoll?", "Das besprechen wir individuell. Du kannst zunächst eine einzelne Sitzung buchen und danach in Ruhe entscheiden, ob du weitere Termine möchtest. Eine feste Anzahl oder ein bestimmtes Ergebnis wird nicht versprochen."),
+    (5, "Wie viele Termine sind sinnvoll?", "Ein einzelner Termin ist jederzeit möglich. Wenn du die Körperarbeit in Ruhe kennenlernen möchtest, empfehle ich dir drei Termine, möglichst innerhalb von acht Wochen. Über weitere Termine entscheidest du selbst. Eine feste Anzahl oder ein bestimmtes Ergebnis wird nicht versprochen."),
     (6, "Übernehmen Krankenkassen oder Versicherungen die Kosten?", "Die Behandlung ist eine Wellness- und Gesundheitsförderungsleistung und wird von Krankenkassen und Versicherungen nicht erstattet. Du erhältst selbstverständlich eine Rechnung für deine Unterlagen."),
     (7, "Wo findet die Behandlung statt?", "In der Praxis in Rottweil. Die aktuelle Adresse, Öffnungszeiten und die Route findest du im Abschnitt Anfahrt. Kostenlose Parkplätze befinden sich direkt vor dem Haus. Hausbesuche im Landkreis Rottweil, im Landkreis Tuttlingen und im Schwarzwald-Baar-Kreis sind gegen die unter Preise genannte Fahrtpauschale möglich."),
     (8, "Was unterscheidet die Methode von klassischer Massage?", "Anders als eine auf einzelne Muskelbereiche ausgerichtete Massage arbeitet die Gantke® Methode mit dem gesamten Fasziennetz. Daraus folgt kein Versprechen einer besseren oder länger anhaltenden Wirkung."),
@@ -101,8 +101,79 @@ pub fn migrate_location_rottweil(conn: &Connection) -> Result<()> {
     tx.commit()
 }
 
+const OLD_FAQ_SESSIONS: &str = "Das besprechen wir individuell. Du kannst zunächst eine einzelne Sitzung buchen und danach in Ruhe entscheiden, ob du weitere Termine möchtest. Eine feste Anzahl oder ein bestimmtes Ergebnis wird nicht versprochen.";
+
+/// Introduces the three-session entry package and the 169 € ten-session price (November 2026).
+/// Only untouched shipped defaults change, so prices or answers edited in admin survive.
+pub fn migrate_offer_2026_11(conn: &Connection) -> Result<()> {
+    conn.execute_batch("CREATE TABLE IF NOT EXISTS content_migrations (name TEXT PRIMARY KEY); CREATE TABLE IF NOT EXISTS marketing_content_backup (kind TEXT NOT NULL, record_id INTEGER NOT NULL, content TEXT NOT NULL, PRIMARY KEY(kind, record_id));")?;
+    let done: bool = conn.query_row("SELECT EXISTS(SELECT 1 FROM content_migrations WHERE name='offer-2026-11')", [], |r| r.get(0))?;
+    if done { return Ok(()); }
+    let tx = conn.unchecked_transaction()?;
+    tx.execute("UPDATE site_settings SET setting_value='169' WHERE setting_key='price_pack' AND setting_value='169,90'", [])?;
+    tx.execute("INSERT OR IGNORE INTO marketing_content_backup SELECT 'faq-sessions-2026-11', id, answer_html FROM faqs WHERE answer_html=?1", params![OLD_FAQ_SESSIONS])?;
+    tx.execute("UPDATE faqs SET answer_html=?1, updated_at=datetime('now') WHERE answer_html=?2", params![FAQS[4].2, OLD_FAQ_SESSIONS])?;
+    tx.execute("INSERT INTO content_migrations(name) VALUES('offer-2026-11')", [])?;
+    tx.commit()
+}
+
+/// Google reviews the owner asked to show on the site (November 2026), quoted unchanged.
+/// Surnames are shortened to an initial on the site.
+pub const GOOGLE_REVIEWS: &[(&str, &str, i32)] = &[
+    ("Sarah F.", "Schon die erste Behandlung bringt ein neues Körpergefühl mit mehr Leichtigkeit. Danke Thilo!", 5),
+    ("Steffen N.", "Super Praxis für Faszienbehandlung!", 5),
+    ("Marcel", "War unglaublich gut, kann’s nur weiter empfehlen. Ich hab mich noch nie so jung gefühlt.", 5),
+];
+
+pub fn migrate_google_reviews_2026_11(conn: &Connection) -> Result<()> {
+    conn.execute_batch("CREATE TABLE IF NOT EXISTS content_migrations (name TEXT PRIMARY KEY);")?;
+    let done: bool = conn.query_row("SELECT EXISTS(SELECT 1 FROM content_migrations WHERE name='google-reviews-2026-11')", [], |r| r.get(0))?;
+    if done { return Ok(()); }
+    let tx = conn.unchecked_transaction()?;
+    for (order, (name, content, stars)) in GOOGLE_REVIEWS.iter().enumerate() {
+        tx.execute("INSERT INTO reviews(author_name, author_location, content, stars, sort_order, is_active, publication_approved) SELECT ?1, 'Google-Rezension', ?2, ?3, ?4, 1, 1 WHERE NOT EXISTS(SELECT 1 FROM reviews WHERE content=?2)", params![name, content, stars, order as i64 + 1])?;
+    }
+    tx.execute("INSERT INTO content_migrations(name) VALUES('google-reviews-2026-11')", [])?;
+    tx.commit()
+}
+
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn google_reviews_are_added_once_and_unchanged() {
+        let conn = Connection::open_in_memory().unwrap();
+        conn.execute_batch("CREATE TABLE reviews(id INTEGER PRIMARY KEY, author_name TEXT, author_location TEXT, content TEXT, stars INTEGER, sort_order INTEGER, is_active INTEGER, publication_approved INTEGER);").unwrap();
+        conn.execute("INSERT INTO reviews(author_name, author_location, content, stars, sort_order, is_active, publication_approved) VALUES('Steffen N.','Google-Rezension',?1,5,9,0,0)", params![GOOGLE_REVIEWS[1].1]).unwrap();
+        migrate_google_reviews_2026_11(&conn).unwrap();
+        migrate_google_reviews_2026_11(&conn).unwrap();
+        let n: i64 = conn.query_row("SELECT COUNT(*) FROM reviews", [], |r| r.get(0)).unwrap();
+        assert_eq!(n, 3);
+        let hidden: i64 = conn.query_row("SELECT is_active FROM reviews WHERE author_name='Steffen N.'", [], |r| r.get(0)).unwrap();
+        assert_eq!(hidden, 0, "an existing, deliberately hidden copy stays hidden");
+    }
+
+    #[test]
+    fn offer_update_changes_only_untouched_defaults_once() {
+        let conn = Connection::open_in_memory().unwrap();
+        conn.execute_batch("CREATE TABLE faqs(id INTEGER PRIMARY KEY, question TEXT, answer_html TEXT, sort_order INTEGER, updated_at TEXT); CREATE TABLE site_settings(setting_key TEXT PRIMARY KEY, setting_value TEXT);").unwrap();
+        conn.execute("INSERT INTO faqs VALUES(1,'Wie viele Termine sind sinnvoll?',?1,5,'')", params![OLD_FAQ_SESSIONS]).unwrap();
+        conn.execute_batch("INSERT INTO faqs VALUES(2,'Eigene Frage','Eigene Antwort',9,''); INSERT INTO site_settings VALUES('price_pack','169,90');").unwrap();
+        migrate_offer_2026_11(&conn).unwrap();
+        conn.execute("UPDATE site_settings SET setting_value='150' WHERE setting_key='price_pack'", []).unwrap();
+        migrate_offer_2026_11(&conn).unwrap();
+        let price: String = conn.query_row("SELECT setting_value FROM site_settings WHERE setting_key='price_pack'", [], |r| r.get(0)).unwrap();
+        assert_eq!(price, "150");
+        let faq: String = conn.query_row("SELECT answer_html FROM faqs WHERE id=1", [], |r| r.get(0)).unwrap();
+        assert!(faq.contains("drei Termine"));
+        let custom: String = conn.query_row("SELECT answer_html FROM faqs WHERE id=2", [], |r| r.get(0)).unwrap();
+        assert_eq!(custom, "Eigene Antwort");
+        let fresh = Connection::open_in_memory().unwrap();
+        fresh.execute_batch("CREATE TABLE faqs(id INTEGER PRIMARY KEY, question TEXT, answer_html TEXT, sort_order INTEGER, updated_at TEXT); CREATE TABLE site_settings(setting_key TEXT PRIMARY KEY, setting_value TEXT); INSERT INTO site_settings VALUES('price_pack','160');").unwrap();
+        migrate_offer_2026_11(&fresh).unwrap();
+        let kept: String = fresh.query_row("SELECT setting_value FROM site_settings WHERE setting_key='price_pack'", [], |r| r.get(0)).unwrap();
+        assert_eq!(kept, "160");
+    }
+
     #[test]
     fn rottweil_move_updates_only_untouched_defaults_once() {
         let conn = Connection::open_in_memory().unwrap();

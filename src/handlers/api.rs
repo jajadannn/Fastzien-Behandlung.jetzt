@@ -46,22 +46,29 @@ fn render_llms_txt(settings: &std::collections::HashMap<String, String>, faqs: &
     let region = settings.get("address_region").map(|v| v.trim()).filter(|v| !v.is_empty()).map(|v| format!(" ({v})")).unwrap_or_default();
     let area = settings.get("service_area").map(|v| v.trim()).filter(|v| !v.is_empty()).map(|v| format!("- Hausbesuche: {v}\n")).unwrap_or_default();
 
+    let total = |price: &str, count: &str| -> String {
+        let value = price.replace(',', ".").parse::<f64>().unwrap_or(0.0) * count.parse::<f64>().unwrap_or(0.0);
+        if value.fract() == 0.0 { format!("{value:.0}") } else { format!("{value:.2}").replace('.', ",") }
+    };
     let mut out = format!(
 "# Faszienbehandlung Thilo Seifried
 
 > Persönliche Gantke® Faszienbehandlung bei Thilo Seifried in {city}{region}. Wellness- und Körperarbeit für Erwachsene, die sich Zeit für Beweglichkeit, Entspannung, Haltung und Wohlbefinden nehmen möchten. Keine Heilkunde: Die Sitzung ersetzt keine ärztliche Diagnose oder Behandlung.
 
 ## Über das Angebot
-- Anbieter: Thilo Seifried, zertifizierter Gantke® Faszienbehandler
+- Anbieter: Thilo Seifried, Faszien-Behandler (Zertifikat der Gantke Akademie für ganzheitliche Körperarbeit vom 17. Juli 2024, fünf Module mit insgesamt 144 Stunden)
+- Leitidee: Körper. Bewusstsein. Entwicklung. Die körperliche Erfahrung ist der Ausgangspunkt; wie weit das Gespräch geht, entscheidet die Person selbst.
 - Methode: Gantke® Faszienbehandlung, manuelle Faszien- und Körperarbeit mit dem gesamten Fasziennetz, ohne Geräte
-- Ablauf einer Sitzung (ca. {duration} Minuten): Vorgespräch und Betrachtung von Haltung und Bewegungsgewohnheiten, manuelle Gantke® Körperarbeit mit auf das Empfinden abgestimmtem Druck, individuelle Übungen für den Alltag
-- Für wen: Erwachsene, die sich verspannt fühlen, etwa nach Bildschirmarbeit, körperlicher Arbeit oder Sport
+- Ablauf eines Termins (ca. {duration} Minuten): Gespräch über Wünsche, Körperempfinden und Ziele, Betrachtung von Haltung und Bewegungsgewohnheiten, manuelle Gantke® Körperarbeit nach der Rückmeldung des Gegenübers, Abschluss mit einer vertrauten Bewegung und bei Bedarf einer Anregung für den Alltag
+- Für wen: Erwachsene, etwa nach langen Tagen am Schreibtisch, bei einseitiger Belastung im Beruf oder mit viel Sport; auch Unternehmer, Selbstständige und Führungskräfte
 - Nicht geeignet bei akuten Entzündungen, Fieber, frischen Operationswunden oder Thrombosen. Beschwerden mit Krankheitswert vorher ärztlich abklären.
 - Es werden keine bestimmten Ergebnisse und keine feste Anzahl an Sitzungen versprochen.
 
 ## Preise
 - Einzelbehandlung (ca. {duration} Min.): {single} €, Vorgespräch inklusive
-- {pack_count}er-Karte: {pack} € pro Sitzung
+- {small_count} Termine: {small_total} € ({small} € je Termin); als Einstieg empfohlen, möglichst innerhalb von acht Wochen
+- {pack_count} Termine: {pack_total} € ({pack} € je Termin)
+- Für Unternehmen: Faszien-Tag im Betrieb auf Anfrage, Umfang und Preis werden individuell geklärt
 - Hausbesuch: zusätzlich {surcharge} € Fahrtpauschale
 - Zahlung bar oder per Überweisung, keine Vorauszahlung. Rechnung für die eigenen Unterlagen.
 - Keine Erstattung durch Krankenkassen oder Versicherungen (Selbstzahlerleistung).
@@ -81,8 +88,13 @@ fn render_llms_txt(settings: &std::collections::HashMap<String, String>, faqs: &
 
 ## Seiten
 - [Startseite]({SITE}/): Methode, Ablauf, Preise, Anfahrt und häufige Fragen
+- [Über mich]({SITE}/ueber-mich): Thilo Seifried, Haltung, Arbeitsweise und Qualifikation
+- [Für Unternehmen]({SITE}/unternehmen): Faszien-Tag im Unternehmen auf Anfrage
 ",
-        single = get("price_single", "195"), pack = get("price_pack", "169,90"), pack_count = get("price_pack_count", "10"),
+        single = get("price_single", "195"), pack = get("price_pack", "169"), pack_count = get("price_pack_count", "10"),
+        small = get("price_pack_small", "185"), small_count = get("price_pack_small_count", "3"),
+        pack_total = total(&get("price_pack", "169"), &get("price_pack_count", "10")),
+        small_total = total(&get("price_pack_small", "185"), &get("price_pack_small_count", "3")),
         surcharge = get("home_visit_surcharge", "15"), weekday = get("hours_weekday", "Mo–Fr 16:00–22:00 Uhr"),
         saturday = get("hours_saturday", "Sa 9:00–19:00 Uhr"), cancel = get("cancellation_hours", "24"),
         phone = get("phone", "+49 152 34 00 72 25"), email = get("email_contact", "termin@faszienbehandlung.jetzt"),
@@ -134,6 +146,8 @@ mod llms_tests {
         assert!(text.contains("Im Kapellenösch 9, 78628 Rottweil"));
         assert!(text.contains("Keine Heilkunde"));
         assert!(text.contains("https://faszienbehandlung.jetzt/preise-und-ablauf"));
+        assert!(text.contains("3 Termine: 555 € (185 € je Termin)") && text.contains("10 Termine: 1690 € (169 € je Termin)"));
+        assert!(text.contains("/ueber-mich") && text.contains("/unternehmen"));
         assert!(text.contains("### Frage?\nErste Zeile\nZweite Zeile"));
         assert!(!text.contains("{ort}") && !text.contains("Hausbesuche:"));
         settings.insert("address_city".to_owned(), "Rottweil".to_owned());

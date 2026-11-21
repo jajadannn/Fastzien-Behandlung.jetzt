@@ -13,32 +13,41 @@
 
   <link rel="preload" href="/fonts/cormorant-garamond-normal-latin.v1.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/fonts/dm-sans-latin.v1.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/static/css/main.css?v=4">
+  <link rel="stylesheet" href="/static/css/main.css?v=21">
 
   <style>
     .back-link{display:inline-flex;align-items:center;gap:8px;color:rgba(255,255,255,0.85);text-decoration:none;font-size:.86rem;padding:5px 14px;border-radius:50px;transition:all .2s;border:1px solid rgba(255,255,255,0.3)}
     .back-link:hover{background:rgba(255,255,255,0.2);color:var(--white)}
-    .page-hero{background:linear-gradient(160deg,var(--sky) 0%,var(--sky-dark) 100%);padding:60px 24px 50px;text-align:center}
-    .page-hero h1{font-family:'Cormorant Garamond',serif;font-size:clamp(2.2rem,5vw,3.5rem);font-weight:600;color:var(--white);line-height:1.2}
-    .page-hero p{margin-top:10px;color:rgba(255,255,255,0.75);font-size:.95rem}
+    .page-hero{background:#fbf9f4;text-align:left;padding:72px 24px 28px;border-bottom:3px double rgba(26,42,51,0.55)}
+    .page-hero h1,.page-hero p{max-width:1080px;margin-left:auto;margin-right:auto}
+    .page-hero h1{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:clamp(2.8rem,7vw,4.4rem);line-height:1;color:#1a2a33}
+    .page-hero p{margin-top:14px;font-variant:small-caps;letter-spacing:.12em;font-size:1rem;color:#3d5a6b}
     .content-wrap{max-width:760px;margin:0 auto;padding:64px 24px 80px}
-    .imp-section{margin-bottom:44px}
+    .imp-section{margin-bottom:48px}
+    .content-wrap address strong{color:var(--text);font-weight:600}
     .imp-section:last-child{margin-bottom:0}
     .content-wrap h2{font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:600;color:var(--text);margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid var(--sky-pale)}
-    .content-wrap p{font-size:.97rem;color:var(--text-mid);margin-bottom:10px}
+    .content-wrap p{font-size:1rem;line-height:1.75;color:var(--text-mid);margin-bottom:12px;max-width:68ch}
     .content-wrap p:last-child{margin-bottom:0}
     .content-wrap address{font-style:normal;font-size:.97rem;color:var(--text-mid);line-height:1.8}
-    .content-wrap a{color:var(--sky-dark);text-decoration:none}
-    .content-wrap a:hover{text-decoration:underline}
-    .info-box{background:var(--sky-pale);border:1px solid rgba(112,174,205,0.3);border-radius:12px;padding:18px 22px;margin-top:16px}
-    .info-box p{font-size:.92rem;color:var(--text-mid);margin:0}
-    .warn-box{background:#fff8f0;border:1px solid #f5d9b8;border-radius:12px;padding:16px 20px;margin-top:14px}
-    .warn-box p{font-size:.9rem;color:#7a5a30;margin:0}
+    .content-wrap a{color:var(--plum-dark);text-decoration:underline;text-decoration-color:rgba(122,54,97,0.35);text-underline-offset:.2em}
+    .content-wrap a:hover{text-decoration-color:currentColor}
+    .info-box{margin-top:20px;padding-top:14px;border-top:1px solid rgba(26,42,51,0.14)}
+    .info-box p{font-size:.86rem;color:var(--text-light);margin:0}
+    .warn-box{background:var(--white);border:1px solid rgba(26,42,51,0.16);border-radius:12px;padding:16px 20px;margin-top:4px}
+    .warn-box p{font-size:.95rem;font-weight:400;color:var(--text-mid);margin:0}
     @media(max-width:600px){
-      .page-hero{padding:44px 20px 36px}
+      .page-hero{padding:48px 20px 22px}
       .content-wrap{padding:44px 20px 60px}
       .content-wrap h2{font-size:1.4rem}
     }
+    .imp-layout{max-width:1080px;display:grid;grid-template-columns:220px minmax(0,1fr);gap:56px;align-items:start}
+    .imp-toc{position:sticky;top:96px;display:flex;flex-direction:column;gap:2px;padding-left:16px;border-left:1px solid rgba(26,42,51,0.16)}
+    .imp-toc-title{font-size:.75rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--text-light);margin-bottom:8px}
+    .content-wrap .imp-toc a{font-size:.92rem;padding:4px 0;color:var(--text-mid);text-decoration:none}
+    .content-wrap .imp-toc a:hover{color:var(--plum-dark);text-decoration:underline}
+    .imp-section{scroll-margin-top:96px}
+    @media(max-width:860px){.imp-layout{grid-template-columns:1fr;gap:32px}.imp-toc{position:static;flex-direction:row;flex-wrap:wrap;gap:6px 16px;border-left:0;padding-left:0}.imp-toc-title{width:100%;margin-bottom:0}}
   </style>
 </head>
 <body>
@@ -59,14 +68,19 @@
 
   <main tabindex="-1" id="main-content">
   <div class="page-hero">
-    <h1>Impressum</h1>
-    <p>Angaben gemäß § 5 DDG</p>
-  </div>
+  <h1>Impressum</h1>
+  <p>Angaben gemäß § 5 DDG</p>
+    </div>
 
-  <div class="content-wrap">
+  <div class="content-wrap imp-layout">
+      <nav class="imp-toc" aria-label="Inhalt des Impressums">
+        <p class="imp-toc-title">Inhalt</p>
+        <a href="#imp-angaben">Angaben</a><a href="#imp-kontakt">Kontakt</a><a href="#imp-beruf">Berufsbezeichnung</a><a href="#imp-steuern">Steuern</a><a href="#imp-streit">Streitbeilegung</a><a href="#imp-inhalte">Haftung für Inhalte</a><a href="#imp-links">Haftung für Links</a><a href="#imp-urheber">Urheberrecht</a>
+      </nav>
+      <div class="imp-body">
 
     <!-- ANGABEN -->
-    <div class="imp-section">
+    <div class="imp-section" id="imp-angaben">
       <h2>Angaben gemäß § 5 DDG</h2>
       <address>
         <strong>Thilo Seifried</strong><br>
@@ -78,7 +92,7 @@
     </div>
 
     <!-- KONTAKT -->
-    <div class="imp-section">
+    <div class="imp-section" id="imp-kontakt">
       <h2>Kontakt</h2>
       <p>
         Telefon: <a href="tel:{{ settings.phone_raw | default(value='+4915234007225') }}">{{ settings.phone | default(value="+49 152 34 00 72 25") }}</a><br>
@@ -88,14 +102,14 @@
     </div>
 
     <!-- BERUFSBEZEICHNUNG -->
-    <div class="imp-section">
+    <div class="imp-section" id="imp-beruf">
       <h2>Berufsbezeichnung & Zulassung</h2>
       <p>Thilo Seifried ist zertifizierter Gantke® Faszienbehandler. Die Tätigkeit wird als Dienstleistung im Bereich Wellness und Körperarbeit ausgeübt.</p>
       <p>Die Gantke® Faszienbehandlung ist keine Heilkunde im Sinne des Heilpraktikergesetzes und ersetzt keine ärztliche Diagnose oder Behandlung.</p>
     </div>
 
     <!-- UMSATZSTEUER -->
-    <div class="imp-section">
+    <div class="imp-section" id="imp-steuern">
       <h2>Steuerliche Angaben</h2>
       <p>Gemäß § 19 UStG wird keine Umsatzsteuer berechnet (Kleinunternehmerregelung).</p>
       {% if settings.vat_id %}<p>Umsatzsteuer-Identifikationsnummer gemäß § 27a UStG: {{ settings.vat_id }}</p>{% endif %}
@@ -103,7 +117,7 @@
     </div>
 
     <!-- STREITSCHLICHTUNG -->
-    <div class="imp-section">
+    <div class="imp-section" id="imp-streit">
       <h2>Verbraucherstreitbeilegung</h2>
       <div class="warn-box">
         <p>Ich bin nicht bereit und nicht verpflichtet, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen.</p>
@@ -111,21 +125,21 @@
     </div>
 
     <!-- HAFTUNG INHALTE -->
-    <div class="imp-section">
+    <div class="imp-section" id="imp-inhalte">
       <h2>Haftung für Inhalte</h2>
       <p>Für die eigenen Inhalte dieser Website bin ich nach den allgemeinen Gesetzen verantwortlich. Wenn mir konkrete Rechtsverletzungen bekannt werden, prüfe ich die betreffenden Inhalte und entferne sie erforderlichenfalls.</p>
       <p>Verpflichtungen zur Entfernung oder Sperrung der Nutzung von Informationen nach den allgemeinen Gesetzen bleiben hiervon unberührt. Eine diesbezügliche Haftung ist jedoch erst ab dem Zeitpunkt der Kenntnis einer konkreten Rechtsverletzung möglich. Bei Bekanntwerden von entsprechenden Rechtsverletzungen werde ich diese Inhalte umgehend entfernen.</p>
     </div>
 
     <!-- HAFTUNG LINKS -->
-    <div class="imp-section">
+    <div class="imp-section" id="imp-links">
       <h2>Haftung für Links</h2>
       <p>Mein Angebot enthält Links zu externen Websites Dritter, auf deren Inhalte ich keinen Einfluss habe. Deshalb kann ich für diese fremden Inhalte auch keine Gewähr übernehmen. Für die Inhalte der verlinkten Seiten ist stets der jeweilige Anbieter oder Betreiber der Seiten verantwortlich.</p>
       <p>Die verlinkten Seiten wurden zum Zeitpunkt der Verlinkung auf mögliche Rechtsverstöße überprüft. Rechtswidrige Inhalte waren zum Zeitpunkt der Verlinkung nicht erkennbar. Eine permanente inhaltliche Kontrolle der verlinkten Seiten ist jedoch ohne konkrete Anhaltspunkte einer Rechtsverletzung nicht zumutbar. Bei Bekanntwerden von Rechtsverletzungen werde ich derartige Links umgehend entfernen.</p>
     </div>
 
     <!-- URHEBERRECHT -->
-    <div class="imp-section">
+    <div class="imp-section" id="imp-urheber">
       <h2>Urheberrecht</h2>
       <p>Die durch den Seitenbetreiber erstellten Inhalte und Werke auf diesen Seiten unterliegen dem deutschen Urheberrecht. Die Vervielfältigung, Bearbeitung, Verbreitung und jede Art der Verwertung außerhalb der Grenzen des Urheberrechtes bedürfen der schriftlichen Zustimmung des jeweiligen Autors bzw. Erstellers.</p>
       <p>Downloads und Kopien dieser Seite sind nur für den privaten, nicht kommerziellen Gebrauch gestattet. Soweit die Inhalte auf dieser Seite nicht vom Betreiber erstellt wurden, werden die Urheberrechte Dritter beachtet. Insbesondere werden Inhalte Dritter als solche gekennzeichnet. Sollten Sie trotzdem auf eine Urheberrechtsverletzung aufmerksam werden, bitte ich um einen entsprechenden Hinweis. Bei Bekanntwerden von Rechtsverletzungen werde ich derartige Inhalte umgehend entfernen.</p>
@@ -136,22 +150,20 @@
     </div>
 
   </div>
+  </div>
   </main>
 
-  <footer class="footer">
-    <p>
-      © 2026 Thilo Seifried · Gantke® Faszienbehandler · {{ settings.address_city | default(value="Rottweil") }}
-      &nbsp;·
-      <a href="/">Startseite</a>
-      &nbsp;&middot;&nbsp;
-      <a href="/impressum" aria-current="page">Impressum</a>
-      &nbsp;&middot;&nbsp;
-      <a href="/datenschutz">Datenschutz</a>
-    </p>
+  <footer class="footer footer-airy footer-compact">
+    <div class="footer-bottom">
+      <span>© 2026 Thilo Seifried · Gantke® Faszienbehandlung · {{ settings.address_city | default(value="Rottweil") }} · <a href="/">Startseite</a></span>
+      {% include "_footer_legal.html" %}
+    </div>
   </footer>
 
-  {% include "_service_footer.html" %}
   <script src="/static/js/accessibility.js" defer></script>
   <script src="/static/js/main.js?v=3" defer></script>
+<!-- impeccable-live-start -->
+<script src="http://localhost:8400/live.js?token=798bf504-d8df-4751-b06a-bd22ae500c5c"></script>
+<!-- impeccable-live-end -->
 </body>
 </html>
