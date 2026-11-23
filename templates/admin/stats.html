@@ -32,9 +32,20 @@
     <div class="admin-container">
       <h1>Statistiken</h1>
       <section class="marketing-stats">
+        <h2>Besuche der Website</h2>
+        <p>Eigene Reichweitenmessung ohne Cookies, letzte 90 Tage. Bots, Admin-Aufrufe und Browser mit „Do Not Track“ oder „Global Privacy Control“ werden nicht gezählt.</p>
+        <p><strong>{{ visit_total }}</strong> Seitenaufrufe{% if counts_visitors %} · <strong>{{ visitor_total }}</strong> Besuche (je Gerät und Tag einmal gezählt){% else %} · Einzelne Besucher werden erst gezählt, wenn <code>TRUSTED_PROXY</code> gesetzt ist.{% endif %}</p>
+        {% if visit_months | length > 0 %}
+        <table class="admin-table"><caption>Nach Monat</caption><thead><tr><th scope="col">Monat</th><th scope="col">Seitenaufrufe</th>{% if counts_visitors %}<th scope="col">Besuche</th>{% endif %}</tr></thead><tbody>{% for m in visit_months %}<tr><td>{{ m.month }}</td><td>{{ m.views }}</td>{% if counts_visitors %}<td>{{ m.visitors }}</td>{% endif %}</tr>{% endfor %}</tbody></table>
+        <table class="admin-table"><caption>Meistbesuchte Seiten</caption><thead><tr><th scope="col">Seite</th><th scope="col">Aufrufe</th></tr></thead><tbody>{% for p in visit_pages %}<tr><td>{{ p.label }}</td><td>{{ p.views }}</td></tr>{% endfor %}</tbody></table>
+        <table class="admin-table"><caption>Woher die Besucher kommen</caption><thead><tr><th scope="col">Website</th><th scope="col">Aufrufe</th></tr></thead><tbody>{% for r in visit_referrers %}<tr><td>{{ r.label }}</td><td>{{ r.views }}</td></tr>{% endfor %}</tbody></table>
+        <table class="admin-table"><caption>Geräte</caption><thead><tr><th scope="col">Gerät</th><th scope="col">Aufrufe</th></tr></thead><tbody>{% for d in visit_devices %}<tr><td>{{ d.label }}</td><td>{{ d.views }}</td></tr>{% endfor %}</tbody></table>
+        {% else %}<p>Noch keine gezählten Besuche.</p>{% endif %}
+      </section>
+      <section class="marketing-stats">
         <h2>Wie Kunden zu dir finden</h2>
         <p>{{ new_customers }} Kunden mit erstem gebuchtem Termin in diesem Monat. Freiwillige Kanalangaben aus bestätigten Buchungen ohne Konto, letzte 90 Tage; stornierte Termine sind ausgeschlossen.</p>
-        {% if booking_sources | length > 0 %}<table class="admin-table"><caption>Buchungen nach Herkunftskanal</caption><thead><tr><th scope="col">Kanal</th><th scope="col">Buchungen</th></tr></thead><tbody>{% for source in booking_sources %}<tr><td>{{ source.channel }}</td><td>{{ source.count }}</td></tr>{% endfor %}</tbody></table>{% else %}<p>Noch keine bestätigten Buchungen mit Herkunftsangabe. Es wird kein Tracking eingesetzt.</p>{% endif %}
+        {% if booking_sources | length > 0 %}<table class="admin-table"><caption>Buchungen nach Herkunftskanal</caption><thead><tr><th scope="col">Kanal</th><th scope="col">Buchungen</th></tr></thead><tbody>{% for source in booking_sources %}<tr><td>{{ source.channel }}</td><td>{{ source.count }}</td></tr>{% endfor %}</tbody></table>{% else %}<p>Noch keine bestätigten Buchungen mit Herkunftsangabe.</p>{% endif %}
       </section>
 
       <div class="stats-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:32px;">
@@ -119,8 +130,5 @@
   {% include "_service_footer.html" %}
   <script src="/static/js/accessibility.js" defer></script>
   <script src="/static/js/main.js?v=3" defer></script>
-<!-- impeccable-live-start -->
-<script src="http://localhost:8400/live.js?token=798bf504-d8df-4751-b06a-bd22ae500c5c"></script>
-<!-- impeccable-live-end -->
 </body>
 </html>

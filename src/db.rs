@@ -14,6 +14,7 @@ pub fn initialize(db_path: &str, admin_email: &str, admin_password: &str) -> Res
     conn.execute_batch("PRAGMA foreign_keys=ON;")?;
 
     create_tables(&conn)?;
+    crate::analytics::create_tables(&conn)?;
     migrate_existing_db(&conn)?;
     seed_settings(&conn)?;
     seed_faqs(&conn)?;

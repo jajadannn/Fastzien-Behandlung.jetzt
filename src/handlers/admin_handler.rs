@@ -974,8 +974,28 @@ pub async fn stats_page(
     let sources: Vec<serde_json::Value> = conn.prepare("SELECT CASE WHEN b.source='' THEN 'Keine Angabe' ELSE b.source END,COUNT(*) FROM booking_sources b JOIN appointments a ON a.id=b.appointment_id WHERE a.status!='cancelled' AND a.created_at>=datetime('now','-90 days') GROUP BY b.source ORDER BY COUNT(*) DESC")
         .and_then(|mut stmt| stmt.query_map([], |r| Ok(serde_json::json!({"channel":r.get::<_,String>(0)?,"count":r.get::<_,i64>(1)?})))?.collect()).unwrap_or_default();
     let new_customers: i64 = conn.query_row("SELECT COUNT(*) FROM (SELECT customer_id,MIN(start_time) AS first_visit FROM appointments WHERE status IN ('confirmed','completed') AND appointment_type!='blocked' GROUP BY customer_id) WHERE substr(first_visit,1,7)=strftime('%Y-%m','now')", [], |r| r.get(0)).unwrap_or(0);
+    // Cookieless reach measurement, last 90 days (see analytics.rs).
+    let since = "date('now','-90 days')";
+    let rows = |sql: &str, key: &str| -> Vec<serde_json::Value> {
+        conn.prepare(sql).and_then(|mut stmt| stmt.query_map([], |r| Ok(serde_json::json!({key: r.get::<_, String>(0)?, "views": r.get::<_, i64>(1)?})))?.collect()).unwrap_or_default()
+    };
+    let visit_pages = rows(&format!("SELECT path, SUM(views) FROM visit_daily WHERE day >= {since} GROUP BY path ORDER BY 2 DESC LIMIT 8"), "label");
+    let visit_referrers = rows(&format!("SELECT referrer, SUM(views) FROM visit_daily WHERE day >= {since} GROUP BY referrer ORDER BY 2 DESC LIMIT 8"), "label");
+    let visit_devices = rows(&format!("SELECT device, SUM(views) FROM visit_daily WHERE day >= {since} GROUP BY device ORDER BY 2 DESC"), "label");
+    let visit_months: Vec<serde_json::Value> = conn.prepare(&format!("SELECT substr(v.day,1,7) AS m, SUM(v.views), (SELECT COALESCE(SUM(u.visitors),0) FROM visit_uniques u WHERE substr(u.day,1,7)=substr(v.day,1,7) AND u.day >= {since}) FROM visit_daily v WHERE v.day >= {since} GROUP BY m ORDER BY m"))
+        .and_then(|mut stmt| stmt.query_map([], |r| Ok(serde_json::json!({"month": r.get::<_, String>(0)?, "views": r.get::<_, i64>(1)?, "visitors": r.get::<_, i64>(2)?})))?.collect()).unwrap_or_default();
+    let visit_total: i64 = conn.query_row(&format!("SELECT COALESCE(SUM(views),0) FROM visit_daily WHERE day >= {since}"), [], |r| r.get(0)).unwrap_or(0);
+    let visitor_total: i64 = conn.query_row(&format!("SELECT COALESCE(SUM(visitors),0) FROM visit_uniques WHERE day >= {since}"), [], |r| r.get(0)).unwrap_or(0);
+    let counts_visitors = req.app_data::<web::Data<crate::analytics::Analytics>>().is_some_and(|a| a.distinguishes_visitors());
     let mut ctx = tera::Context::new();
     ctx.insert("booking_sources", &sources);
+    ctx.insert("visit_pages", &visit_pages);
+    ctx.insert("visit_referrers", &visit_referrers);
+    ctx.insert("visit_devices", &visit_devices);
+    ctx.insert("visit_months", &visit_months);
+    ctx.insert("visit_total", &visit_total);
+    ctx.insert("visitor_total", &visitor_total);
+    ctx.insert("counts_visitors", &counts_visitors);
     ctx.insert("new_customers", &new_customers);
     ctx.insert("months_data", &months_data);
     ctx.insert("total_revenue", &total_revenue);

@@ -8,6 +8,7 @@ mod handlers;
 mod marketing;
 mod indexnow;
 mod security;
+mod analytics;
 
 use actix_web::{web, App, HttpServer, middleware::from_fn};
 use actix_files as fs;
@@ -54,6 +55,7 @@ async fn main() -> std::io::Result<()> {
     let jwt_secret = web::Data::new(config.jwt_secret.clone());
     let config_data = web::Data::new(config.clone());
     let auth_limiter = web::Data::new(security::AuthLimiter::default());
+    let analytics_data = web::Data::new(analytics::Analytics::from_env());
 
     // A deploy may change every public page; let IndexNow search engines know.
     if let Some(key) = indexnow_key { indexnow::submit_in_background(config.base_url.clone(), key, "Serverstart", true); }
@@ -103,6 +105,7 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(move || {
         App::new()
+            .wrap(from_fn(analytics::count_visit))
             .wrap(from_fn(security::protect))
             .wrap(security::access_logger())
             .wrap(actix_web::middleware::Compress::default())
@@ -114,6 +117,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(jwt_secret.clone())
             .app_data(config_data.clone())
             .app_data(auth_limiter.clone())
+            .app_data(analytics_data.clone())
             // Landing page
             .route("/", web::get().to(handlers::landing::index))
             .route("/index.html", web::get().to(|| async { actix_web::HttpResponse::PermanentRedirect().insert_header(("Location","/")).finish() }))

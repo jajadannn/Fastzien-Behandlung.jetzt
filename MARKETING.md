@@ -12,7 +12,7 @@ Stand: 7. Oktober 2026. Arbeitsgrundlage: der vom Inhaber übergebene Marketing-
 - Größeres vorhandenes Porträt; Themen-Unterseiten für Rückenverspannungen, Nacken/Schulter, Haltung und Sport sowie `/preise-und-ablauf`. Sitemap enthält nur echte Routen.
 - Originalbewertungen bleiben im Admin-Bereich. Echtheit, Einwilligung und Veröffentlichung müssen dort ausdrücklich bestätigt werden. Neue Datenbanken enthalten keine Musterbewertungen. Automatische Bewertungs-Werbemails mit dem bisherigen Platzhalterlink sind entfernt.
 - Feld für den echten Google-Bewertungslink in den Einstellungen. Der Link wird nur angezeigt, wenn er hinterlegt ist. Keine erfundenen Google-Sterne oder Bewertungszahlen.
-- Freiwillige Herkunftsangabe bei der Buchung, Auswertung bestätigter Buchungen der letzten 90 Tage im Admin-Bereich. Kein Google Analytics oder Meta Pixel.
+- Freiwillige Herkunftsangabe bei der Buchung, Auswertung bestätigter Buchungen der letzten 90 Tage im Admin-Bereich. Eigene cookielose Reichweitenmessung (Tageswerte je Seite, Herkunftswebsite und Geräteart). Kein Google Analytics oder Meta Pixel.
 
 ## Vor Veröffentlichung und im Tagesbetrieb
 
@@ -122,7 +122,7 @@ Dieser Plan ist keine Automation und versendet keine Erinnerungen oder Werbenach
 | Folgekontakte | Tatsächlich vereinbarte weitere Termine | Keine fixe Behandlungszahl als Versprechen |
 | Google-Rezensionen | Tatsächliche Einträge im Unternehmensprofil | Entwicklung beobachten; Sternezahl und Inhalt niemals vorgeben |
 
-Die Website zählt Buchungen, keine Besucher und keine Werbeklicks. Kanalangaben sind freiwillig und liefern keine vollständige Attribution. Lokale Ortsseiten für weitere Orte im Einzugsgebiet oder Firmenangebote werden erst nach Bestätigung des tatsächlich bedienten Gebiets bzw. Angebots veröffentlicht.
+Die Website zählt Buchungen und, seit November 2026, Seitenaufrufe über eine eigene Reichweitenmessung ohne Cookies (Admin → Statistiken), aber keine Werbeklicks. Kanalangaben sind freiwillig und liefern keine vollständige Attribution. Lokale Ortsseiten für weitere Orte im Einzugsgebiet oder Firmenangebote werden erst nach Bestätigung des tatsächlich bedienten Gebiets bzw. Angebots veröffentlicht.
 
 ## Neue Angebote – ausdrücklich nicht eingeführt
 
