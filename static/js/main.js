@@ -1,35 +1,5 @@
-// ===== Reveal animations on scroll =====
+// Content is shown at rest: no scroll-triggered reveal (design review, November 2026).
 (function() {
-  function applyRevealDelay(selector, stepMs) {
-    document.querySelectorAll(selector).forEach(function(el, index) {
-      el.style.setProperty('--reveal-delay', (index * stepMs) + 'ms');
-    });
-  }
-
-  applyRevealDelay('.pain-grid .js-animate', 70);
-  applyRevealDelay('.benefit-list .js-animate', 90);
-  applyRevealDelay('.steps-row .js-animate', 110);
-  applyRevealDelay('.testi-grid .js-animate', 95);
-  applyRevealDelay('.price-grid .js-animate', 120);
-  applyRevealDelay('.anfahrt-grid .js-animate', 90);
-  applyRevealDelay('#ueber .js-animate', 120);
-
-  var animatedEls = document.querySelectorAll('.js-animate');
-  if ('IntersectionObserver' in window && animatedEls.length && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    animatedEls.forEach(function(el) { el.classList.add('hidden'); });
-    var revealObserver = new IntersectionObserver(
-      function(entries, observer) {
-        entries.forEach(function(entry) {
-          if (!entry.isIntersecting) return;
-          entry.target.classList.remove('hidden');
-          observer.unobserve(entry.target);
-        });
-      },
-      { threshold: 0.12, rootMargin: '0px 0px -10%' }
-    );
-    animatedEls.forEach(function(el) { revealObserver.observe(el); });
-  }
-
   // ===== Mobile nav toggle =====
   var navToggle = document.querySelector('.nav-toggle');
   var navMenu = document.getElementById('topbar-menu');

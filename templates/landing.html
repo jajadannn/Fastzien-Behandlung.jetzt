@@ -45,7 +45,7 @@
   <link rel="preload" href="/fonts/cormorant-garamond-normal-latin.v1.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/fonts/cormorant-garamond-italic-latin.v1.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/fonts/dm-sans-latin.v1.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/static/css/main.css?v=21">
+  <link rel="stylesheet" href="/static/css/main.css?v=22">
 
   <script type="application/ld+json">{{ business_schema | safe }}</script>
   {% if faq_schema %}<script type="application/ld+json">{{ faq_schema | safe }}</script>{% endif %}
@@ -144,9 +144,9 @@
       <div class="intro-facts"><span>Gantke® Faszienbehandlung</span><span>ca. {{ dur }} Minuten</span><span>{{ single }} €</span><span>Praxis in {{ short }} oder Hausbesuch</span></div>
       <p class="section-lead">Manche möchten nach langen Tagen am Schreibtisch ihrem Körper wieder mehr Aufmerksamkeit geben. Andere treiben viel Sport und möchten genauer wahrnehmen, wie sie sich bewegen. Beides hat hier Platz.</p>
       <div class="benefit-list situation-list">
-        <div class="benefit-item js-animate"><div class="benefit-dot"></div><div><h3>Zwischen zwei Besprechungen</h3><p>Du sitzt viel, entscheidest viel und kommst selten dazu, auf dich selbst zu achten. Hier hast du {{ dur }} Minuten, in denen niemand etwas von dir will.</p></div></div>
-        <div class="benefit-item js-animate"><div class="benefit-dot"></div><div><h3>Wenn der Beruf dich immer gleich bewegt</h3><p>Ob am Bildschirm, in der Werkstatt oder auf der Baustelle: Wir schauen uns deine Haltung und deine Bewegungsgewohnheiten in Ruhe an.</p></div></div>
-        <div class="benefit-item js-animate"><div class="benefit-dot"></div><div><h3>Nach dem Training</h3><p>Du läufst, fährst Rad oder trainierst regelmäßig und möchtest genauer hinspüren, wie du dich bewegst.</p></div></div>
+        <div class="benefit-item"><div class="benefit-dot"></div><div><h3>Zwischen zwei Besprechungen</h3><p>Du sitzt viel, entscheidest viel und kommst selten dazu, auf dich selbst zu achten. Hier hast du {{ dur }} Minuten, in denen niemand etwas von dir will.</p></div></div>
+        <div class="benefit-item"><div class="benefit-dot"></div><div><h3>Wenn der Beruf dich immer gleich bewegt</h3><p>Ob am Bildschirm, in der Werkstatt oder auf der Baustelle: Wir schauen uns deine Haltung und deine Bewegungsgewohnheiten in Ruhe an.</p></div></div>
+        <div class="benefit-item"><div class="benefit-dot"></div><div><h3>Nach dem Training</h3><p>Du läufst, fährst Rad oder trainierst regelmäßig und möchtest genauer hinspüren, wie du dich bewegst.</p></div></div>
       </div>
       <p class="situation-more">Wer über den Körper hinaus über Gewohnheiten oder neue Perspektiven sprechen möchte, findet dafür Raum. Wie weit das Gespräch geht, entscheidest du.</p>
       <nav class="topic-list" aria-label="Mehr zu einzelnen Themen"><a href="/faszienbehandlung-ruecken"><span class="tl-name">Rücken</span><span class="tl-desc">Nach langem Sitzen oder körperlicher Arbeit</span><svg class="tl-arrow" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a><a href="/faszienbehandlung-nacken-schulter"><span class="tl-name">Nacken und Schulter</span><span class="tl-desc">Zwischen Bildschirm und Alltag</span><svg class="tl-arrow" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a><a href="/faszienbehandlung-haltung"><span class="tl-name">Haltung</span><span class="tl-desc">Bewegungsgewohnheiten bewusst wahrnehmen</span><svg class="tl-arrow" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a><a href="/faszienbehandlung-sport"><span class="tl-name">Sport</span><span class="tl-desc">Auch die Pause gehört zum Training</span><svg class="tl-arrow" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a></nav>
@@ -158,7 +158,7 @@
     <div class="container">
       <h2 class="section-title">Hallo, ich bin<br><em>Thilo Seifried</em></h2>
       <div class="about-split">
-        <div class="about-photo-wrap js-animate">
+        <div class="about-photo-wrap">
           <div class="about-photo">
             <img
               src="/static/images/portrait-640.webp"
@@ -171,7 +171,7 @@
               decoding="async">
           </div>
         </div>
-        <div class="about-text js-animate">
+        <div class="about-text">
           <p class="about-quote">„Ich glaube daran, dass Entwicklung beim Menschen selbst beginnt.“</p>
           <p>Deshalb höre ich zu, frage nach und lade dich ein, eigene Beobachtungen zu machen. Welche Anregung zu dir passt, entscheidest du.</p>
           <p>Meine Ausbildung habe ich an der Gantke Akademie für ganzheitliche Körperarbeit gemacht: fünf Module mit insgesamt 144 Stunden. Mein Zertifikat als Faszien-Behandler trägt das Datum 17. Juli 2024.</p>
@@ -190,9 +190,9 @@
       </div>
       <p class="section-lead">Faszien bilden ein Bindegewebsnetz, das den ganzen Körper durchzieht. Mit diesem Netz arbeite ich: mit den Händen, ohne Geräte und in ruhiger Atmosphäre.</p>
       <div class="benefit-list">
-        <div class="benefit-item js-animate"><div class="benefit-dot"></div><div><h3>Mit den Händen</h3><p>Ich arbeite mit manuellen Grifftechniken. Du sagst mir, wie sich der Druck anfühlt, und ich stimme ihn darauf ab.</p></div></div>
-        <div class="benefit-item js-animate"><div class="benefit-dot"></div><div><h3>Der ganze Körper im Blick</h3><p>Ich beziehe verschiedene Körperbereiche und deine Bewegungsgewohnheiten ein, nicht nur die Stelle, die dir gerade auffällt.</p></div></div>
-        <div class="benefit-item js-animate"><div class="benefit-dot"></div><div><h3>Körperarbeit, keine Heilkunde</h3><p>Die Behandlung ist eine Wellness- und Körperarbeitsleistung. Sie stellt keine Diagnose und verspricht kein bestimmtes Ergebnis.</p></div></div>
+        <div class="benefit-item"><div class="benefit-dot"></div><div><h3>Mit den Händen</h3><p>Ich arbeite mit manuellen Grifftechniken. Du sagst mir, wie sich der Druck anfühlt, und ich stimme ihn darauf ab.</p></div></div>
+        <div class="benefit-item"><div class="benefit-dot"></div><div><h3>Der ganze Körper im Blick</h3><p>Ich beziehe verschiedene Körperbereiche und deine Bewegungsgewohnheiten ein, nicht nur die Stelle, die dir gerade auffällt.</p></div></div>
+        <div class="benefit-item"><div class="benefit-dot"></div><div><h3>Körperarbeit, keine Heilkunde</h3><p>Die Behandlung ist eine Wellness- und Körperarbeitsleistung. Sie stellt keine Diagnose und verspricht kein bestimmtes Ergebnis.</p></div></div>
       </div>
     </div>
   </section>
@@ -202,10 +202,10 @@
       <h2 class="section-title">So läuft<br><em>dein Termin ab</em></h2>
       <p class="section-lead">{{ dur }} Minuten, die nur dir gehören. Es gibt keine parallelen Termine.</p>
       <div class="steps-row steps-quad">
-        <div class="step js-animate"><div class="step-num">1</div><div><h3>Ankommen und Gespräch</h3><p>Ich frage nach deinen Wünschen, deinem Körperempfinden und deinen Zielen. Das Gespräch ist Teil des Termins.</p></div></div>
-        <div class="step js-animate"><div class="step-num">2</div><div><h3>Hinschauen</h3><p>Ich betrachte deine Haltung und deine Bewegungsgewohnheiten und erkläre dir, was mir auffällt.</p></div></div>
-        <div class="step js-animate"><div class="step-num">3</div><div><h3>Manuelle Arbeit</h3><p>Du liegst auf einer bequemen Liege. Für die Behandlung empfehle ich möglichst wenig Kleidung. Du entscheidest, wie viel du anbehältst, damit du dich wohlfühlst. Wie fest ich arbeite, bestimmst du mit: Sag mir jederzeit, wie sich der Druck für dich anfühlt.</p></div></div>
-        <div class="step js-animate"><div class="step-num">4</div><div><h3>Abschluss</h3><p>Zum Schluss schauen wir gemeinsam auf deine Körperstruktur und Körperausrichtung: Wie stehst du jetzt, was nimmst du wahr? Dazu bekommst du Übungen, die du leicht in deinen Alltag einbauen kannst.</p></div></div>
+        <div class="step"><div class="step-num">1</div><div><h3>Ankommen und Gespräch</h3><p>Ich frage nach deinen Wünschen, deinem Körperempfinden und deinen Zielen. Das Gespräch ist Teil des Termins.</p></div></div>
+        <div class="step"><div class="step-num">2</div><div><h3>Hinschauen</h3><p>Ich betrachte deine Haltung und deine Bewegungsgewohnheiten und erkläre dir, was mir auffällt.</p></div></div>
+        <div class="step"><div class="step-num">3</div><div><h3>Manuelle Arbeit</h3><p>Du liegst auf einer bequemen Liege. Für die Behandlung empfehle ich möglichst wenig Kleidung. Du entscheidest, wie viel du anbehältst, damit du dich wohlfühlst. Wie fest ich arbeite, bestimmst du mit: Sag mir jederzeit, wie sich der Druck für dich anfühlt.</p></div></div>
+        <div class="step"><div class="step-num">4</div><div><h3>Abschluss</h3><p>Zum Schluss schauen wir gemeinsam auf deine Körperstruktur und Körperausrichtung: Wie stehst du jetzt, was nimmst du wahr? Dazu bekommst du Übungen, die du leicht in deinen Alltag einbauen kannst.</p></div></div>
       </div>
       <div class="ablauf-footer">
         <a class="btn-cta-large" href="{{ book }}">Termin vereinbaren</a>
@@ -219,7 +219,7 @@
       {% if settings.google_reviews_url %}<p><a href="{{ settings.google_reviews_url }}" target="_blank" rel="noopener noreferrer">Bewertungen auf Google ansehen</a></p>{% endif %}
       <div class="testi-grid">
         {% for review in reviews %}
-        <div class="testi-card js-animate">
+        <div class="testi-card">
           <div class="stars-row">{% for i in range(end=review.stars) %}★{% endfor %}</div>
           <p>{{ review.content }}</p>
           <div class="testi-author">– {{ review.author_name }}{% if review.author_location %}, {{ review.author_location }}{% endif %}</div>
@@ -234,30 +234,32 @@
       <h2 class="section-title">Preise und<br><em>Häufigkeit</em></h2>
       <p class="section-lead">Gespräch, Körperarbeit und Abschluss sind in den {{ dur }} Minuten enthalten. Du zahlst bar oder per Überweisung und erhältst eine Rechnung.</p>
       <div class="price-grid price-grid-single">
-        <div class="price-card featured js-animate">
+        <div class="price-card featured">
           <div class="price-label">Einzeltermin</div>
           <div class="price-amount">{{ single }} €</div>
           <div class="price-duration">ca. {{ dur }} Minuten</div>
           <ul class="price-perks"><li>Gespräch über Wünsche und Ziele</li><li>Gantke® Faszienbehandlung</li><li>Abschluss mit Anregung für den Alltag</li><li>Rechnung für deine Unterlagen</li></ul>
+          <div class="price-action"><a class="btn-primary" href="{{ book }}">Termin vereinbaren</a></div>
         </div>
       </div>
       <div class="price-grid price-grid-packages">
-        <div class="price-card js-animate">
+        <div class="price-card">
           <div class="price-label">{{ settings.price_pack_small_count | default(value="3") }} Termine</div>
           <div class="price-amount">{{ pack_small_total }} €</div>
           <div class="price-duration">{{ settings.price_pack_small | default(value="185") }} € je Termin</div>
           <p class="price-hint">Mein Vorschlag zum Kennenlernen, möglichst innerhalb von acht Wochen.</p>
+          <p class="price-action"><a href="mailto:{{ settings.email_contact | default(value='termin@faszienbehandlung.jetzt') }}?subject=3%20Termine%20anfragen">3 Termine anfragen</a></p>
         </div>
-        <div class="price-card js-animate">
+        <div class="price-card">
           <div class="price-label">{{ settings.price_pack_count | default(value="10") }} Termine</div>
           <div class="price-amount">{{ pack_total }} €</div>
           <div class="price-duration">{{ settings.price_pack | default(value="169") }} € je Termin</div>
           <p class="price-hint">Übertragbar und 12 Monate gültig.</p>
+          <p class="price-action"><a href="mailto:{{ settings.email_contact | default(value='termin@faszienbehandlung.jetzt') }}?subject=10%20Termine%20anfragen">10 Termine anfragen</a></p>
         </div>
       </div>
       <p class="price-note-text">Ein einzelner Termin ist jederzeit möglich. Wenn du die Arbeit in Ruhe kennenlernen möchtest, empfehle ich dir drei Termine. Über weitere Termine entscheidest du selbst. <a href="/preise-und-ablauf">Preis und Ablauf im Detail</a>.</p>
       <p class="price-note-text">Die Behandlung ist eine Wellness- und Gesundheitsförderungsleistung und wird von Krankenkassen und Versicherungen nicht erstattet.</p>
-      <div class="price-actions"><a class="btn-primary" href="{{ book }}">Termin vereinbaren</a></div>
     </div>
   </section>
 
@@ -273,17 +275,10 @@
     <div class="container">
       <h2 class="section-title">Praxis in<br><em>{{ short }}</em></h2>
       <p class="section-lead">{% if announce_move %}Ab 1. Dezember 2026 findest du meine Praxis in Rottweil, {{ street }}.{% else %}<strong>Adresse:</strong> {{ full_address }}{% if settings.location_note %} – {{ settings.location_note }}{% endif %}.{% endif %} Parkplätze gibt es direkt vor dem Haus.</p>
-      <div class="anfahrt-grid">
-        <a class="anfahrt-map-link js-animate" href="https://maps.google.com/?q={{ full_address | urlencode }}" target="_blank" rel="noopener noreferrer">
-          <div class="map-icon"><svg class="icon"><use href="#icon-pin" xlink:href="#icon-pin"/></svg></div>
-          <span>Route in Google Maps öffnen</span>
-          <small>{{ full_address }}</small>
-        </a>
-        <div class="anfahrt-details">
-          {% if settings.travel_times %}<div class="anfahrt-item js-animate"><div class="ai-icon"><svg class="icon"><use href="#icon-car" xlink:href="#icon-car"/></svg></div><div><h3>Mit dem Auto</h3><p>{{ settings.travel_times }}</p></div></div>{% endif %}
-          <div class="anfahrt-item js-animate"><div class="ai-icon"><svg class="icon"><use href="#icon-home" xlink:href="#icon-home"/></svg></div><div><h3>Hausbesuche</h3><p>Ich komme auch zu dir nach Hause{% if area %}: {{ area }}{% endif %}. Dafür berechne ich {{ settings.home_visit_surcharge | default(value="15") }} € Fahrtpauschale.</p></div></div>
-          <div class="anfahrt-item js-animate"><div class="ai-icon"><svg class="icon"><use href="#icon-clock" xlink:href="#icon-clock"/></svg></div><div><h3>Termine</h3><p>{{ settings.hours_weekday | default(value="Mo–Fr: 16:00–22:00 Uhr") }}<br>{{ settings.hours_saturday | default(value="Sa: 9:00–19:00 Uhr") }}</p></div></div>
-        </div>
+      <div class="anfahrt-cards">
+        <div class="anfahrt-item"><div class="ai-icon"><svg class="icon"><use href="#icon-pin" xlink:href="#icon-pin"/></svg></div><div><h3>Adresse</h3><p>{{ full_address }}{% if announce_move %}<br>ab 1. Dezember 2026{% endif %}</p><a class="anfahrt-route" href="https://maps.google.com/?q={{ full_address | urlencode }}" target="_blank" rel="noopener noreferrer">Route in Google Maps öffnen</a></div></div>
+        <div class="anfahrt-item"><div class="ai-icon"><svg class="icon"><use href="#icon-home" xlink:href="#icon-home"/></svg></div><div><h3>Hausbesuche</h3><p>Ich komme auch zu dir nach Hause{% if area %}: {{ area }}{% endif %}. Dafür berechne ich {{ settings.home_visit_surcharge | default(value="15") }} € Fahrtpauschale.</p></div></div>
+        <div class="anfahrt-item"><div class="ai-icon"><svg class="icon"><use href="#icon-clock" xlink:href="#icon-clock"/></svg></div><div><h3>Termine</h3><p>{{ settings.hours_weekday | default(value="Mo–Fr: 16:00–22:00 Uhr") }}<br>{{ settings.hours_saturday | default(value="Sa: 9:00–19:00 Uhr") }}{% if settings.travel_times %}<br>{{ settings.travel_times }}{% endif %}</p></div></div>
       </div>
     </div>
   </section>
@@ -317,9 +312,6 @@
     </div>
   </section>
 
-  <div class="hours-stripe">
-    <p><strong>Termine:</strong> {{ settings.hours_stripe | default(value="Mo–Fr 16:00–22:00 Uhr · Sa 9:00–19:00 Uhr") }} &nbsp;|&nbsp; <a href="tel:{{ settings.phone_raw | default(value='+4915234007225') }}">{{ settings.phone | default(value="+49 152 34 00 72 25") }}</a></p>
-  </div>
   </main>
 
   <footer class="footer footer-airy">
@@ -348,7 +340,7 @@
     </footer>
 
 
-  <script src="/static/js/main.js?v=2" defer></script>
+  <script src="/static/js/main.js?v=4" defer></script>
   <script src="/static/js/accessibility.js" defer></script>
 </body>
 </html>
