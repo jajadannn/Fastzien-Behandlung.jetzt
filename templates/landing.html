@@ -45,7 +45,9 @@
   <link rel="preload" href="/fonts/cormorant-garamond-normal-latin.v1.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/fonts/cormorant-garamond-italic-latin.v1.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/fonts/dm-sans-latin.v1.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/static/css/main.css?v=22">
+  <script>document.documentElement.classList.add('m-enter');setTimeout(function(){document.documentElement.classList.add('m-enter-done')},900);document.documentElement.classList.add('mo-js');setTimeout(function(){document.documentElement.classList.add('mo-safe')},2500)</script>
+  <link rel="modulepreload" href="/static/moments/moments.js"><link rel="modulepreload" href="/static/moments/lib.js"><link rel="modulepreload" href="/static/moments/word-highlight/moment.js">
+  <link rel="stylesheet" href="/static/css/main.css?v=32">
 
   <script type="application/ld+json">{{ business_schema | safe }}</script>
   {% if faq_schema %}<script type="application/ld+json">{{ faq_schema | safe }}</script>{% endif %}
@@ -61,7 +63,7 @@
   {%- set book = "/buchen" %}{% if is_logged_in %}{% set book = "/portal/book" %}{% endif %}
   <nav class="topbar" aria-label="Hauptnavigation">
     <a class="topbar-logo" href="#home">
-      <picture><source srcset="/Logo.avif" type="image/avif"><img
+      <picture><source srcset="/static/images/logo-184.webp" type="image/webp"><img
         src="/static/images/logo-240.png"
         alt="Faszienbehandlung Thilo Seifried"
         width="92"
@@ -96,10 +98,12 @@
 
 
   <main tabindex="-1" id="main-content">
-  <section class="hero" id="home">
+  <section class="hero" id="home" data-enter>
     <div class="hero-media" aria-hidden="true">
       <img
-        src="/Start.avif"
+        src="/static/images/start-1600.webp"
+        srcset="/static/images/start-960.webp 960w, /static/images/start-1600.webp 1600w, /static/images/start-2400.webp 2400w"
+        sizes="100vw"
         alt=""
         fetchpriority="high"
         decoding="async"
@@ -133,7 +137,7 @@
       </div>
       <p class="hero-price">{{ dur }} Minuten · {{ single }} €</p>
       {% endif %}
-      {% if not is_logged_in %}<div class="hero-person"><img src="/static/images/portrait-640.webp" alt="Thilo Seifried" width="56" height="70" decoding="async"><p><strong>Thilo Seifried</strong><span>Faszien-Behandler · Gantke Akademie</span></p></div>{% endif %}
+      {% if not is_logged_in %}<div class="hero-person"><img src="/static/images/portrait-160.webp" alt="Thilo Seifried" width="56" height="70" decoding="async"><p><strong>Thilo Seifried</strong><span>Faszien-Behandler · Gantke Akademie</span></p></div>{% endif %}
       <p class="hero-note">{% if announce_move %}Ab 1. Dezember 2026 findest du meine Praxis in Rottweil, {{ street }}.{% else %}Praxis in {{ short }} · Hausbesuche in der Region{% endif %}</p>
     </div>
   </section>
@@ -150,7 +154,6 @@
       </div>
       <p class="situation-more">Wer über den Körper hinaus über Gewohnheiten oder neue Perspektiven sprechen möchte, findet dafür Raum. Wie weit das Gespräch geht, entscheidest du.</p>
       <nav class="topic-list" aria-label="Mehr zu einzelnen Themen"><a href="/faszienbehandlung-ruecken"><span class="tl-name">Rücken</span><span class="tl-desc">Nach langem Sitzen oder körperlicher Arbeit</span><svg class="tl-arrow" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a><a href="/faszienbehandlung-nacken-schulter"><span class="tl-name">Nacken und Schulter</span><span class="tl-desc">Zwischen Bildschirm und Alltag</span><svg class="tl-arrow" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a><a href="/faszienbehandlung-haltung"><span class="tl-name">Haltung</span><span class="tl-desc">Bewegungsgewohnheiten bewusst wahrnehmen</span><svg class="tl-arrow" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a><a href="/faszienbehandlung-sport"><span class="tl-name">Sport</span><span class="tl-desc">Auch die Pause gehört zum Training</span><svg class="tl-arrow" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a></nav>
-      <div class="contra-note"><strong>Kontraindikationen</strong><p>Die Behandlung ist nicht geeignet bei akuten Entzündungen, Fieber, Metastasen, frischen Operationswunden oder Thrombosen. Bei Beschwerden mit Krankheitswert bitte vorher ärztlich abklären. Die Sitzung ersetzt keine medizinische Diagnose oder Behandlung.</p></div>
     </div>
   </section>
 
@@ -194,6 +197,13 @@
         <div class="benefit-item"><div class="benefit-dot"></div><div><h3>Der ganze Körper im Blick</h3><p>Ich beziehe verschiedene Körperbereiche und deine Bewegungsgewohnheiten ein, nicht nur die Stelle, die dir gerade auffällt.</p></div></div>
         <div class="benefit-item"><div class="benefit-dot"></div><div><h3>Körperarbeit, keine Heilkunde</h3><p>Die Behandlung ist eine Wellness- und Körperarbeitsleistung. Sie stellt keine Diagnose und verspricht kein bestimmtes Ergebnis.</p></div></div>
       </div>
+      <div class="contra-note"><strong>Kontraindikationen</strong><p>Die Behandlung ist nicht geeignet bei akuten Entzündungen, Fieber, Metastasen, frischen Operationswunden oder Thrombosen. Bei Beschwerden mit Krankheitswert bitte vorher ärztlich abklären. Die Sitzung ersetzt keine medizinische Diagnose oder Behandlung.</p></div>
+    </div>
+  </section>
+
+  <section class="section-white statement" id="haltung" data-moment="word-highlight" aria-label="Haltung">
+    <div class="container">
+      <p class="mo-wh__text">Die körperliche Erfahrung ist der Ausgangspunkt. Du nimmst wahr, wie du dich bewegst, und entscheidest <strong>selbst</strong>, was du davon in deinen Alltag mitnimmst.</p>
     </div>
   </section>
 
@@ -233,16 +243,14 @@
     <div class="container">
       <h2 class="section-title">Preise und<br><em>Häufigkeit</em></h2>
       <p class="section-lead">Gespräch, Körperarbeit und Abschluss sind in den {{ dur }} Minuten enthalten. Du zahlst bar oder per Überweisung und erhältst eine Rechnung.</p>
-      <div class="price-grid price-grid-single">
+      <div class="price-grid price-grid-row">
         <div class="price-card featured">
           <div class="price-label">Einzeltermin</div>
           <div class="price-amount">{{ single }} €</div>
           <div class="price-duration">ca. {{ dur }} Minuten</div>
-          <ul class="price-perks"><li>Gespräch über Wünsche und Ziele</li><li>Gantke® Faszienbehandlung</li><li>Abschluss mit Anregung für den Alltag</li><li>Rechnung für deine Unterlagen</li></ul>
+          <p class="price-hint">Gespräch, Gantke® Faszienbehandlung und Abschluss mit Anregung für den Alltag.</p>
           <div class="price-action"><a class="btn-primary" href="{{ book }}">Termin vereinbaren</a></div>
         </div>
-      </div>
-      <div class="price-grid price-grid-packages">
         <div class="price-card">
           <div class="price-label">{{ settings.price_pack_small_count | default(value="3") }} Termine</div>
           <div class="price-amount">{{ pack_small_total }} €</div>
@@ -340,6 +348,7 @@
     </footer>
 
 
+  <script type="module" src="/static/moments/moments.js"></script>
   <script src="/static/js/main.js?v=4" defer></script>
   <script src="/static/js/accessibility.js" defer></script>
 </body>
