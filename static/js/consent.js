@@ -9,10 +9,9 @@
     loaded = true;
     window.dataLayer = window.dataLayer || [];
     window.gtag = function () { window.dataLayer.push(arguments); };
-    // Consent Mode v2 (Google's EU user consent policy). The banner asks for measurement only,
-    // so personalised ads (remarketing) stay denied.
+    // Consent Mode v2 (Google's EU user consent policy): denied until the visitor allows all.
     window.gtag('consent', 'default', { ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied', analytics_storage: 'denied' });
-    window.gtag('consent', 'update', { ad_storage: 'granted', ad_user_data: 'granted' });
+    window.gtag('consent', 'update', { ad_storage: 'granted', ad_user_data: 'granted', ad_personalization: 'granted', analytics_storage: 'granted' });
     window.gtag('js', new Date());
     window.gtag('config', ID);
     var s = document.createElement('script');
@@ -31,7 +30,7 @@
     box.className = 'consent-banner';
     box.setAttribute('role', 'dialog');
     box.setAttribute('aria-label', 'Einwilligung zu Google Ads');
-    box.innerHTML = '<p>Darf ich messen, ob Besucher über eine Google-Anzeige einen Termin buchen? Dafür setzt Google Ads Cookies und erhält Daten über deinen Besuch. '
+    box.innerHTML = '<p>Darf Google Ads Cookies setzen? Damit messe ich, ob Besucher über eine Anzeige einen Termin buchen, und Google kann dir passende Anzeigen zeigen (Remarketing). Google erhält dafür Daten über deinen Besuch. '
       + '<a href="/datenschutz#dp-4">Mehr dazu</a></p>'
       + '<div class="consent-actions"><button type="button" data-consent="denied">Ablehnen</button>'
       + '<button type="button" data-consent="granted">Erlauben</button></div>';
@@ -41,7 +40,7 @@
       remember(v);
       box.remove();
       if (v === 'granted') load();
-      else if (loaded) window.gtag('consent', 'update', { ad_storage: 'denied', ad_user_data: 'denied' });
+      else if (loaded) window.gtag('consent', 'update', { ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied', analytics_storage: 'denied' });
     });
     document.body.appendChild(box);
   }
