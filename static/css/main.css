@@ -750,3 +750,9 @@ main>section:not(.hero){min-height:100svh}
 .price-grid-row .price-action .btn-primary{white-space:nowrap;padding:14px 26px;min-height:52px}
 .price-grid-row .price-action a{white-space:nowrap}
 .price-note-text a{color:var(--plum-dark);text-decoration:underline;text-underline-offset:.22em}
+/* Consent banner for the Google Ads tag: two equal choices, nothing loads before one. */
+.consent-banner{position:fixed;left:16px;right:16px;bottom:16px;z-index:300;max-width:560px;margin:0 auto;background:var(--white);color:var(--text);border:1px solid rgba(26,42,51,0.16);border-radius:14px;padding:18px 20px;box-shadow:0 12px 40px rgba(26,42,51,0.2);font-size:1rem;line-height:1.6}
+.consent-banner a{color:var(--plum-dark);text-decoration:underline;text-underline-offset:.2em}
+.consent-actions{display:flex;gap:12px;margin-top:14px}
+.consent-actions button{flex:1;min-height:48px;border-radius:50px;border:1.5px solid var(--plum);background:var(--white);color:var(--plum-dark);font:inherit;font-weight:600;cursor:pointer}
+.consent-actions button:hover{background:rgba(150,66,121,0.08)}

@@ -9,7 +9,8 @@ use actix_web::{
 use crate::config::Config;
 use std::{collections::HashMap, net::IpAddr, sync::Mutex, time::{Duration, Instant}};
 
-const CSP: &str = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self'";
+// Google hosts: the Ads conversion tag, loaded only after consent (static/js/consent.js).
+const CSP: &str = "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.googleadservices.com https://googleads.g.doubleclick.net https://www.google.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://www.googletagmanager.com https://googleads.g.doubleclick.net https://ad.doubleclick.net https://www.google.com https://www.google.de; font-src 'self'; connect-src 'self' https://www.google.com https://googleads.g.doubleclick.net https://ad.doubleclick.net https://www.googleadservices.com; frame-src https://td.doubleclick.net https://bid.g.doubleclick.net https://www.googletagmanager.com; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self'";
 
 /// Debug builds started with `IMPECCABLE_LIVE=1` also allow the local
 /// impeccable live helper (design tooling). Release builds always send `CSP`.
@@ -18,7 +19,7 @@ fn content_security_policy() -> &'static str {
     {
         static LIVE: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
         if *LIVE.get_or_init(|| std::env::var("IMPECCABLE_LIVE").is_ok_and(|v| v == "1")) {
-            return "default-src 'self'; script-src 'self' 'unsafe-inline' http://localhost:8400; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: http://localhost:8400; font-src 'self'; connect-src 'self' http://localhost:8400; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self'";
+            return "default-src 'self'; script-src 'self' 'unsafe-inline' http://localhost:8400 https://www.googletagmanager.com https://www.googleadservices.com https://googleads.g.doubleclick.net https://www.google.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: http://localhost:8400; font-src 'self'; connect-src 'self' http://localhost:8400; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self'";
         }
     }
     CSP

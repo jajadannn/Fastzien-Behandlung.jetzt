@@ -17,6 +17,7 @@
         const success = document.getElementById('success-msg');
         success.textContent = 'Dein Termin ist verbindlich gebucht. Buchungsnummer: ' + data.appointment_id + '. Die Bestätigung wird per E-Mail übermittelt; bei einer Versandstörung wird der Versand erneut versucht. Für Änderungen oder Absagen erreichst du Thilo telefonisch oder per E-Mail.';
         success.style.display = 'block';
+        if (window.faszienConversion) window.faszienConversion();
       } catch (err) { error.textContent = err.message || 'Verbindungsfehler. Bitte versuche es erneut.'; error.style.display = 'block'; button.disabled = false; button.textContent = 'Termin kostenpflichtig buchen'; }
     });
     return;

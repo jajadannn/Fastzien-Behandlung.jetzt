@@ -54,7 +54,7 @@ Personal, certified Gantke® fascia and bodywork delivered by Thilo Seifried, wi
 - The canonical domain is `faszienbehandlung.jetzt` (without a hyphen).
 - October 2026 marketing guide is the revised product/copy brief. Three-session packages, new payment methods, a free pre-booking phone appointment, company offerings, and follow-up services are drafts only, not published or enabled services.
 - Real portrait: `/Portrait.jpg`. Topic pages cover back tension, neck/shoulders, posture, sport, and price/appointment flow. No fabricated regional offices or local reviews.
-- Optional acquisition-channel responses are collected in guest booking and shown as booking counts in admin statistics. No third-party analytics or marketing trackers.
+- Optional acquisition-channel responses are collected in guest booking and shown as booking counts in admin statistics. No third-party analytics. The Google Ads conversion tag (AW-18507567266) loads only after opt-in via the consent banner (static/js/consent.js); conversion fires after a confirmed guest booking.
 - Self-hosted, cookieless reach measurement (src/analytics.rs, since November 2026): daily aggregates of page, referring host and device class; daily visitors via an in-memory salted hash that is never stored and rotates daily. Skips bots, admins, DNT and GPC. Visitor counts need `TRUSTED_PROXY` set to the reverse proxy address. Described in Datenschutz section 3.
 
 ## Product Principles
