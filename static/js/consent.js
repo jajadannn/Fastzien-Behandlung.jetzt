@@ -9,6 +9,10 @@
     loaded = true;
     window.dataLayer = window.dataLayer || [];
     window.gtag = function () { window.dataLayer.push(arguments); };
+    // Consent Mode v2 (Google's EU user consent policy). The banner asks for measurement only,
+    // so personalised ads (remarketing) stay denied.
+    window.gtag('consent', 'default', { ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied', analytics_storage: 'denied' });
+    window.gtag('consent', 'update', { ad_storage: 'granted', ad_user_data: 'granted' });
     window.gtag('js', new Date());
     window.gtag('config', ID);
     var s = document.createElement('script');
@@ -37,6 +41,7 @@
       remember(v);
       box.remove();
       if (v === 'granted') load();
+      else if (loaded) window.gtag('consent', 'update', { ad_storage: 'denied', ad_user_data: 'denied' });
     });
     document.body.appendChild(box);
   }
