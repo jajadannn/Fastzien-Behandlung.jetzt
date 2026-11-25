@@ -50,6 +50,17 @@
     if (loaded) window.gtag('event', 'conversion', { send_to: ID + '/Zje9CKytxL8dEKKhjPlE' });
   };
 
+  // Click-to-call conversion: report the tap, then open the dialler. The timeout keeps the call
+  // working if Google never answers (blocked, offline).
+  document.addEventListener('click', function (e) {
+    var a = loaded && e.target.closest && e.target.closest('a[href^="tel:"]');
+    if (!a) return;
+    e.preventDefault();
+    var done = false, go = function () { if (!done) { done = true; window.location = a.href; } };
+    window.gtag('event', 'conversion', { send_to: ID + '/H5PICJi6xb8dEKKhjPlE', value: 1.0, currency: 'EUR', event_callback: go });
+    setTimeout(go, 800);
+  });
+
   function start() {
     var c = choice();
     if (c === 'granted') load();
